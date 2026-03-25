@@ -19,7 +19,7 @@ import java.util.Objects;
 public final class ApplicantCvReviewSwingDemo {
     private final ApplicantCvReviewService reviewService;
 
-    private final JTextField userIdField = new JTextField(24);
+    private final JTextField applicationIdField = new JTextField(24);
     private final JTextArea summaryArea = new JTextArea(10, 48);
     private final JTextArea cvContentArea = new JTextArea(16, 48);
     private final JTextArea resultArea = new JTextArea(5, 48);
@@ -36,7 +36,7 @@ public final class ApplicantCvReviewSwingDemo {
 
             JPanel topPanel = new JPanel(new GridBagLayout());
             topPanel.setBorder(BorderFactory.createEmptyBorder(12, 12, 0, 12));
-            addField(topPanel, 0, "Applicant userId", userIdField);
+            addField(topPanel, 0, "Application ID", applicationIdField);
 
             JPanel buttonPanel = new JPanel();
             JButton loadButton = new JButton("Load Applicant CV");
@@ -61,8 +61,8 @@ public final class ApplicantCvReviewSwingDemo {
                 Read-only CV review helper
 
                 Notes:
-                - Use an applicant userId that already has a submitted CV, for example ta001.
-                - This is a simple demo for reviewing profile data and CV text together.
+                - Use an applicationId that already has a submitted CV, for example application001.
+                - This demo shows application data, applicant profile, and application-specific CV text together.
                 - Later organiser-side stories can reuse the same review logic.
                 """);
 
@@ -86,10 +86,15 @@ public final class ApplicantCvReviewSwingDemo {
 
     private void loadReview() {
         try {
-            ApplicantCvReview review = reviewService.loadReviewByUserId(userIdField.getText().trim());
+            ApplicantCvReview review = reviewService.loadReviewByApplicationId(applicationIdField.getText().trim());
             ApplicantProfile profile = review.profile();
+            com.bupt.tarecruitment.application.JobApplication application = review.application();
 
             summaryArea.setText("""
+                applicationId: %s
+                jobId: %s
+                applicantUserId: %s
+                applicationCvFileName: %s
                 profileId: %s
                 userId: %s
                 studentId: %s
@@ -100,8 +105,11 @@ public final class ApplicantCvReviewSwingDemo {
                 skills: %s
                 availabilitySlots: %s
                 desiredPositions: %s
-                cvFileName: %s
                 """.formatted(
+                application.applicationId(),
+                application.jobId(),
+                application.applicantUserId(),
+                application.cvFileName(),
                 profile.profileId(),
                 profile.userId(),
                 profile.studentId(),
@@ -111,18 +119,17 @@ public final class ApplicantCvReviewSwingDemo {
                 profile.educationLevel(),
                 String.join(", ", profile.skills()),
                 String.join(", ", profile.availabilitySlots()),
-                String.join(", ", profile.desiredPositions()),
-                profile.cvFileName()
+                String.join(", ", profile.desiredPositions())
             ));
             cvContentArea.setText(review.cvContent());
-            resultArea.setText("Applicant CV loaded successfully for review.");
+            resultArea.setText("Application-specific CV loaded successfully for review.");
         } catch (IllegalArgumentException exception) {
             resultArea.setText("Failed to load applicant CV.\n\n" + exception.getMessage());
         }
     }
 
     private void clearForm() {
-        userIdField.setText("");
+        applicationIdField.setText("");
         summaryArea.setText("");
         cvContentArea.setText("");
         resultArea.setText("Form cleared.");

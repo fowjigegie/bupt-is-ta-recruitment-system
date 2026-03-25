@@ -217,11 +217,11 @@ The starter creates these files under `data/`:
 - `users.txt`
   - `userId|passwordHash|role|displayName|status`
 - `profiles.txt`
-  - `profileId|userId|studentId|fullName|programme|yearOfStudy|educationLevel|skills(;)|availabilitySlots(;)|desiredPositions(;)|cvFileName`
+  - `profileId|userId|studentId|fullName|programme|yearOfStudy|educationLevel|skills(;)|availabilitySlots(;)|desiredPositions(;)`
 - `jobs.txt`
   - `jobId|organiserId|title|moduleOrActivity|description|requiredSkills(;)|weeklyHours|scheduleSlots(;)|status`
 - `applications.txt`
-  - `applicationId|jobId|applicantUserId|status|submittedAt|reviewerNote`
+  - `applicationId|jobId|applicantUserId|cvFileName|status|submittedAt|reviewerNote`
 - `messages.txt`
   - `messageId|jobId|senderUserId|receiverUserId|sentAt|content|readStatus`
 - `cvs/`
@@ -235,7 +235,7 @@ Storage rules:
 - If a field contains multiple values, use `;`
 - If a field contract changes, update both this file and the sample data in the same PR
 - `cvFileName` stores a relative path, not an absolute local-machine path
-- current agreed CV path example: `cvs/ta001/current.txt`
+- application-specific CV path example: `cvs/ta001/application001.txt`
 
 ## 10. Cross-story contracts for Sprint 1
 
@@ -272,7 +272,6 @@ UI contract from `US-00`:
 - profile is linked to exactly one `userId`
 - required profile fields are saved in the agreed order in `profiles.txt`
 - other stories may rely on profile lookup by `userId`
-- `cvFileName` may be blank during `US-01` if `US-02` has not uploaded a CV yet
 - `studentId` must be unique across applicant profiles and use 8 to 12 digits
 - `fullName`, `programme`, `skills`, and `desiredPositions` use letters and spaces only in Sprint 1
 - `yearOfStudy` must be between `1` and `4`
@@ -287,18 +286,18 @@ Minimum logical contract:
 
 ### `US-02` must provide
 
-- CV belongs to an applicant identified by `userId`
-- CV storage uses the agreed `cvFileName` reference from the profile record
-- the agreed reference is a relative path such as `cvs/ta001/current.txt`
+- CV belongs to a specific application identified by `applicationId`
+- the application record, not the profile record, stores the active `cvFileName`
+- the agreed reference is a relative path such as `cvs/ta001/application001.txt`
 - validation must reject empty or unsupported CV content according to the final story design
-- repeated upload currently overwrites the applicant's current CV text file
+- repeated upload currently overwrites the CV text file for that specific application
 - Sprint 1 CV input can be pasted text or a local `.txt` file import
-- read-only CV review by applicant `userId` can be reused later by organiser-side stories
+- read-only CV review by `applicationId` can be reused later by organiser-side stories
 
 Minimum logical contract:
 
-- `saveCv(userId, cvContentOrFileName)`
-- `getCvReferenceByUserId(userId)`
+- `saveCv(applicationId, cvContentOrFileName)`
+- `getCvReferenceByApplicationId(applicationId)`
 
 ### `US-03` must provide
 
@@ -328,6 +327,7 @@ Minimum logical contract:
 - duplicate applications to the same job must be blocked
 - only jobs with status `OPEN` can be applied to
 - application status starts as `SUBMITTED`
+- each application carries its own `cvFileName` so different jobs can use different CV text files
 
 Minimum logical contract:
 

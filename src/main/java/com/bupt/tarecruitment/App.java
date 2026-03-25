@@ -1,5 +1,7 @@
 package com.bupt.tarecruitment;
 
+import com.bupt.tarecruitment.application.ApplicationRepository;
+import com.bupt.tarecruitment.application.TextFileApplicationRepository;
 import com.bupt.tarecruitment.applicant.ApplicantProfileConsoleWorkflow;
 import com.bupt.tarecruitment.applicant.ApplicantCvService;
 import com.bupt.tarecruitment.applicant.ApplicantCvSwingDemo;
@@ -124,11 +126,11 @@ public final class App {
     }
 
     private static void runUs02Ui(StartupReport report) {
+        ApplicationRepository applicationRepository = new TextFileApplicationRepository(report.dataDirectory());
         ApplicantProfileRepository repository = new TextFileApplicantProfileRepository(report.dataDirectory());
-        ApplicantProfileService profileService = new ApplicantProfileService(repository, new ApplicantProfileValidator());
         ApplicantCvService cvService = new ApplicantCvService(
+            applicationRepository,
             repository,
-            profileService,
             new TextFileCvStorage(report.dataDirectory())
         );
         ApplicantCvSwingDemo demo = new ApplicantCvSwingDemo(cvService);
@@ -136,8 +138,10 @@ public final class App {
     }
 
     private static void runCvReviewUi(StartupReport report) {
+        ApplicationRepository applicationRepository = new TextFileApplicationRepository(report.dataDirectory());
         ApplicantProfileRepository repository = new TextFileApplicantProfileRepository(report.dataDirectory());
         ApplicantCvReviewService reviewService = new ApplicantCvReviewService(
+            applicationRepository,
             repository,
             new TextFileCvStorage(report.dataDirectory())
         );

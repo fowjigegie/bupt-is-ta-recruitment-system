@@ -71,7 +71,6 @@ public final class ApplicantProfileConsoleWorkflow {
         List<String> skills = promptList("Skills separated by ';' or ',' (optional)");
         List<String> availabilitySlots = promptRequiredList("Availability slots separated by ';' or ','");
         List<String> desiredPositions = promptRequiredList("Desired positions separated by ';' or ','");
-        String cvFileName = promptOptional("CV relative path (leave blank until US-02 uploads CV)");
 
         ApplicantProfile profile = new ApplicantProfile(
             profileId,
@@ -83,8 +82,7 @@ public final class ApplicantProfileConsoleWorkflow {
             educationLevel,
             skills,
             availabilitySlots,
-            desiredPositions,
-            cvFileName
+            desiredPositions
         );
 
         try {
@@ -122,7 +120,6 @@ public final class ApplicantProfileConsoleWorkflow {
         output.println(" - skills: " + String.join(", ", profile.skills()));
         output.println(" - availabilitySlots: " + String.join(", ", profile.availabilitySlots()));
         output.println(" - desiredPositions: " + String.join(", ", profile.desiredPositions()));
-        output.println(" - cvFileName: " + profile.cvFileName());
     }
 
     private String promptNonBlank(String label) {
