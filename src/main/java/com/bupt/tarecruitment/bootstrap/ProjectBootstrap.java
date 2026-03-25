@@ -10,10 +10,15 @@ import java.util.ArrayList;
 import java.util.List;
 
 public final class ProjectBootstrap {
-    private static final List<String> SAMPLE_CV_LINES = List.of(
+    private static final List<String> SAMPLE_CV_ONE_LINES = List.of(
         "Demo Applicant",
         "Software Engineering undergraduate with Java and communication skills.",
         "Interested in teaching assistant and invigilation roles."
+    );
+    private static final List<String> SAMPLE_CV_TWO_LINES = List.of(
+        "Demo Applicant",
+        "Computer Science focused CV tailored for tutorial support.",
+        "Highlights programming fundamentals and student-facing communication."
     );
 
     public StartupReport initialize() {
@@ -32,11 +37,18 @@ public final class ProjectBootstrap {
                 }
             }
 
-            Path sampleCvPath = dataDirectory.resolve("cvs").resolve("ta001").resolve("application001.txt");
-            Files.createDirectories(sampleCvPath.getParent());
-            if (Files.notExists(sampleCvPath)) {
-                Files.write(sampleCvPath, SAMPLE_CV_LINES, StandardCharsets.UTF_8);
-                createdFiles.add(sampleCvPath);
+            Path sampleCvOnePath = dataDirectory.resolve("cvs").resolve("ta001").resolve("cv001.txt");
+            Files.createDirectories(sampleCvOnePath.getParent());
+            if (Files.notExists(sampleCvOnePath)) {
+                Files.write(sampleCvOnePath, SAMPLE_CV_ONE_LINES, StandardCharsets.UTF_8);
+                createdFiles.add(sampleCvOnePath);
+            }
+
+            Path sampleCvTwoPath = dataDirectory.resolve("cvs").resolve("ta001").resolve("cv002.txt");
+            Files.createDirectories(sampleCvTwoPath.getParent());
+            if (Files.notExists(sampleCvTwoPath)) {
+                Files.write(sampleCvTwoPath, SAMPLE_CV_TWO_LINES, StandardCharsets.UTF_8);
+                createdFiles.add(sampleCvTwoPath);
             }
         } catch (IOException exception) {
             throw new IllegalStateException("Failed to initialize project data directory.", exception);

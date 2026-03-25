@@ -18,20 +18,20 @@ public final class TextFileCvStorage implements CvTextStorage {
     }
 
     @Override
-    public String saveApplicationCv(String applicantUserId, String applicationId, String cvContent) {
+    public String saveCv(String applicantUserId, String cvId, String cvContent) {
         if (applicantUserId == null || applicantUserId.isBlank()) {
             throw new IllegalArgumentException("applicantUserId must not be blank.");
         }
 
-        if (applicationId == null || applicationId.isBlank()) {
-            throw new IllegalArgumentException("applicationId must not be blank.");
+        if (cvId == null || cvId.isBlank()) {
+            throw new IllegalArgumentException("cvId must not be blank.");
         }
 
         if (cvContent == null || cvContent.isBlank()) {
             throw new IllegalArgumentException("cvContent must not be blank.");
         }
 
-        String relativePath = Path.of("cvs", applicantUserId, applicationId + ".txt").toString().replace('\\', '/');
+        String relativePath = Path.of("cvs", applicantUserId, cvId + ".txt").toString().replace('\\', '/');
         Path targetPath = resolveCvPath(relativePath);
 
         try {
@@ -39,7 +39,7 @@ public final class TextFileCvStorage implements CvTextStorage {
             Files.writeString(targetPath, cvContent, StandardCharsets.UTF_8);
             return relativePath;
         } catch (IOException exception) {
-            throw new IllegalStateException("Failed to save CV text for applicationId: " + applicationId, exception);
+            throw new IllegalStateException("Failed to save CV text for cvId: " + cvId, exception);
         }
     }
 

@@ -72,7 +72,7 @@ public final class ApplicantProfileSwingDemo {
                 US-01 Applicant Profile Test UI
 
                 Notes:
-                - Use a new applicant userId such as ta002, ta003, or ta100.
+                - Use a new applicant userId such as ta002, ta003, or ta101.
                 - Student ID must be 8-12 digits and cannot be reused by another applicant.
                 - Full name, programme, skills, and desired positions use letters and spaces only.
                 - Year of study must be 1 to 4.

@@ -8,36 +8,34 @@ import java.util.Optional;
 
 public final class ApplicantCvService {
     private final ApplicationRepository applicationRepository;
-    private final ApplicantProfileRepository profileRepository;
+    private final ApplicantCvRepository cvRepository;
     private final CvTextStorage cvStorage;
 
     public ApplicantCvService(
         ApplicationRepository applicationRepository,
-        ApplicantProfileRepository profileRepository,
+        ApplicantCvRepository cvRepository,
         CvTextStorage cvStorage
     ) {
         this.applicationRepository = Objects.requireNonNull(applicationRepository);
-        this.profileRepository = Objects.requireNonNull(profileRepository);
+        this.cvRepository = Objects.requireNonNull(cvRepository);
         this.cvStorage = Objects.requireNonNull(cvStorage);
     }
 
-    public JobApplication submitCv(String applicationId, String cvContent) {
+    public JobApplication attachCvToApplication(String applicationId, String cvId) {
         requireNonBlank(applicationId, "applicationId");
-        requireNonBlank(cvContent, "cvContent");
+        requireNonBlank(cvId, "cvId");
 
         JobApplication existingApplication = requireExistingApplication(applicationId);
-        requireExistingProfile(existingApplication.applicantUserId());
+        ApplicantCv applicantCv = requireExistingCv(cvId);
+        if (!applicantCv.ownerUserId().equals(existingApplication.applicantUserId())) {
+            throw new IllegalArgumentException("The selected CV does not belong to applicantUserId: " + existingApplication.applicantUserId());
+        }
 
-        String cvReference = cvStorage.saveApplicationCv(
-            existingApplication.applicantUserId(),
-            existingApplication.applicationId(),
-            cvContent
-        );
         JobApplication updatedApplication = new JobApplication(
             existingApplication.applicationId(),
             existingApplication.jobId(),
             existingApplication.applicantUserId(),
-            cvReference,
+            applicantCv.cvId(),
             existingApplication.status(),
             existingApplication.submittedAt(),
             existingApplication.reviewerNote()
@@ -47,33 +45,38 @@ public final class ApplicantCvService {
         return updatedApplication;
     }
 
-    public Optional<String> getCvReferenceByApplicationId(String applicationId) {
+    public Optional<String> getAssignedCvId(String applicationId) {
         requireNonBlank(applicationId, "applicationId");
 
         return applicationRepository.findByApplicationId(applicationId)
-            .map(JobApplication::cvFileName)
-            .filter(reference -> !reference.isBlank());
+            .map(JobApplication::cvId)
+            .filter(cvId -> !cvId.isBlank());
     }
 
-    public String loadCvContentByApplicationId(String applicationId) {
+    public ApplicantCv getAssignedCv(String applicationId) {
         requireNonBlank(applicationId, "applicationId");
 
         JobApplication application = requireExistingApplication(applicationId);
-        if (application.cvFileName().isBlank()) {
+        if (application.cvId().isBlank()) {
             throw new IllegalArgumentException("No CV has been submitted for applicationId: " + applicationId);
         }
 
-        return cvStorage.loadCv(application.cvFileName());
+        return requireExistingCv(application.cvId());
     }
 
-    private ApplicantProfile requireExistingProfile(String userId) {
-        return profileRepository.findByUserId(userId)
-            .orElseThrow(() -> new IllegalArgumentException("No applicant profile exists for userId: " + userId));
+    public String loadCvContentByApplicationId(String applicationId) {
+        ApplicantCv applicantCv = getAssignedCv(applicationId);
+        return cvStorage.loadCv(applicantCv.fileName());
     }
 
     private JobApplication requireExistingApplication(String applicationId) {
         return applicationRepository.findByApplicationId(applicationId)
             .orElseThrow(() -> new IllegalArgumentException("No application exists for applicationId: " + applicationId));
+    }
+
+    private ApplicantCv requireExistingCv(String cvId) {
+        return cvRepository.findByCvId(cvId)
+            .orElseThrow(() -> new IllegalArgumentException("No CV exists for cvId: " + cvId));
     }
 
     private void requireNonBlank(String value, String fieldName) {

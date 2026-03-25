@@ -3,6 +3,9 @@ package com.bupt.tarecruitment;
 import com.bupt.tarecruitment.application.ApplicationRepository;
 import com.bupt.tarecruitment.application.TextFileApplicationRepository;
 import com.bupt.tarecruitment.applicant.ApplicantProfileConsoleWorkflow;
+import com.bupt.tarecruitment.applicant.ApplicantCvIdGenerator;
+import com.bupt.tarecruitment.applicant.ApplicantCvLibraryService;
+import com.bupt.tarecruitment.applicant.ApplicantCvRepository;
 import com.bupt.tarecruitment.applicant.ApplicantCvService;
 import com.bupt.tarecruitment.applicant.ApplicantCvSwingDemo;
 import com.bupt.tarecruitment.applicant.ApplicantCvReviewService;
@@ -12,6 +15,7 @@ import com.bupt.tarecruitment.applicant.ApplicantProfileRepository;
 import com.bupt.tarecruitment.applicant.ApplicantProfileService;
 import com.bupt.tarecruitment.applicant.ApplicantProfileSwingDemo;
 import com.bupt.tarecruitment.applicant.ApplicantProfileValidator;
+import com.bupt.tarecruitment.applicant.TextFileApplicantCvRepository;
 import com.bupt.tarecruitment.applicant.TextFileCvStorage;
 import com.bupt.tarecruitment.applicant.TextFileApplicantProfileRepository;
 import com.bupt.tarecruitment.bootstrap.ProjectBootstrap;
@@ -127,22 +131,31 @@ public final class App {
 
     private static void runUs02Ui(StartupReport report) {
         ApplicationRepository applicationRepository = new TextFileApplicationRepository(report.dataDirectory());
-        ApplicantProfileRepository repository = new TextFileApplicantProfileRepository(report.dataDirectory());
-        ApplicantCvService cvService = new ApplicantCvService(
-            applicationRepository,
-            repository,
+        ApplicantProfileRepository profileRepository = new TextFileApplicantProfileRepository(report.dataDirectory());
+        ApplicantCvRepository cvRepository = new TextFileApplicantCvRepository(report.dataDirectory());
+        ApplicantCvLibraryService cvLibraryService = new ApplicantCvLibraryService(
+            profileRepository,
+            cvRepository,
+            new ApplicantCvIdGenerator(cvRepository),
             new TextFileCvStorage(report.dataDirectory())
         );
-        ApplicantCvSwingDemo demo = new ApplicantCvSwingDemo(cvService);
+        ApplicantCvService cvService = new ApplicantCvService(
+            applicationRepository,
+            cvRepository,
+            new TextFileCvStorage(report.dataDirectory())
+        );
+        ApplicantCvSwingDemo demo = new ApplicantCvSwingDemo(cvLibraryService, cvService);
         demo.show();
     }
 
     private static void runCvReviewUi(StartupReport report) {
         ApplicationRepository applicationRepository = new TextFileApplicationRepository(report.dataDirectory());
-        ApplicantProfileRepository repository = new TextFileApplicantProfileRepository(report.dataDirectory());
+        ApplicantProfileRepository profileRepository = new TextFileApplicantProfileRepository(report.dataDirectory());
+        ApplicantCvRepository cvRepository = new TextFileApplicantCvRepository(report.dataDirectory());
         ApplicantCvReviewService reviewService = new ApplicantCvReviewService(
             applicationRepository,
-            repository,
+            cvRepository,
+            profileRepository,
             new TextFileCvStorage(report.dataDirectory())
         );
         ApplicantCvReviewSwingDemo demo = new ApplicantCvReviewSwingDemo(reviewService);

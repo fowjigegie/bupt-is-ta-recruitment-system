@@ -87,6 +87,7 @@ public final class ApplicantCvReviewSwingDemo {
     private void loadReview() {
         try {
             ApplicantCvReview review = reviewService.loadReviewByApplicationId(applicationIdField.getText().trim());
+            ApplicantCv cv = review.cv();
             ApplicantProfile profile = review.profile();
             com.bupt.tarecruitment.application.JobApplication application = review.application();
 
@@ -94,7 +95,9 @@ public final class ApplicantCvReviewSwingDemo {
                 applicationId: %s
                 jobId: %s
                 applicantUserId: %s
-                applicationCvFileName: %s
+                selectedCvId: %s
+                cvTitle: %s
+                cvFileName: %s
                 profileId: %s
                 userId: %s
                 studentId: %s
@@ -109,7 +112,9 @@ public final class ApplicantCvReviewSwingDemo {
                 application.applicationId(),
                 application.jobId(),
                 application.applicantUserId(),
-                application.cvFileName(),
+                application.cvId(),
+                cv.title(),
+                cv.fileName(),
                 profile.profileId(),
                 profile.userId(),
                 profile.studentId(),
@@ -124,6 +129,8 @@ public final class ApplicantCvReviewSwingDemo {
             cvContentArea.setText(review.cvContent());
             resultArea.setText("Application-specific CV loaded successfully for review.");
         } catch (IllegalArgumentException exception) {
+            summaryArea.setText("");
+            cvContentArea.setText("");
             resultArea.setText("Failed to load applicant CV.\n\n" + exception.getMessage());
         }
     }
