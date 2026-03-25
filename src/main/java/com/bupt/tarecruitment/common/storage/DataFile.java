@@ -19,6 +19,14 @@ public enum DataFile {
             "profile001|ta001|231225700|Demo Applicant|Software Engineering|3|Not Graduated|Java;Communication|MON-09:00-11:00;WED-14:00-16:00|Teaching Assistant;Invigilation"
         )
     ),
+    CVS(
+        "cvs.txt",
+        List.of(
+            "# Format: cvId|ownerUserId|title|fileName|createdAt|updatedAt",
+            "cv001|ta001|Software Engineering Focus CV|cvs/ta001/cv001.txt|2026-03-25T13:55:00|2026-03-25T13:55:00",
+            "cv002|ta001|Computer Science Focus CV|cvs/ta001/cv002.txt|2026-03-25T15:20:00|2026-03-25T15:20:00"
+        )
+    ),
     JOBS(
         "jobs.txt",
         List.of(
@@ -30,9 +38,9 @@ public enum DataFile {
     APPLICATIONS(
         "applications.txt",
         List.of(
-            "# Format: applicationId|jobId|applicantUserId|cvFileName|status|submittedAt|reviewerNote",
-            "application001|job001|ta001|cvs/ta001/application001.txt|SUBMITTED|2026-03-25T14:00:00|Initial demo application",
-            "application002|job002|ta001||SUBMITTED|2026-03-25T15:30:00|Second demo application for a different role"
+            "# Format: applicationId|jobId|applicantUserId|cvId|status|submittedAt|reviewerNote",
+            "application001|job001|ta001|cv001|SUBMITTED|2026-03-25T14:00:00|Initial demo application",
+            "application002|job002|ta001|cv002|SUBMITTED|2026-03-25T15:30:00|Second demo application for a different role"
         )
     ),
     MESSAGES(

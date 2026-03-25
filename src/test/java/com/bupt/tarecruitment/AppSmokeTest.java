@@ -4,27 +4,32 @@ import com.bupt.tarecruitment.application.ApplicationRepository;
 import com.bupt.tarecruitment.application.ApplicationStatus;
 import com.bupt.tarecruitment.application.JobApplication;
 import com.bupt.tarecruitment.application.TextFileApplicationRepository;
-import com.bupt.tarecruitment.applicant.ApplicantProfile;
-import com.bupt.tarecruitment.applicant.ApplicantCvService;
+import com.bupt.tarecruitment.applicant.ApplicantCv;
+import com.bupt.tarecruitment.applicant.ApplicantCvIdGenerator;
+import com.bupt.tarecruitment.applicant.ApplicantCvLibraryService;
+import com.bupt.tarecruitment.applicant.ApplicantCvRepository;
 import com.bupt.tarecruitment.applicant.ApplicantCvReview;
 import com.bupt.tarecruitment.applicant.ApplicantCvReviewService;
+import com.bupt.tarecruitment.applicant.ApplicantCvService;
+import com.bupt.tarecruitment.applicant.ApplicantProfile;
 import com.bupt.tarecruitment.applicant.ApplicantProfileConsoleWorkflow;
 import com.bupt.tarecruitment.applicant.ApplicantProfileIdGenerator;
 import com.bupt.tarecruitment.applicant.ApplicantProfileService;
 import com.bupt.tarecruitment.applicant.ApplicantProfileValidator;
+import com.bupt.tarecruitment.applicant.TextFileApplicantCvRepository;
 import com.bupt.tarecruitment.applicant.TextFileApplicantProfileRepository;
 import com.bupt.tarecruitment.applicant.TextFileCvStorage;
 import com.bupt.tarecruitment.bootstrap.ProjectBootstrap;
 import com.bupt.tarecruitment.bootstrap.StartupReport;
 import com.bupt.tarecruitment.common.storage.DataFile;
 
-import java.time.LocalDateTime;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.time.LocalDateTime;
 import java.util.List;
 
 public final class AppSmokeTest {
@@ -40,7 +45,7 @@ public final class AppSmokeTest {
             }
         }
 
-        if (Files.notExists(report.dataDirectory().resolve("cvs").resolve("ta001").resolve("application001.txt"))) {
+        if (Files.notExists(report.dataDirectory().resolve("cvs").resolve("ta001").resolve("cv001.txt"))) {
             throw new IllegalStateException("Missing sample CV text file.");
         }
 
@@ -52,32 +57,50 @@ public final class AppSmokeTest {
                 StandardCharsets.UTF_8
             );
             Files.write(
+                tempDataDirectory.resolve(DataFile.CVS.fileName()),
+                DataFile.CVS.initialLines(),
+                StandardCharsets.UTF_8
+            );
+            Files.write(
                 tempDataDirectory.resolve(DataFile.APPLICATIONS.fileName()),
                 DataFile.APPLICATIONS.initialLines(),
                 StandardCharsets.UTF_8
             );
 
+            TextFileApplicantProfileRepository profileRepository = new TextFileApplicantProfileRepository(tempDataDirectory);
             ApplicantProfileService profileService = new ApplicantProfileService(
-                new TextFileApplicantProfileRepository(tempDataDirectory),
+                profileRepository,
                 new ApplicantProfileValidator()
             );
-            TextFileApplicantProfileRepository repository = new TextFileApplicantProfileRepository(tempDataDirectory);
+            ApplicantCvRepository cvRepository = new TextFileApplicantCvRepository(tempDataDirectory);
             ApplicationRepository applicationRepository = new TextFileApplicationRepository(tempDataDirectory);
-            ApplicantProfileIdGenerator idGenerator = new ApplicantProfileIdGenerator(repository);
-
-            ApplicantProfile profile = new ApplicantProfile(
-                "profile999",
-                "ta999",
-                "231225999",
-                "Temp Applicant",
-                "Software Engineering",
-                3,
-                "Not Graduated",
-                List.of("Java"),
-                List.of("MON-09:00-11:00"),
-                List.of("Teaching Assistant")
+            ApplicantProfileIdGenerator profileIdGenerator = new ApplicantProfileIdGenerator(profileRepository);
+            ApplicantCvLibraryService cvLibraryService = new ApplicantCvLibraryService(
+                profileRepository,
+                cvRepository,
+                new ApplicantCvIdGenerator(cvRepository),
+                new TextFileCvStorage(tempDataDirectory)
             );
-            profileService.createProfile(profile);
+            ApplicantCvService cvService = new ApplicantCvService(
+                applicationRepository,
+                cvRepository,
+                new TextFileCvStorage(tempDataDirectory)
+            );
+
+            profileService.createProfile(
+                new ApplicantProfile(
+                    "profile999",
+                    "ta999",
+                    "231225999",
+                    "Temp Applicant",
+                    "Software Engineering",
+                    3,
+                    "Not Graduated",
+                    List.of("Java"),
+                    List.of("MON-09:00-11:00"),
+                    List.of("Teaching Assistant")
+                )
+            );
 
             profileService.createProfile(
                 new ApplicantProfile(
@@ -94,16 +117,32 @@ public final class AppSmokeTest {
                 )
             );
 
-            JobApplication savedApplication = new JobApplication(
-                "application999",
-                "job999",
-                "ta999",
-                "",
-                ApplicationStatus.SUBMITTED,
-                LocalDateTime.parse("2026-03-26T10:00:00"),
-                ""
+            profileService.createProfile(
+                new ApplicantProfile(
+                    "profile994",
+                    "ta994",
+                    "231225994",
+                    "Cv Limit Applicant",
+                    "Software Engineering",
+                    2,
+                    "Not Graduated",
+                    List.of("Java"),
+                    List.of("WED-10:00-12:00"),
+                    List.of("Teaching Assistant")
+                )
             );
-            applicationRepository.save(savedApplication);
+
+            applicationRepository.save(
+                new JobApplication(
+                    "application999",
+                    "job999",
+                    "ta999",
+                    "",
+                    ApplicationStatus.SUBMITTED,
+                    LocalDateTime.parse("2026-03-26T10:00:00"),
+                    ""
+                )
+            );
 
             applicationRepository.save(
                 new JobApplication(
@@ -120,12 +159,6 @@ public final class AppSmokeTest {
             if (profileService.getProfileByUserId("ta999").isEmpty()) {
                 throw new IllegalStateException("Applicant profile service failed to save or read profile.");
             }
-
-            ApplicantCvService cvService = new ApplicantCvService(
-                applicationRepository,
-                repository,
-                new TextFileCvStorage(tempDataDirectory)
-            );
 
             expectCreateFailure(
                 profileService,
@@ -178,29 +211,43 @@ public final class AppSmokeTest {
                 "availabilitySlots must use the format"
             );
 
-            JobApplication updatedApplication = cvService.submitCv("application999", "Temp CV content");
-            String cvPath = updatedApplication.cvFileName();
-            if (!"cvs/ta999/application999.txt".equals(cvPath)) {
-                throw new IllegalStateException("Unexpected CV relative path: " + cvPath);
+            ApplicantCv createdCv = cvLibraryService.createCv("ta999", "Primary TA CV", "Temp CV content");
+            if (!createdCv.cvId().startsWith("cv")) {
+                throw new IllegalStateException("Unexpected generated CV ID: " + createdCv.cvId());
             }
-            if (Files.notExists(tempDataDirectory.resolve("cvs").resolve("ta999").resolve("application999.txt"))) {
+            if (!"Temp CV content".equals(cvLibraryService.loadCvContentByCvId(createdCv.cvId()))) {
+                throw new IllegalStateException("CV library did not read back the new CV content.");
+            }
+
+            JobApplication updatedApplication = cvService.attachCvToApplication("application999", createdCv.cvId());
+            if (!createdCv.cvId().equals(updatedApplication.cvId())) {
+                throw new IllegalStateException("Unexpected assigned cvId: " + updatedApplication.cvId());
+            }
+            if (!"cvs/ta999/%s.txt".formatted(createdCv.cvId()).equals(createdCv.fileName())) {
+                throw new IllegalStateException("Unexpected CV relative path: " + createdCv.fileName());
+            }
+            if (Files.notExists(tempDataDirectory.resolve("cvs").resolve("ta999").resolve(createdCv.cvId() + ".txt"))) {
                 throw new IllegalStateException("CV text file was not created.");
             }
             if (!"Temp CV content".equals(cvService.loadCvContentByApplicationId("application999"))) {
                 throw new IllegalStateException("CV content was not read back correctly.");
             }
-            if (applicationRepository.findByApplicationId("application999").orElseThrow().cvFileName().isBlank()) {
-                throw new IllegalStateException("CV reference was not written back to the application record.");
+            if (applicationRepository.findByApplicationId("application999").orElseThrow().cvId().isBlank()) {
+                throw new IllegalStateException("CV id was not written back to the application record.");
             }
 
             ApplicantCvReviewService reviewService = new ApplicantCvReviewService(
                 applicationRepository,
-                repository,
+                cvRepository,
+                profileRepository,
                 new TextFileCvStorage(tempDataDirectory)
             );
             ApplicantCvReview review = reviewService.loadReviewByApplicationId("application999");
             if (!"application999".equals(review.application().applicationId())) {
                 throw new IllegalStateException("Review service returned the wrong application.");
+            }
+            if (!createdCv.cvId().equals(review.cv().cvId())) {
+                throw new IllegalStateException("Review service returned the wrong CV metadata.");
             }
             if (!"ta999".equals(review.profile().userId())) {
                 throw new IllegalStateException("Review service returned the wrong applicant profile.");
@@ -209,11 +256,24 @@ public final class AppSmokeTest {
                 throw new IllegalStateException("Review service returned the wrong CV content.");
             }
 
-            expectCvFailure(cvService, "application999", "   ", "cvContent must not be blank.");
+            expectCvCreateFailure(cvLibraryService, "ta999", "Primary TA CV", "   ", "cvContent must not be blank.");
+            expectAttachCvFailure(cvService, "application999", "cv404", "No CV exists");
+            expectAttachCvFailure(cvService, "application995", createdCv.cvId(), "does not belong to applicantUserId");
             expectLoadCvFailure(cvService, "application995", "No CV has been submitted");
             expectLoadCvFailure(cvService, "application404", "No application exists");
             expectReviewFailure(reviewService, "application995", "No CV has been submitted");
             expectReviewFailure(reviewService, "application404", "No application exists");
+
+            for (int index = 1; index <= ApplicantCvLibraryService.MAX_CVS_PER_APPLICANT; index++) {
+                cvLibraryService.createCv("ta994", "Variant CV " + index, "Variant CV content " + index);
+            }
+            expectCvCreateFailure(
+                cvLibraryService,
+                "ta994",
+                "Variant CV 11",
+                "Variant CV content 11",
+                "at most %d CVs".formatted(ApplicantCvLibraryService.MAX_CVS_PER_APPLICANT)
+            );
 
             String consoleInput = String.join(
                 System.lineSeparator(),
@@ -233,14 +293,14 @@ public final class AppSmokeTest {
             ) + System.lineSeparator();
             ByteArrayOutputStream workflowOutput = new ByteArrayOutputStream();
             ApplicantProfileConsoleWorkflow workflow = new ApplicantProfileConsoleWorkflow(
-                new ApplicantProfileService(repository, new ApplicantProfileValidator()),
-                idGenerator,
+                new ApplicantProfileService(profileRepository, new ApplicantProfileValidator()),
+                profileIdGenerator,
                 new ByteArrayInputStream(consoleInput.getBytes(StandardCharsets.UTF_8)),
                 new PrintStream(workflowOutput, true, StandardCharsets.UTF_8)
             );
             workflow.run();
 
-            if (repository.findByUserId("ta998").isEmpty()) {
+            if (profileRepository.findByUserId("ta998").isEmpty()) {
                 throw new IllegalStateException("Applicant profile workflow failed to save a profile.");
             }
             String outputText = workflowOutput.toString(StandardCharsets.UTF_8);
@@ -269,18 +329,35 @@ public final class AppSmokeTest {
         }
     }
 
-    private static void expectCvFailure(
-        ApplicantCvService cvService,
-        String applicationId,
+    private static void expectCvCreateFailure(
+        ApplicantCvLibraryService cvLibraryService,
+        String ownerUserId,
+        String title,
         String cvContent,
         String expectedMessagePart
     ) {
         try {
-            cvService.submitCv(applicationId, cvContent);
-            throw new IllegalStateException("Expected CV submission to fail for applicationId: " + applicationId);
+            cvLibraryService.createCv(ownerUserId, title, cvContent);
+            throw new IllegalStateException("Expected CV creation to fail for ownerUserId: " + ownerUserId);
         } catch (IllegalArgumentException exception) {
             if (!exception.getMessage().contains(expectedMessagePart)) {
                 throw new IllegalStateException("Unexpected CV validation message: " + exception.getMessage(), exception);
+            }
+        }
+    }
+
+    private static void expectAttachCvFailure(
+        ApplicantCvService cvService,
+        String applicationId,
+        String cvId,
+        String expectedMessagePart
+    ) {
+        try {
+            cvService.attachCvToApplication(applicationId, cvId);
+            throw new IllegalStateException("Expected CV attachment to fail for applicationId: " + applicationId);
+        } catch (IllegalArgumentException exception) {
+            if (!exception.getMessage().contains(expectedMessagePart)) {
+                throw new IllegalStateException("Unexpected CV attachment message: " + exception.getMessage(), exception);
             }
         }
     }

@@ -12,10 +12,12 @@ public final class ApplicantCvReviewDemoMain {
     public static void main(String[] args) {
         StartupReport report = new ProjectBootstrap().initialize();
         ApplicationRepository applicationRepository = new TextFileApplicationRepository(report.dataDirectory());
-        ApplicantProfileRepository repository = new TextFileApplicantProfileRepository(report.dataDirectory());
+        ApplicantProfileRepository profileRepository = new TextFileApplicantProfileRepository(report.dataDirectory());
+        ApplicantCvRepository cvRepository = new TextFileApplicantCvRepository(report.dataDirectory());
         ApplicantCvReviewService reviewService = new ApplicantCvReviewService(
             applicationRepository,
-            repository,
+            cvRepository,
+            profileRepository,
             new TextFileCvStorage(report.dataDirectory())
         );
         ApplicantCvReviewSwingDemo demo = new ApplicantCvReviewSwingDemo(reviewService);

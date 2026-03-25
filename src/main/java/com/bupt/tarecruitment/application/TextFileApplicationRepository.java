@@ -117,7 +117,7 @@ public final class TextFileApplicationRepository implements ApplicationRepositor
             application.applicationId(),
             application.jobId(),
             application.applicantUserId(),
-            application.cvFileName(),
+            application.cvId(),
             application.status().name(),
             application.submittedAt().toString(),
             application.reviewerNote()

@@ -1,7 +1,7 @@
 package com.bupt.tarecruitment.applicant;
 
 public interface CvTextStorage {
-    String saveApplicationCv(String applicantUserId, String applicationId, String cvContent);
+    String saveCv(String applicantUserId, String cvId, String cvContent);
 
     String loadCv(String relativePath);
 }

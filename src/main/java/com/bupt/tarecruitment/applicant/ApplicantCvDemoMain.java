@@ -12,13 +12,20 @@ public final class ApplicantCvDemoMain {
     public static void main(String[] args) {
         StartupReport report = new ProjectBootstrap().initialize();
         ApplicationRepository applicationRepository = new TextFileApplicationRepository(report.dataDirectory());
-        ApplicantProfileRepository repository = new TextFileApplicantProfileRepository(report.dataDirectory());
-        ApplicantCvService cvService = new ApplicantCvService(
-            applicationRepository,
-            repository,
+        ApplicantProfileRepository profileRepository = new TextFileApplicantProfileRepository(report.dataDirectory());
+        ApplicantCvRepository cvRepository = new TextFileApplicantCvRepository(report.dataDirectory());
+        ApplicantCvLibraryService cvLibraryService = new ApplicantCvLibraryService(
+            profileRepository,
+            cvRepository,
+            new ApplicantCvIdGenerator(cvRepository),
             new TextFileCvStorage(report.dataDirectory())
         );
-        ApplicantCvSwingDemo demo = new ApplicantCvSwingDemo(cvService);
+        ApplicantCvService cvService = new ApplicantCvService(
+            applicationRepository,
+            cvRepository,
+            new TextFileCvStorage(report.dataDirectory())
+        );
+        ApplicantCvSwingDemo demo = new ApplicantCvSwingDemo(cvLibraryService, cvService);
         demo.show();
     }
 }

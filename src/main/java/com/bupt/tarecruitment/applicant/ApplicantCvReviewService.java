@@ -7,15 +7,18 @@ import java.util.Objects;
 
 public final class ApplicantCvReviewService {
     private final ApplicationRepository applicationRepository;
+    private final ApplicantCvRepository cvRepository;
     private final ApplicantProfileRepository profileRepository;
     private final CvTextStorage cvStorage;
 
     public ApplicantCvReviewService(
         ApplicationRepository applicationRepository,
+        ApplicantCvRepository cvRepository,
         ApplicantProfileRepository profileRepository,
         CvTextStorage cvStorage
     ) {
         this.applicationRepository = Objects.requireNonNull(applicationRepository);
+        this.cvRepository = Objects.requireNonNull(cvRepository);
         this.profileRepository = Objects.requireNonNull(profileRepository);
         this.cvStorage = Objects.requireNonNull(cvStorage);
     }
@@ -31,11 +34,14 @@ public final class ApplicantCvReviewService {
         ApplicantProfile profile = profileRepository.findByUserId(application.applicantUserId())
             .orElseThrow(() -> new IllegalArgumentException("No applicant profile exists for userId: " + application.applicantUserId()));
 
-        if (application.cvFileName().isBlank()) {
+        if (application.cvId().isBlank()) {
             throw new IllegalArgumentException("No CV has been submitted for applicationId: " + applicationId);
         }
 
-        String cvContent = cvStorage.loadCv(application.cvFileName());
-        return new ApplicantCvReview(application, profile, cvContent);
+        ApplicantCv applicantCv = cvRepository.findByCvId(application.cvId())
+            .orElseThrow(() -> new IllegalArgumentException("No CV exists for cvId: " + application.cvId()));
+
+        String cvContent = cvStorage.loadCv(applicantCv.fileName());
+        return new ApplicantCvReview(application, applicantCv, profile, cvContent);
     }
 }
