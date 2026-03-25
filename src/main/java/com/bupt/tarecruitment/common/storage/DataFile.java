@@ -16,7 +16,7 @@ public enum DataFile {
         "profiles.txt",
         List.of(
             "# Format: profileId|userId|studentId|fullName|programme|yearOfStudy|educationLevel|skills(;)|availabilitySlots(;)|desiredPositions(;)|cvFileName",
-            "profile001|ta001|231225700|Demo Applicant|Software Engineering|3|Undergraduate|Java;Communication|MON-09:00-11:00;WED-14:00-16:00|Teaching Assistant;Invigilation|demo_cv.txt"
+            "profile001|ta001|231225700|Demo Applicant|Software Engineering|3|Not Graduated|Java;Communication|MON-09:00-11:00;WED-14:00-16:00|Teaching Assistant;Invigilation|cvs/ta001/current.txt"
         )
     ),
     JOBS(

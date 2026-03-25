@@ -224,6 +224,8 @@ The starter creates these files under `data/`:
   - `applicationId|jobId|applicantUserId|status|submittedAt|reviewerNote`
 - `messages.txt`
   - `messageId|jobId|senderUserId|receiverUserId|sentAt|content|readStatus`
+- `cvs/`
+  - stores applicant CV text files as `.txt`
 
 Storage rules:
 
@@ -232,6 +234,8 @@ Storage rules:
 - Avoid line breaks inside fields until escaping rules are added
 - If a field contains multiple values, use `;`
 - If a field contract changes, update both this file and the sample data in the same PR
+- `cvFileName` stores a relative path, not an absolute local-machine path
+- current agreed CV path example: `cvs/ta001/current.txt`
 
 ## 10. Cross-story contracts for Sprint 1
 
@@ -268,6 +272,12 @@ UI contract from `US-00`:
 - profile is linked to exactly one `userId`
 - required profile fields are saved in the agreed order in `profiles.txt`
 - other stories may rely on profile lookup by `userId`
+- `cvFileName` may be blank during `US-01` if `US-02` has not uploaded a CV yet
+- `studentId` must be unique across applicant profiles and use 8 to 12 digits
+- `fullName`, `programme`, `skills`, and `desiredPositions` use letters and spaces only in Sprint 1
+- `yearOfStudy` must be between `1` and `4`
+- `educationLevel` currently accepts `Graduated` or `Not Graduated`
+- `availabilitySlots` is required and each slot must follow `DAY-HH:MM-HH:MM`
 
 Minimum logical contract:
 
@@ -279,7 +289,11 @@ Minimum logical contract:
 
 - CV belongs to an applicant identified by `userId`
 - CV storage uses the agreed `cvFileName` reference from the profile record
+- the agreed reference is a relative path such as `cvs/ta001/current.txt`
 - validation must reject empty or unsupported CV content according to the final story design
+- repeated upload currently overwrites the applicant's current CV text file
+- Sprint 1 CV input can be pasted text or a local `.txt` file import
+- read-only CV review by applicant `userId` can be reused later by organiser-side stories
 
 Minimum logical contract:
 
