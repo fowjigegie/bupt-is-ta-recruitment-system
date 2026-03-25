@@ -32,7 +32,7 @@ public final class ProjectBootstrap {
                 }
             }
 
-            Path sampleCvPath = dataDirectory.resolve("cvs").resolve("ta001").resolve("current.txt");
+            Path sampleCvPath = dataDirectory.resolve("cvs").resolve("ta001").resolve("application001.txt");
             Files.createDirectories(sampleCvPath.getParent());
             if (Files.notExists(sampleCvPath)) {
                 Files.write(sampleCvPath, SAMPLE_CV_LINES, StandardCharsets.UTF_8);

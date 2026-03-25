@@ -11,7 +11,6 @@ public final class ApplicantProfileValidator {
     private static final Pattern TIME_SLOT_PATTERN = Pattern.compile(
         "^(MON|TUE|WED|THU|FRI|SAT|SUN)-([01]\\d|2[0-3]):([0-5]\\d)-([01]\\d|2[0-3]):([0-5]\\d)$"
     );
-    private static final Pattern CV_RELATIVE_PATH_PATTERN = Pattern.compile("^cvs/[A-Za-z0-9_-]+/.+\\.txt$");
     private static final Set<String> EDUCATION_LEVELS = Set.of("graduated", "not graduated");
 
     public void validate(ApplicantProfile profile) {
@@ -30,7 +29,6 @@ public final class ApplicantProfileValidator {
         validateOptionalLettersOnlyList(profile.skills(), "skills");
         validateRequiredAvailability(profile.availabilitySlots());
         validateRequiredLettersOnlyList(profile.desiredPositions(), "desiredPositions");
-        validateCvReference(profile.cvFileName());
     }
 
     private void requireNotBlank(String value, String fieldName) {
@@ -96,16 +94,6 @@ public final class ApplicantProfileValidator {
             if (!endTime.isAfter(startTime)) {
                 throw new IllegalArgumentException("availabilitySlots end time must be later than start time.");
             }
-        }
-    }
-
-    private void validateCvReference(String cvFileName) {
-        if (cvFileName.isBlank()) {
-            return;
-        }
-
-        if (!CV_RELATIVE_PATH_PATTERN.matcher(cvFileName).matches()) {
-            throw new IllegalArgumentException("cvFileName must be blank or a relative .txt path under cvs/.");
         }
     }
 }

@@ -15,22 +15,24 @@ public enum DataFile {
     PROFILES(
         "profiles.txt",
         List.of(
-            "# Format: profileId|userId|studentId|fullName|programme|yearOfStudy|educationLevel|skills(;)|availabilitySlots(;)|desiredPositions(;)|cvFileName",
-            "profile001|ta001|231225700|Demo Applicant|Software Engineering|3|Not Graduated|Java;Communication|MON-09:00-11:00;WED-14:00-16:00|Teaching Assistant;Invigilation|cvs/ta001/current.txt"
+            "# Format: profileId|userId|studentId|fullName|programme|yearOfStudy|educationLevel|skills(;)|availabilitySlots(;)|desiredPositions(;)",
+            "profile001|ta001|231225700|Demo Applicant|Software Engineering|3|Not Graduated|Java;Communication|MON-09:00-11:00;WED-14:00-16:00|Teaching Assistant;Invigilation"
         )
     ),
     JOBS(
         "jobs.txt",
         List.of(
             "# Format: jobId|organiserId|title|moduleOrActivity|description|requiredSkills(;)|weeklyHours|scheduleSlots(;)|status",
-            "job001|mo001|TA for Software Engineering|EBU6304|Support lab sessions and assignment marking|Java;Teamwork|4|MON-10:00-12:00;THU-14:00-16:00|OPEN"
+            "job001|mo001|TA for Software Engineering|EBU6304|Support lab sessions and assignment marking|Java;Teamwork|4|MON-10:00-12:00;THU-14:00-16:00|OPEN",
+            "job002|mo001|TA for Computer Science|COMP101|Support tutorials and coursework feedback|Programming;Communication|3|TUE-10:00-12:00|OPEN"
         )
     ),
     APPLICATIONS(
         "applications.txt",
         List.of(
-            "# Format: applicationId|jobId|applicantUserId|status|submittedAt|reviewerNote",
-            "application001|job001|ta001|SUBMITTED|2026-03-25T14:00:00|Initial demo application"
+            "# Format: applicationId|jobId|applicantUserId|cvFileName|status|submittedAt|reviewerNote",
+            "application001|job001|ta001|cvs/ta001/application001.txt|SUBMITTED|2026-03-25T14:00:00|Initial demo application",
+            "application002|job002|ta001||SUBMITTED|2026-03-25T15:30:00|Second demo application for a different role"
         )
     ),
     MESSAGES(

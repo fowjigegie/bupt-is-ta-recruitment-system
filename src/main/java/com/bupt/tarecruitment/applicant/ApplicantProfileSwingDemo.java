@@ -31,7 +31,6 @@ public final class ApplicantProfileSwingDemo {
     private final JTextField skillsField = new JTextField(24);
     private final JTextField availabilityField = new JTextField(24);
     private final JTextField desiredPositionsField = new JTextField(24);
-    private final JTextField cvFileNameField = new JTextField(24);
     private final JTextArea resultArea = new JTextArea(14, 48);
 
     public ApplicantProfileSwingDemo(ApplicantProfileService service, ApplicantProfileIdGenerator profileIdGenerator) {
@@ -57,7 +56,6 @@ public final class ApplicantProfileSwingDemo {
             addField(formPanel, 6, "Skills (; or ,)", skillsField);
             addField(formPanel, 7, "Availability (DAY-HH:MM-HH:MM)", availabilityField);
             addField(formPanel, 8, "Desired positions (; or ,)", desiredPositionsField);
-            addField(formPanel, 9, "CV relative path", cvFileNameField);
 
             JPanel buttonPanel = new JPanel();
             JButton createButton = new JButton("Create Profile");
@@ -80,7 +78,6 @@ public final class ApplicantProfileSwingDemo {
                 - Year of study must be 1 to 4.
                 - Education level must be Graduated or Not Graduated.
                 - Availability must use DAY-HH:MM-HH:MM, for example MON-09:00-11:00.
-                - cvFileName may stay blank until US-02 uploads a CV.
                 - Click Load Profile to pull an existing profile by userId.
                 """);
 
@@ -109,8 +106,7 @@ public final class ApplicantProfileSwingDemo {
                 educationLevelField.getText().trim(),
                 splitList(skillsField.getText()),
                 splitList(availabilityField.getText()),
-                splitList(desiredPositionsField.getText()),
-                cvFileNameField.getText().trim()
+                splitList(desiredPositionsField.getText())
             );
 
             ApplicantProfile savedProfile = service.createProfile(profile);
@@ -149,7 +145,6 @@ public final class ApplicantProfileSwingDemo {
         skillsField.setText("");
         availabilityField.setText("");
         desiredPositionsField.setText("");
-        cvFileNameField.setText("");
         resultArea.setText("Form cleared.");
     }
 
@@ -163,7 +158,6 @@ public final class ApplicantProfileSwingDemo {
         skillsField.setText(String.join("; ", profile.skills()));
         availabilityField.setText(String.join("; ", profile.availabilitySlots()));
         desiredPositionsField.setText(String.join("; ", profile.desiredPositions()));
-        cvFileNameField.setText(profile.cvFileName());
     }
 
     private void renderProfile(String title, ApplicantProfile profile) {
@@ -180,7 +174,6 @@ public final class ApplicantProfileSwingDemo {
             skills: %s
             availabilitySlots: %s
             desiredPositions: %s
-            cvFileName: %s
             """.formatted(
             title,
             profile.profileId(),
@@ -192,8 +185,7 @@ public final class ApplicantProfileSwingDemo {
             profile.educationLevel(),
             String.join(", ", profile.skills()),
             String.join(", ", profile.availabilitySlots()),
-            String.join(", ", profile.desiredPositions()),
-            profile.cvFileName().isBlank() ? "(blank until US-02)" : profile.cvFileName()
+            String.join(", ", profile.desiredPositions())
         ));
     }
 

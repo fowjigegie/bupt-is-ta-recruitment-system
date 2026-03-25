@@ -1,29 +1,41 @@
 package com.bupt.tarecruitment.applicant;
 
+import com.bupt.tarecruitment.application.ApplicationRepository;
+import com.bupt.tarecruitment.application.JobApplication;
+
 import java.util.Objects;
 
 public final class ApplicantCvReviewService {
+    private final ApplicationRepository applicationRepository;
     private final ApplicantProfileRepository profileRepository;
     private final CvTextStorage cvStorage;
 
-    public ApplicantCvReviewService(ApplicantProfileRepository profileRepository, CvTextStorage cvStorage) {
+    public ApplicantCvReviewService(
+        ApplicationRepository applicationRepository,
+        ApplicantProfileRepository profileRepository,
+        CvTextStorage cvStorage
+    ) {
+        this.applicationRepository = Objects.requireNonNull(applicationRepository);
         this.profileRepository = Objects.requireNonNull(profileRepository);
         this.cvStorage = Objects.requireNonNull(cvStorage);
     }
 
-    public ApplicantCvReview loadReviewByUserId(String userId) {
-        if (userId == null || userId.isBlank()) {
-            throw new IllegalArgumentException("userId must not be blank.");
+    public ApplicantCvReview loadReviewByApplicationId(String applicationId) {
+        if (applicationId == null || applicationId.isBlank()) {
+            throw new IllegalArgumentException("applicationId must not be blank.");
         }
 
-        ApplicantProfile profile = profileRepository.findByUserId(userId)
-            .orElseThrow(() -> new IllegalArgumentException("No applicant profile exists for userId: " + userId));
+        JobApplication application = applicationRepository.findByApplicationId(applicationId)
+            .orElseThrow(() -> new IllegalArgumentException("No application exists for applicationId: " + applicationId));
 
-        if (profile.cvFileName().isBlank()) {
-            throw new IllegalArgumentException("No CV has been submitted for userId: " + userId);
+        ApplicantProfile profile = profileRepository.findByUserId(application.applicantUserId())
+            .orElseThrow(() -> new IllegalArgumentException("No applicant profile exists for userId: " + application.applicantUserId()));
+
+        if (application.cvFileName().isBlank()) {
+            throw new IllegalArgumentException("No CV has been submitted for applicationId: " + applicationId);
         }
 
-        String cvContent = cvStorage.loadCv(profile.cvFileName());
-        return new ApplicantCvReview(profile, cvContent);
+        String cvContent = cvStorage.loadCv(application.cvFileName());
+        return new ApplicantCvReview(application, profile, cvContent);
     }
 }

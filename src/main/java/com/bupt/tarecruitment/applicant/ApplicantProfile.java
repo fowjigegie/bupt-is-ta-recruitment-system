@@ -13,8 +13,7 @@ public record ApplicantProfile(
     String educationLevel,
     List<String> skills,
     List<String> availabilitySlots,
-    List<String> desiredPositions,
-    String cvFileName
+    List<String> desiredPositions
 ) {
     public ApplicantProfile {
         Objects.requireNonNull(profileId);
@@ -26,7 +25,6 @@ public record ApplicantProfile(
         Objects.requireNonNull(skills);
         Objects.requireNonNull(availabilitySlots);
         Objects.requireNonNull(desiredPositions);
-        Objects.requireNonNull(cvFileName);
 
         skills = List.copyOf(skills);
         availabilitySlots = List.copyOf(availabilitySlots);

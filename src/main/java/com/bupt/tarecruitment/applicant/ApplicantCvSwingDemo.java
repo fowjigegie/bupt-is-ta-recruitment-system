@@ -1,5 +1,7 @@
 package com.bupt.tarecruitment.applicant;
 
+import com.bupt.tarecruitment.application.JobApplication;
+
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
@@ -26,7 +28,7 @@ import java.util.Optional;
 public final class ApplicantCvSwingDemo {
     private final ApplicantCvService cvService;
 
-    private final JTextField userIdField = new JTextField(24);
+    private final JTextField applicationIdField = new JTextField(24);
     private final JTextField cvReferenceField = new JTextField(32);
     private final JTextArea cvContentArea = new JTextArea(16, 48);
     private final JTextArea resultArea = new JTextArea(10, 48);
@@ -45,7 +47,7 @@ public final class ApplicantCvSwingDemo {
             formPanel.setBorder(BorderFactory.createEmptyBorder(12, 12, 12, 12));
 
             cvReferenceField.setEditable(false);
-            addField(formPanel, 0, "Applicant userId", userIdField);
+            addField(formPanel, 0, "Application ID", applicationIdField);
             addField(formPanel, 1, "Stored CV path", cvReferenceField);
 
             cvContentArea.setLineWrap(true);
@@ -69,11 +71,11 @@ public final class ApplicantCvSwingDemo {
                 US-02 Submit CV Test UI
 
                 Notes:
-                - Use an applicant userId that already has a profile, for example ta001.
+                - Use an applicationId that already exists, for example application001.
                 - Paste CV content directly, or import a local .txt file.
-                - Submit CV stores text in data/cvs/<userId>/current.txt.
-                - Repeated submission overwrites the applicant's current CV file.
-                - Load CV reads the current stored CV back into this editor.
+                - Submit CV stores text in data/cvs/<applicantUserId>/<applicationId>.txt.
+                - Repeated submission overwrites the CV for that specific application only.
+                - Load CV reads the stored CV for the selected application.
                 """);
 
             importButton.addActionListener(event -> importTxtFile(frame));
@@ -118,21 +120,23 @@ public final class ApplicantCvSwingDemo {
 
     private void submitCv() {
         try {
-            ApplicantProfile updatedProfile = cvService.submitCv(
-                userIdField.getText().trim(),
+            JobApplication updatedApplication = cvService.submitCv(
+                applicationIdField.getText().trim(),
                 cvContentArea.getText()
             );
 
-            cvReferenceField.setText(updatedProfile.cvFileName());
+            cvReferenceField.setText(updatedApplication.cvFileName());
             resultArea.setText("""
                 CV submitted successfully.
 
-                userId: %s
+                applicationId: %s
+                applicantUserId: %s
                 stored path: %s
                 content length: %d characters
                 """.formatted(
-                updatedProfile.userId(),
-                updatedProfile.cvFileName(),
+                updatedApplication.applicationId(),
+                updatedApplication.applicantUserId(),
+                updatedApplication.cvFileName(),
                 cvContentArea.getText().length()
             ));
         } catch (IllegalArgumentException exception) {
@@ -141,24 +145,24 @@ public final class ApplicantCvSwingDemo {
     }
 
     private void loadCv() {
-        String userId = userIdField.getText().trim();
-        if (userId.isBlank()) {
-            resultArea.setText("Please enter an applicant userId before loading CV content.");
+        String applicationId = applicationIdField.getText().trim();
+        if (applicationId.isBlank()) {
+            resultArea.setText("Please enter an applicationId before loading CV content.");
             return;
         }
 
         try {
-            String cvContent = cvService.loadCvContentByUserId(userId);
-            Optional<String> cvReference = cvService.getCvReferenceByUserId(userId);
+            String cvContent = cvService.loadCvContentByApplicationId(applicationId);
+            Optional<String> cvReference = cvService.getCvReferenceByApplicationId(applicationId);
             cvReferenceField.setText(cvReference.orElse(""));
             cvContentArea.setText(cvContent);
             resultArea.setText("""
                 CV loaded successfully.
 
-                userId: %s
+                applicationId: %s
                 stored path: %s
                 """.formatted(
-                userId,
+                applicationId,
                 cvReference.orElse("(blank)")
             ));
         } catch (IllegalArgumentException exception) {
@@ -167,7 +171,7 @@ public final class ApplicantCvSwingDemo {
     }
 
     private void clearForm() {
-        userIdField.setText("");
+        applicationIdField.setText("");
         cvReferenceField.setText("");
         cvContentArea.setText("");
         resultArea.setText("Form cleared.");

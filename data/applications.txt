@@ -1,2 +1,3 @@
-# Format: applicationId|jobId|applicantUserId|status|submittedAt|reviewerNote
-application001|job001|ta001|SUBMITTED|2026-03-25T14:00:00|Initial demo application
+# Format: applicationId|jobId|applicantUserId|cvFileName|status|submittedAt|reviewerNote
+application001|job001|ta001|cvs/ta001/application001.txt|SUBMITTED|2026-03-25T14:00|Initial demo application
+application002|job002|ta001|cvs/ta001/application002.txt|SUBMITTED|2026-03-25T15:30|Second demo application for a different role
