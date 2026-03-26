@@ -17,8 +17,11 @@ if (-not $sourceFiles) {
     throw "No Java source files found under $mainSourceDir"
 }
 
-$sourceFiles | Set-Content -Path $sourceList -Encoding ascii
+$sourceFiles | Set-Content -Path $sourceList -Encoding Ascii
 
 javac -encoding UTF-8 -d $outputDir "@$sourceList"
+if ($LASTEXITCODE -ne 0) {
+    throw "javac failed when compiling main sources."
+}
 
 Write-Host "Build completed. Classes written to $outputDir"

@@ -28,7 +28,7 @@ if ($LASTEXITCODE -ne 0) {
     throw "javac failed when compiling test sources."
 }
 
-java -cp "$mainOutputDir;$testOutputDir" com.bupt.tarecruitment.AppSmokeTest
+java -cp "$mainOutputDir;$testOutputDir" com.bupt.tarecruitment.US0204SmokeTest
 if ($LASTEXITCODE -ne 0) {
-    throw "AppSmokeTest failed."
+    throw "US0204SmokeTest failed."
 }
