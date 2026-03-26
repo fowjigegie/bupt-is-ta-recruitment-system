@@ -45,7 +45,7 @@ public final class ApplicantCvSwingDemo {
 
     public void show() {
         SwingUtilities.invokeLater(() -> {
-            JFrame frame = new JFrame("US-02 CV Library and Attachment Test UI");
+            JFrame frame = new JFrame("US-02 CV Library Test UI");
             frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
             frame.setLayout(new BorderLayout(12, 12));
 
@@ -73,14 +73,16 @@ public final class ApplicantCvSwingDemo {
             resultArea.setLineWrap(true);
             resultArea.setWrapStyleWord(true);
             resultArea.setText("""
-                US-02 CV Library and Attachment Test UI
+                US-02 CV Library Test UI
 
-                Flow:
+                Primary flow:
                 1. Enter applicant userId and CV title, then create a CV from pasted/imported text.
                 2. The system gives that CV its own cvId, for example cv003.
                 3. Each applicant can keep up to 10 CVs in the current design.
-                4. Enter an applicationId and attach the selected cvId to that application.
-                5. Review screens later read the application's selected cvId.
+                4. Use US-04 when you want to submit an application with one selected CV.
+
+                Compatibility flow:
+                - The attach button is kept only for legacy/backfill records.
                 """);
 
             JPanel buttonPanel = new JPanel();
@@ -88,7 +90,7 @@ public final class ApplicantCvSwingDemo {
             JButton createButton = new JButton("Create CV");
             JButton loadCvButton = new JButton("Load CV");
             JButton listButton = new JButton("List User CVs");
-            JButton attachButton = new JButton("Attach to Application");
+            JButton attachButton = new JButton("Legacy Attach");
             JButton clearButton = new JButton("Clear");
             buttonPanel.add(importButton);
             buttonPanel.add(createButton);
@@ -216,11 +218,13 @@ public final class ApplicantCvSwingDemo {
                 cvIdField.getText().trim()
             );
             resultArea.setText("""
-                CV attached to application successfully.
+                Legacy attach succeeded.
 
                 applicationId: %s
                 applicantUserId: %s
                 selected cvId: %s
+
+                Recommendation: use US-04 for normal application submission.
                 """.formatted(
                 updatedApplication.applicationId(),
                 updatedApplication.applicantUserId(),

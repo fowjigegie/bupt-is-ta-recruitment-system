@@ -32,7 +32,8 @@ public enum DataFile {
         List.of(
             "# Format: jobId|organiserId|title|moduleOrActivity|description|requiredSkills(;)|weeklyHours|scheduleSlots(;)|status",
             "job001|mo001|TA for Software Engineering|EBU6304|Support lab sessions and assignment marking|Java;Teamwork|4|MON-10:00-12:00;THU-14:00-16:00|OPEN",
-            "job002|mo001|TA for Computer Science|COMP101|Support tutorials and coursework feedback|Programming;Communication|3|TUE-10:00-12:00|OPEN"
+            "job002|mo001|TA for Computer Science|COMP101|Support tutorials and coursework feedback|Programming;Communication|3|TUE-10:00-12:00|OPEN",
+            "job003|mo001|TA for Data Structures|COMP202|Support weekly lab sessions and office hours|Java;Data Structures;Communication|4|WED-10:00-12:00;FRI-14:00-16:00|OPEN"
         )
     ),
     APPLICATIONS(
