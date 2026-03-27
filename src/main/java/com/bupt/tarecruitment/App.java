@@ -5,7 +5,9 @@ import com.bupt.tarecruitment.application.ApplicationIdGenerator;
 import com.bupt.tarecruitment.application.JobApplicationService;
 import com.bupt.tarecruitment.application.TextFileApplicationRepository;
 import com.bupt.tarecruitment.job.JobDetailApplyStubSwingDemo;
+import com.bupt.tarecruitment.job.JobIdGenerator;
 import com.bupt.tarecruitment.job.JobRepository;
+import com.bupt.tarecruitment.job.JobPostingSwingDemo;
 import com.bupt.tarecruitment.job.TextFileJobRepository;
 import com.bupt.tarecruitment.applicant.ApplicantProfileConsoleWorkflow;
 import com.bupt.tarecruitment.applicant.ApplicantCvIdGenerator;
@@ -36,6 +38,11 @@ public final class App {
         StartupReport report = new ProjectBootstrap().initialize();
 
         if (args.length > 0) {
+            if (isJobPostingUiCommand(args[0])) {
+                runJobPostingUi(report);
+                return;
+            }
+
             if (isUs04UiCommand(args[0])) {
                 if (args.length < 3) {
                     System.out.println("Usage: us04-ui <jobId> <applicantUserId>");
@@ -86,12 +93,14 @@ public final class App {
         System.out.println(" - us01 : run the applicant profile creation demo");
         System.out.println(" - us01-ui : open a lightweight Swing test UI for the applicant profile module");
         System.out.println(" - us02-ui : open a lightweight Swing test UI for the CV submission module");
+        System.out.println(" - job-post-ui : open a Swing demo UI for creating/publishing JobPostings");
         System.out.println(" - us04-ui <jobId> <applicantUserId> : open a stub job detail page with an APPLY button");
         System.out.println(" - cv-review-ui : open a lightweight read-only CV review demo");
         System.out.println("Example:");
         System.out.println(" - powershell -ExecutionPolicy Bypass -File scripts\\run.ps1 us01");
         System.out.println(" - powershell -ExecutionPolicy Bypass -File scripts\\run.ps1 us01-ui");
         System.out.println(" - powershell -ExecutionPolicy Bypass -File scripts\\run.ps1 us02-ui");
+        System.out.println(" - powershell -ExecutionPolicy Bypass -File scripts\\run.ps1 job-post-ui");
         System.out.println(" - powershell -ExecutionPolicy Bypass -File scripts\\run.ps1 us04-ui job001 ta001");
         System.out.println(" - powershell -ExecutionPolicy Bypass -File scripts\\run.ps1 cv-review-ui");
     }
@@ -123,6 +132,13 @@ public final class App {
         return normalized.equals("cv-review-ui")
             || normalized.equals("us02-review-ui")
             || normalized.equals("mo-cv-review");
+    }
+
+    private static boolean isJobPostingUiCommand(String command) {
+        String normalized = command.toLowerCase(Locale.ROOT);
+        return normalized.equals("job-post-ui")
+            || normalized.equals("post-vacancies-ui")
+            || normalized.equals("job-ui");
     }
 
     private static boolean isUs04UiCommand(String command) {
@@ -184,6 +200,15 @@ public final class App {
             new TextFileCvStorage(report.dataDirectory())
         );
         ApplicantCvReviewSwingDemo demo = new ApplicantCvReviewSwingDemo(reviewService);
+        demo.show();
+    }
+
+    private static void runJobPostingUi(StartupReport report) {
+        JobRepository jobRepository = new TextFileJobRepository(report.dataDirectory());
+        JobPostingSwingDemo demo = new JobPostingSwingDemo(
+            jobRepository,
+            new JobIdGenerator(jobRepository)
+        );
         demo.show();
     }
 
