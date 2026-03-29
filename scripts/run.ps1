@@ -3,15 +3,18 @@ param(
     [string[]]$AppArgs
 )
 
-$ErrorActionPreference = "Stop"
+. (Join-Path $PSScriptRoot "common.ps1")
 
 $projectRoot = Split-Path -Parent $PSScriptRoot
 $buildScript = Join-Path $PSScriptRoot "build.ps1"
 $mainOutputDir = Join-Path $projectRoot "out\\main"
+$java = Get-JavaToolPath -ToolName "java" -MinimumVersion 21
 
 & $buildScript
+Push-Location $projectRoot
 if ($AppArgs) {
-    java -cp $mainOutputDir com.bupt.tarecruitment.App @AppArgs
+    & $java -cp "out\\main" com.bupt.tarecruitment.App @AppArgs
 } else {
-    java -cp $mainOutputDir com.bupt.tarecruitment.App
+    & $java -cp "out\\main" com.bupt.tarecruitment.App
 }
+Pop-Location
