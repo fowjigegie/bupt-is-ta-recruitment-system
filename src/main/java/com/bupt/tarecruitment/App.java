@@ -27,6 +27,10 @@ import com.bupt.tarecruitment.applicant.TextFileCvStorage;
 import com.bupt.tarecruitment.applicant.TextFileApplicantProfileRepository;
 import com.bupt.tarecruitment.bootstrap.ProjectBootstrap;
 import com.bupt.tarecruitment.bootstrap.StartupReport;
+import com.bupt.tarecruitment.auth.AuthConsoleWorkflow;
+import com.bupt.tarecruitment.auth.AuthService;
+import com.bupt.tarecruitment.auth.AuthValidator;
+import com.bupt.tarecruitment.auth.TextFileUserRepository;
 
 import java.util.Locale;
 
@@ -38,6 +42,11 @@ public final class App {
         StartupReport report = new ProjectBootstrap().initialize();
 
         if (args.length > 0) {
+            if (isUs00Command(args[0])) {
+                runUs00Workflow(report);
+                return;
+            }
+
             if (isJobPostingUiCommand(args[0])) {
                 runJobPostingUi(report);
                 return;
@@ -90,6 +99,7 @@ public final class App {
         }
 
         System.out.println("Available demo commands:");
+        System.out.println(" - us00 : run the registration and login demo");
         System.out.println(" - us01 : run the applicant profile creation demo");
         System.out.println(" - us01-ui : open a lightweight Swing test UI for the applicant profile module");
         System.out.println(" - us02-ui : open a lightweight Swing test UI for the CV submission module");
@@ -97,6 +107,7 @@ public final class App {
         System.out.println(" - us04-ui <jobId> <applicantUserId> : open a stub job detail page with an APPLY button");
         System.out.println(" - cv-review-ui : open a lightweight read-only CV review demo");
         System.out.println("Example:");
+        System.out.println(" - powershell -ExecutionPolicy Bypass -File scripts\\run.ps1 us00");
         System.out.println(" - powershell -ExecutionPolicy Bypass -File scripts\\run.ps1 us01");
         System.out.println(" - powershell -ExecutionPolicy Bypass -File scripts\\run.ps1 us01-ui");
         System.out.println(" - powershell -ExecutionPolicy Bypass -File scripts\\run.ps1 us02-ui");
@@ -110,6 +121,13 @@ public final class App {
         return normalized.equals("us01")
             || normalized.equals("us01-demo")
             || normalized.equals("applicant-profile");
+    }
+
+    private static boolean isUs00Command(String command) {
+        String normalized = command.toLowerCase(Locale.ROOT);
+        return normalized.equals("us00")
+            || normalized.equals("us00-demo")
+            || normalized.equals("auth");
     }
 
     private static boolean isUs01UiCommand(String command) {
@@ -157,6 +175,15 @@ public final class App {
             System.in,
             System.out
         );
+        workflow.run();
+    }
+
+    private static void runUs00Workflow(StartupReport report) {
+        AuthService service = new AuthService(
+            new TextFileUserRepository(report.dataDirectory()),
+            new AuthValidator()
+        );
+        AuthConsoleWorkflow workflow = new AuthConsoleWorkflow(service, System.in, System.out);
         workflow.run();
     }
 
