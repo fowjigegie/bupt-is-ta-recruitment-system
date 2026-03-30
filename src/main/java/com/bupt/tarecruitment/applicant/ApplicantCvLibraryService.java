@@ -1,5 +1,9 @@
 package com.bupt.tarecruitment.applicant;
 
+import com.bupt.tarecruitment.auth.UserAccessPolicy;
+import com.bupt.tarecruitment.auth.UserRepository;
+import com.bupt.tarecruitment.auth.UserRole;
+
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
@@ -11,6 +15,7 @@ public final class ApplicantCvLibraryService {
     private final ApplicantCvRepository cvRepository;
     private final ApplicantCvIdGenerator cvIdGenerator;
     private final CvTextStorage cvStorage;
+    private final UserAccessPolicy userAccessPolicy;
 
     public ApplicantCvLibraryService(
         ApplicantProfileRepository profileRepository,
@@ -18,13 +23,35 @@ public final class ApplicantCvLibraryService {
         ApplicantCvIdGenerator cvIdGenerator,
         CvTextStorage cvStorage
     ) {
+        this(profileRepository, cvRepository, cvIdGenerator, cvStorage, UserAccessPolicy.noOp());
+    }
+
+    public ApplicantCvLibraryService(
+        ApplicantProfileRepository profileRepository,
+        ApplicantCvRepository cvRepository,
+        ApplicantCvIdGenerator cvIdGenerator,
+        CvTextStorage cvStorage,
+        UserRepository userRepository
+    ) {
+        this(profileRepository, cvRepository, cvIdGenerator, cvStorage, new UserAccessPolicy(userRepository));
+    }
+
+    private ApplicantCvLibraryService(
+        ApplicantProfileRepository profileRepository,
+        ApplicantCvRepository cvRepository,
+        ApplicantCvIdGenerator cvIdGenerator,
+        CvTextStorage cvStorage,
+        UserAccessPolicy userAccessPolicy
+    ) {
         this.profileRepository = Objects.requireNonNull(profileRepository);
         this.cvRepository = Objects.requireNonNull(cvRepository);
         this.cvIdGenerator = Objects.requireNonNull(cvIdGenerator);
         this.cvStorage = Objects.requireNonNull(cvStorage);
+        this.userAccessPolicy = Objects.requireNonNull(userAccessPolicy);
     }
 
     public ApplicantCv createCv(String ownerUserId, String title, String cvContent) {
+        userAccessPolicy.requireActiveUserWithRole(ownerUserId, UserRole.APPLICANT);
         requireExistingProfile(ownerUserId);
         requireNonBlank(title, "title");
         requireNonBlank(cvContent, "cvContent");
@@ -78,6 +105,7 @@ public final class ApplicantCvLibraryService {
 
     public List<ApplicantCv> listCvsByUserId(String ownerUserId) {
         requireNonBlank(ownerUserId, "ownerUserId");
+        userAccessPolicy.requireActiveUserWithRole(ownerUserId, UserRole.APPLICANT);
         return cvRepository.findByOwnerUserId(ownerUserId);
     }
 

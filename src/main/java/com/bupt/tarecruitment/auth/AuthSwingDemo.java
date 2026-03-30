@@ -21,6 +21,7 @@ import java.util.Objects;
 
 public final class AuthSwingDemo {
     private final AuthService service;
+    private final Runnable onSessionChanged;
 
     private final JTextField userIdField = new JTextField(24);
     private final JPasswordField passwordField = new JPasswordField(24);
@@ -28,7 +29,12 @@ public final class AuthSwingDemo {
     private final JTextArea resultArea = new JTextArea(12, 48);
 
     public AuthSwingDemo(AuthService service) {
+        this(service, () -> { });
+    }
+
+    public AuthSwingDemo(AuthService service, Runnable onSessionChanged) {
         this.service = Objects.requireNonNull(service);
+        this.onSessionChanged = Objects.requireNonNull(onSessionChanged);
     }
 
     public void show() {
@@ -93,6 +99,7 @@ public final class AuthSwingDemo {
                 (UserRole) roleComboBox.getSelectedItem()
             );
             renderAccount("Registration successful.", account);
+            onSessionChanged.run();
         } catch (IllegalArgumentException exception) {
             resultArea.setText("Failed to register user.\n\n" + exception.getMessage());
         }
@@ -117,6 +124,7 @@ public final class AuthSwingDemo {
                 account.displayName(),
                 account.status()
             ));
+            onSessionChanged.run();
         } catch (IllegalArgumentException exception) {
             resultArea.setText("Failed to log in.\n\n" + exception.getMessage());
         }
@@ -133,6 +141,7 @@ public final class AuthSwingDemo {
     private void logout() {
         service.logout();
         resultArea.setText("Logged out.");
+        onSessionChanged.run();
     }
 
     private void clearForm() {

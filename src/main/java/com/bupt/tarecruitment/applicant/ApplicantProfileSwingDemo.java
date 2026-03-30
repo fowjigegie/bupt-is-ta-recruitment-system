@@ -21,6 +21,8 @@ import java.util.Optional;
 public final class ApplicantProfileSwingDemo {
     private final ApplicantProfileService service;
     private final ApplicantProfileIdGenerator profileIdGenerator;
+    private final String fixedUserId;
+    private final boolean lockUserId;
 
     private final JTextField userIdField = new JTextField(24);
     private final JTextField studentIdField = new JTextField(24);
@@ -34,8 +36,19 @@ public final class ApplicantProfileSwingDemo {
     private final JTextArea resultArea = new JTextArea(14, 48);
 
     public ApplicantProfileSwingDemo(ApplicantProfileService service, ApplicantProfileIdGenerator profileIdGenerator) {
+        this(service, profileIdGenerator, "", false);
+    }
+
+    public ApplicantProfileSwingDemo(
+        ApplicantProfileService service,
+        ApplicantProfileIdGenerator profileIdGenerator,
+        String fixedUserId,
+        boolean lockUserId
+    ) {
         this.service = Objects.requireNonNull(service);
         this.profileIdGenerator = Objects.requireNonNull(profileIdGenerator);
+        this.fixedUserId = fixedUserId == null ? "" : fixedUserId.trim();
+        this.lockUserId = lockUserId && !this.fixedUserId.isBlank();
     }
 
     public void show() {
@@ -80,6 +93,12 @@ public final class ApplicantProfileSwingDemo {
                 - Availability must use DAY-HH:MM-HH:MM, for example MON-09:00-11:00.
                 - Click Load Profile to pull an existing profile by userId.
                 """);
+
+            if (!fixedUserId.isBlank()) {
+                userIdField.setText(fixedUserId);
+                userIdField.setEditable(!lockUserId);
+                tryLoadFixedProfile();
+            }
 
             createButton.addActionListener(event -> createProfile());
             loadButton.addActionListener(event -> loadProfile());
@@ -136,7 +155,7 @@ public final class ApplicantProfileSwingDemo {
     }
 
     private void clearForm() {
-        userIdField.setText("");
+        userIdField.setText(lockUserId ? fixedUserId : "");
         studentIdField.setText("");
         fullNameField.setText("");
         programmeField.setText("");
@@ -146,6 +165,14 @@ public final class ApplicantProfileSwingDemo {
         availabilityField.setText("");
         desiredPositionsField.setText("");
         resultArea.setText("Form cleared.");
+    }
+
+    private void tryLoadFixedProfile() {
+        Optional<ApplicantProfile> profile = service.getProfileByUserId(fixedUserId);
+        if (profile.isPresent()) {
+            fillForm(profile.get());
+            renderProfile("Existing profile loaded for the signed-in applicant.", profile.get());
+        }
     }
 
     private void fillForm(ApplicantProfile profile) {

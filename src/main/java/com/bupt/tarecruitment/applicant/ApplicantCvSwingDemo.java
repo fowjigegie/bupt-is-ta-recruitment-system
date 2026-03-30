@@ -28,6 +28,8 @@ import java.util.stream.Collectors;
 public final class ApplicantCvSwingDemo {
     private final ApplicantCvLibraryService cvLibraryService;
     private final ApplicantCvService cvService;
+    private final String fixedOwnerUserId;
+    private final boolean lockOwnerUserId;
 
     private final JTextField ownerUserIdField = new JTextField(18);
     private final JTextField cvTitleField = new JTextField(24);
@@ -39,8 +41,19 @@ public final class ApplicantCvSwingDemo {
     private final JTextArea resultArea = new JTextArea(8, 48);
 
     public ApplicantCvSwingDemo(ApplicantCvLibraryService cvLibraryService, ApplicantCvService cvService) {
+        this(cvLibraryService, cvService, "", false);
+    }
+
+    public ApplicantCvSwingDemo(
+        ApplicantCvLibraryService cvLibraryService,
+        ApplicantCvService cvService,
+        String fixedOwnerUserId,
+        boolean lockOwnerUserId
+    ) {
         this.cvLibraryService = Objects.requireNonNull(cvLibraryService);
         this.cvService = Objects.requireNonNull(cvService);
+        this.fixedOwnerUserId = fixedOwnerUserId == null ? "" : fixedOwnerUserId.trim();
+        this.lockOwnerUserId = lockOwnerUserId && !this.fixedOwnerUserId.isBlank();
     }
 
     public void show() {
@@ -84,6 +97,12 @@ public final class ApplicantCvSwingDemo {
                 Compatibility flow:
                 - The attach button is kept only for legacy/backfill records.
                 """);
+
+            if (!fixedOwnerUserId.isBlank()) {
+                ownerUserIdField.setText(fixedOwnerUserId);
+                ownerUserIdField.setEditable(!lockOwnerUserId);
+                listCvs();
+            }
 
             JPanel buttonPanel = new JPanel();
             JButton importButton = new JButton("Import .txt");
@@ -236,7 +255,7 @@ public final class ApplicantCvSwingDemo {
     }
 
     private void clearForm() {
-        ownerUserIdField.setText("");
+        ownerUserIdField.setText(lockOwnerUserId ? fixedOwnerUserId : "");
         cvTitleField.setText("");
         cvIdField.setText("");
         applicationIdField.setText("");

@@ -19,9 +19,17 @@ import com.bupt.tarecruitment.applicant.ApplicantProfileValidator;
 import com.bupt.tarecruitment.applicant.TextFileApplicantCvRepository;
 import com.bupt.tarecruitment.applicant.TextFileApplicantProfileRepository;
 import com.bupt.tarecruitment.applicant.TextFileCvStorage;
+import com.bupt.tarecruitment.auth.AuthService;
+import com.bupt.tarecruitment.auth.AuthValidator;
+import com.bupt.tarecruitment.auth.TextFileUserRepository;
+import com.bupt.tarecruitment.auth.UserRepository;
+import com.bupt.tarecruitment.auth.UserRole;
 import com.bupt.tarecruitment.bootstrap.ProjectBootstrap;
 import com.bupt.tarecruitment.bootstrap.StartupReport;
 import com.bupt.tarecruitment.common.storage.DataFile;
+import com.bupt.tarecruitment.job.JobPosting;
+import com.bupt.tarecruitment.job.JobPostingService;
+import com.bupt.tarecruitment.job.TextFileJobRepository;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -57,6 +65,11 @@ public final class AppSmokeTest {
                 StandardCharsets.UTF_8
             );
             Files.write(
+                tempDataDirectory.resolve(DataFile.USERS.fileName()),
+                List.of(DataFile.USERS.initialLines().getFirst()),
+                StandardCharsets.UTF_8
+            );
+            Files.write(
                 tempDataDirectory.resolve(DataFile.CVS.fileName()),
                 DataFile.CVS.initialLines(),
                 StandardCharsets.UTF_8
@@ -66,11 +79,28 @@ public final class AppSmokeTest {
                 DataFile.APPLICATIONS.initialLines(),
                 StandardCharsets.UTF_8
             );
+            Files.write(
+                tempDataDirectory.resolve(DataFile.JOBS.fileName()),
+                DataFile.JOBS.initialLines(),
+                StandardCharsets.UTF_8
+            );
+
+            UserRepository userRepository = new TextFileUserRepository(tempDataDirectory);
+            AuthService authService = new AuthService(userRepository, new AuthValidator());
+            registerApplicant(authService, "ta999");
+            registerApplicant(authService, "ta998");
+            registerApplicant(authService, "ta997");
+            registerApplicant(authService, "ta996");
+            registerApplicant(authService, "ta995");
+            registerApplicant(authService, "ta994");
+            authService.register("mo999", "pass-mo999", UserRole.MO);
+            authService.register("mo998", "pass-mo998", UserRole.MO);
 
             TextFileApplicantProfileRepository profileRepository = new TextFileApplicantProfileRepository(tempDataDirectory);
             ApplicantProfileService profileService = new ApplicantProfileService(
                 profileRepository,
-                new ApplicantProfileValidator()
+                new ApplicantProfileValidator(),
+                userRepository
             );
             ApplicantCvRepository cvRepository = new TextFileApplicantCvRepository(tempDataDirectory);
             ApplicationRepository applicationRepository = new TextFileApplicationRepository(tempDataDirectory);
@@ -79,12 +109,18 @@ public final class AppSmokeTest {
                 profileRepository,
                 cvRepository,
                 new ApplicantCvIdGenerator(cvRepository),
-                new TextFileCvStorage(tempDataDirectory)
+                new TextFileCvStorage(tempDataDirectory),
+                userRepository
             );
             ApplicantCvService cvService = new ApplicantCvService(
                 applicationRepository,
                 cvRepository,
                 new TextFileCvStorage(tempDataDirectory)
+            );
+            JobPostingService jobPostingService = new JobPostingService(
+                new TextFileJobRepository(tempDataDirectory),
+                new com.bupt.tarecruitment.job.JobIdGenerator(new TextFileJobRepository(tempDataDirectory)),
+                userRepository
             );
 
             profileService.createProfile(
@@ -159,6 +195,40 @@ public final class AppSmokeTest {
             if (profileService.getProfileByUserId("ta999").isEmpty()) {
                 throw new IllegalStateException("Applicant profile service failed to save or read profile.");
             }
+
+            expectCreateFailure(
+                profileService,
+                new ApplicantProfile(
+                    "profile404",
+                    "ta404",
+                    "231225404",
+                    "Missing Applicant",
+                    "Software Engineering",
+                    2,
+                    "Not Graduated",
+                    List.of("Java"),
+                    List.of("TUE-10:00-12:00"),
+                    List.of("Teaching Assistant")
+                ),
+                "No registered user exists"
+            );
+
+            expectCreateFailure(
+                profileService,
+                new ApplicantProfile(
+                    "profilemo1",
+                    "mo998",
+                    "231225498",
+                    "Wrong Role",
+                    "Software Engineering",
+                    2,
+                    "Not Graduated",
+                    List.of("Java"),
+                    List.of("TUE-10:00-12:00"),
+                    List.of("Teaching Assistant")
+                ),
+                "ACTIVE APPLICANT account"
+            );
 
             expectCreateFailure(
                 profileService,
@@ -256,13 +326,50 @@ public final class AppSmokeTest {
                 throw new IllegalStateException("Review service returned the wrong CV content.");
             }
 
+            JobPosting publishedJob = jobPostingService.publish(
+                "mo999",
+                "TA for Testing",
+                "Testing Module",
+                "Support smoke testing activities",
+                List.of("Testing", "Communication"),
+                3,
+                List.of("MON-10:00-12:00")
+            );
+            if (!"mo999".equals(publishedJob.organiserId())) {
+                throw new IllegalStateException("Job posting service did not preserve organiserId.");
+            }
+
             expectCvCreateFailure(cvLibraryService, "ta999", "Primary TA CV", "   ", "cvContent must not be blank.");
+            expectCvCreateFailure(cvLibraryService, "ta404", "Missing Account CV", "CV", "No registered user exists");
+            expectCvCreateFailure(cvLibraryService, "mo999", "Wrong Role CV", "CV", "ACTIVE APPLICANT account");
             expectAttachCvFailure(cvService, "application999", "cv404", "No CV exists");
             expectAttachCvFailure(cvService, "application995", createdCv.cvId(), "does not belong to applicantUserId");
             expectLoadCvFailure(cvService, "application995", "No CV has been submitted");
             expectLoadCvFailure(cvService, "application404", "No application exists");
             expectReviewFailure(reviewService, "application995", "No CV has been submitted");
             expectReviewFailure(reviewService, "application404", "No application exists");
+            expectJobPublishFailure(
+                jobPostingService,
+                "ta999",
+                "Wrong Role Posting",
+                "Testing Module",
+                "Support smoke testing activities",
+                List.of("Testing"),
+                3,
+                List.of("MON-10:00-12:00"),
+                "ACTIVE MO account"
+            );
+            expectJobPublishFailure(
+                jobPostingService,
+                "mo404",
+                "Missing User Posting",
+                "Testing Module",
+                "Support smoke testing activities",
+                List.of("Testing"),
+                3,
+                List.of("MON-10:00-12:00"),
+                "No registered user exists"
+            );
 
             for (int index = 1; index <= ApplicantCvLibraryService.MAX_CVS_PER_APPLICANT; index++) {
                 cvLibraryService.createCv("ta994", "Variant CV " + index, "Variant CV content " + index);
@@ -293,7 +400,7 @@ public final class AppSmokeTest {
             ) + System.lineSeparator();
             ByteArrayOutputStream workflowOutput = new ByteArrayOutputStream();
             ApplicantProfileConsoleWorkflow workflow = new ApplicantProfileConsoleWorkflow(
-                new ApplicantProfileService(profileRepository, new ApplicantProfileValidator()),
+                new ApplicantProfileService(profileRepository, new ApplicantProfileValidator(), userRepository),
                 profileIdGenerator,
                 new ByteArrayInputStream(consoleInput.getBytes(StandardCharsets.UTF_8)),
                 new PrintStream(workflowOutput, true, StandardCharsets.UTF_8)
@@ -312,6 +419,10 @@ public final class AppSmokeTest {
         }
 
         System.out.println("Smoke test passed.");
+    }
+
+    private static void registerApplicant(AuthService authService, String userId) {
+        authService.register(userId, "pass-" + userId, UserRole.APPLICANT);
     }
 
     private static void expectCreateFailure(
@@ -388,6 +499,35 @@ public final class AppSmokeTest {
         } catch (IllegalArgumentException exception) {
             if (!exception.getMessage().contains(expectedMessagePart)) {
                 throw new IllegalStateException("Unexpected review load message: " + exception.getMessage(), exception);
+            }
+        }
+    }
+
+    private static void expectJobPublishFailure(
+        JobPostingService jobPostingService,
+        String organiserId,
+        String title,
+        String moduleOrActivity,
+        String description,
+        List<String> requiredSkills,
+        int weeklyHours,
+        List<String> scheduleSlots,
+        String expectedMessagePart
+    ) {
+        try {
+            jobPostingService.publish(
+                organiserId,
+                title,
+                moduleOrActivity,
+                description,
+                requiredSkills,
+                weeklyHours,
+                scheduleSlots
+            );
+            throw new IllegalStateException("Expected job publish to fail for organiserId: " + organiserId);
+        } catch (IllegalArgumentException exception) {
+            if (!exception.getMessage().contains(expectedMessagePart)) {
+                throw new IllegalStateException("Unexpected job publish message: " + exception.getMessage(), exception);
             }
         }
     }

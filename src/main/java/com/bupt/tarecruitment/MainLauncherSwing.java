@@ -1,5 +1,8 @@
 package com.bupt.tarecruitment;
 
+import com.bupt.tarecruitment.auth.UserAccount;
+import com.bupt.tarecruitment.auth.UserRole;
+
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -18,13 +21,30 @@ import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.awt.Insets;
 import java.util.Objects;
+import java.util.Optional;
 
 public final class MainLauncherSwing {
     private final ProjectModuleFactory moduleFactory;
 
-    private final JTextField applicantUserIdField = new JTextField("ta001", 18);
+    private final JTextField applicantUserIdField = new JTextField(18);
     private final JTextField jobIdField = new JTextField("job003", 18);
-    private final JTextArea statusArea = new JTextArea(10, 48);
+    private final JTextArea statusArea = new JTextArea(12, 48);
+
+    private JButton authButton;
+    private JButton applicantProfileButton;
+    private JButton cvLibraryButton;
+    private JButton jobPostingButton;
+    private JButton cvReviewButton;
+    private JButton applyButton;
+
+    private String lastActionMessage = """
+        Main launcher is ready.
+
+        Please sign in first.
+        - APPLICANT can open US01, US02, and US04.
+        - MO can open US11 and CV review.
+        - ADMIN currently has no dedicated feature page in this launcher.
+        """;
 
     public MainLauncherSwing(ProjectModuleFactory moduleFactory) {
         this.moduleFactory = Objects.requireNonNull(moduleFactory);
@@ -36,6 +56,8 @@ public final class MainLauncherSwing {
             frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
             frame.setLayout(new BorderLayout(12, 12));
 
+            applicantUserIdField.setEditable(false);
+
             JPanel root = new JPanel(new BorderLayout(12, 12));
             root.setBorder(BorderFactory.createEmptyBorder(12, 12, 12, 12));
 
@@ -46,23 +68,12 @@ public final class MainLauncherSwing {
             statusArea.setEditable(false);
             statusArea.setLineWrap(true);
             statusArea.setWrapStyleWord(true);
-            statusArea.setText("""
-                Main launcher is ready.
-
-                Recommended flow:
-                1. Open Auth UI if you want a login/register window.
-                2. Open Applicant Profile UI and create a profile.
-                3. Open CV Library UI and create a CV.
-                4. Open Job Posting UI to create an OPEN job.
-                5. Open Apply to Job UI with an applicant userId and jobId.
-                6. Open CV Review UI to inspect an application-specific CV.
-
-                US03/find_job is intentionally not used here.
-                """);
 
             frame.add(root, BorderLayout.CENTER);
             frame.pack();
             frame.setLocationRelativeTo(null);
+
+            refreshSessionState();
             frame.setVisible(true);
         });
     }
@@ -79,7 +90,7 @@ public final class MainLauncherSwing {
         title.setFont(title.getFont().deriveFont(Font.BOLD, 18f));
         panel.add(title, BorderLayout.NORTH);
 
-        JLabel subtitle = new JLabel("Unified Swing entry for US00, US01, US02, US04, US11, and CV review.");
+        JLabel subtitle = new JLabel("Unified Swing entry with a shared US-00 login session.");
         subtitle.setForeground(new Color(70, 85, 105));
         panel.add(subtitle, BorderLayout.SOUTH);
         return panel;
@@ -110,35 +121,25 @@ public final class MainLauncherSwing {
         c.gridy = 0;
         panel.add(title, c);
 
+        authButton = createLaunchButton("Open Auth UI", this::openAuthUi);
         c.gridy = 1;
-        panel.add(createLaunchButton("Open Auth UI", () -> {
-            moduleFactory.createAuthUi().show();
-            setStatus("Opened Auth UI.");
-        }), c);
+        panel.add(authButton, c);
 
+        applicantProfileButton = createLaunchButton("Open Applicant Profile UI", this::openApplicantProfileUi);
         c.gridy = 2;
-        panel.add(createLaunchButton("Open Applicant Profile UI", () -> {
-            moduleFactory.createUs01Ui().show();
-            setStatus("Opened US01 Applicant Profile UI.");
-        }), c);
+        panel.add(applicantProfileButton, c);
 
+        cvLibraryButton = createLaunchButton("Open CV Library UI", this::openCvLibraryUi);
         c.gridy = 3;
-        panel.add(createLaunchButton("Open CV Library UI", () -> {
-            moduleFactory.createUs02Ui().show();
-            setStatus("Opened US02 CV Library UI.");
-        }), c);
+        panel.add(cvLibraryButton, c);
 
+        jobPostingButton = createLaunchButton("Open Job Posting UI", this::openJobPostingUi);
         c.gridy = 4;
-        panel.add(createLaunchButton("Open Job Posting UI", () -> {
-            moduleFactory.createJobPostingUi().show();
-            setStatus("Opened US11 Job Posting UI.");
-        }), c);
+        panel.add(jobPostingButton, c);
 
+        cvReviewButton = createLaunchButton("Open CV Review UI", this::openCvReviewUi);
         c.gridy = 5;
-        panel.add(createLaunchButton("Open CV Review UI", () -> {
-            moduleFactory.createCvReviewUi().show();
-            setStatus("Opened CV Review UI.");
-        }), c);
+        panel.add(cvReviewButton, c);
 
         return panel;
     }
@@ -164,7 +165,7 @@ public final class MainLauncherSwing {
         c.gridwidth = 1;
         c.gridy = 1;
         c.insets = new Insets(4, 0, 4, 12);
-        panel.add(new JLabel("Applicant userId"), c);
+        panel.add(new JLabel("Signed-in applicant"), c);
 
         c.gridx = 1;
         c.insets = new Insets(4, 0, 4, 0);
@@ -179,20 +180,20 @@ public final class MainLauncherSwing {
         c.insets = new Insets(4, 0, 4, 0);
         panel.add(jobIdField, c);
 
+        applyButton = createLaunchButton("Open Apply to Job UI", this::openApplyUi);
         c.gridx = 0;
         c.gridy = 3;
         c.gridwidth = 2;
         c.insets = new Insets(12, 0, 6, 0);
-        panel.add(createLaunchButton("Open Apply to Job UI", this::openApplyUi), c);
+        panel.add(applyButton, c);
 
         c.gridy = 4;
         JTextArea helperArea = new JTextArea("""
             Suggested demo values:
-            - applicant userId: ta001
-            - jobId: job003
+            - Sign in as ta001 to use the applicant flow
+            - Default jobId: job003
 
-            If you create a new applicant profile or a new job posting,
-            update these fields before opening the apply window.
+            This launcher now uses the signed-in user instead of manual applicant userId input.
             """);
         helperArea.setEditable(false);
         helperArea.setLineWrap(true);
@@ -210,19 +211,115 @@ public final class MainLauncherSwing {
         return button;
     }
 
-    private void openApplyUi() {
-        String applicantUserId = applicantUserIdField.getText().trim();
-        String jobId = jobIdField.getText().trim();
-        if (applicantUserId.isBlank() || jobId.isBlank()) {
-            setStatus("Applicant userId and jobId are required before opening US04.");
+    private void openAuthUi() {
+        moduleFactory.createAuthUi(this::handleSessionChanged).show();
+        setLastActionMessage("Opened Auth UI.");
+    }
+
+    private void openApplicantProfileUi() {
+        Optional<UserAccount> currentUser = moduleFactory.getCurrentUser();
+        if (currentUser.isEmpty() || currentUser.get().role() != UserRole.APPLICANT) {
+            setLastActionMessage("Applicant Profile UI requires a signed-in APPLICANT account.");
             return;
         }
 
-        moduleFactory.createUs04Ui(jobId, applicantUserId).show();
-        setStatus("Opened US04 Apply UI for applicantUserId=%s and jobId=%s.".formatted(applicantUserId, jobId));
+        moduleFactory.createUs01Ui(currentUser.get().userId()).show();
+        setLastActionMessage("Opened US01 Applicant Profile UI for %s.".formatted(currentUser.get().userId()));
     }
 
-    private void setStatus(String message) {
-        statusArea.setText(message);
+    private void openCvLibraryUi() {
+        Optional<UserAccount> currentUser = moduleFactory.getCurrentUser();
+        if (currentUser.isEmpty() || currentUser.get().role() != UserRole.APPLICANT) {
+            setLastActionMessage("CV Library UI requires a signed-in APPLICANT account.");
+            return;
+        }
+
+        moduleFactory.createUs02Ui(currentUser.get().userId()).show();
+        setLastActionMessage("Opened US02 CV Library UI for %s.".formatted(currentUser.get().userId()));
+    }
+
+    private void openJobPostingUi() {
+        Optional<UserAccount> currentUser = moduleFactory.getCurrentUser();
+        if (currentUser.isEmpty() || currentUser.get().role() != UserRole.MO) {
+            setLastActionMessage("Job Posting UI requires a signed-in MO account.");
+            return;
+        }
+
+        moduleFactory.createJobPostingUi(currentUser.get().userId(), currentUser.get().displayName()).show();
+        setLastActionMessage("Opened US11 Job Posting UI for %s.".formatted(currentUser.get().userId()));
+    }
+
+    private void openCvReviewUi() {
+        Optional<UserAccount> currentUser = moduleFactory.getCurrentUser();
+        if (currentUser.isEmpty() || currentUser.get().role() != UserRole.MO) {
+            setLastActionMessage("CV Review UI requires a signed-in MO account.");
+            return;
+        }
+
+        moduleFactory.createCvReviewUi().show();
+        setLastActionMessage("Opened CV Review UI for %s.".formatted(currentUser.get().userId()));
+    }
+
+    private void openApplyUi() {
+        Optional<UserAccount> currentUser = moduleFactory.getCurrentUser();
+        if (currentUser.isEmpty() || currentUser.get().role() != UserRole.APPLICANT) {
+            setLastActionMessage("Apply to Job UI requires a signed-in APPLICANT account.");
+            return;
+        }
+
+        String jobId = jobIdField.getText().trim();
+        if (jobId.isBlank()) {
+            setLastActionMessage("Job ID is required before opening US04.");
+            return;
+        }
+
+        moduleFactory.createUs04Ui(jobId, currentUser.get().userId()).show();
+        setLastActionMessage(
+            "Opened US04 Apply UI for applicantUserId=%s and jobId=%s."
+                .formatted(currentUser.get().userId(), jobId)
+        );
+    }
+
+    private void handleSessionChanged() {
+        setLastActionMessage("Authentication session updated.");
+    }
+
+    private void setLastActionMessage(String message) {
+        lastActionMessage = message;
+        refreshSessionState();
+    }
+
+    private void refreshSessionState() {
+        Optional<UserAccount> currentUser = moduleFactory.getCurrentUser();
+        boolean applicantSignedIn = currentUser.isPresent() && currentUser.get().role() == UserRole.APPLICANT;
+        boolean moSignedIn = currentUser.isPresent() && currentUser.get().role() == UserRole.MO;
+
+        applicantProfileButton.setEnabled(applicantSignedIn);
+        cvLibraryButton.setEnabled(applicantSignedIn);
+        applyButton.setEnabled(applicantSignedIn);
+        jobPostingButton.setEnabled(moSignedIn);
+        cvReviewButton.setEnabled(moSignedIn);
+
+        applicantUserIdField.setText(applicantSignedIn ? currentUser.orElseThrow().userId() : "");
+
+        String sessionSummary;
+        if (currentUser.isEmpty()) {
+            sessionSummary = """
+                Current session:
+                - not signed in
+                - open Auth UI to register or log in
+                """;
+        } else {
+            UserAccount user = currentUser.orElseThrow();
+            sessionSummary = """
+                Current session:
+                - userId: %s
+                - role: %s
+                - displayName: %s
+                - status: %s
+                """.formatted(user.userId(), user.role(), user.displayName(), user.status());
+        }
+
+        statusArea.setText(sessionSummary + System.lineSeparator() + System.lineSeparator() + lastActionMessage);
     }
 }
