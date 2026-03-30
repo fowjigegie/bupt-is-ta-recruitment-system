@@ -2,7 +2,6 @@ package com.bupt.tarecruitment;
 
 import com.bupt.tarecruitment.bootstrap.ProjectBootstrap;
 import com.bupt.tarecruitment.bootstrap.StartupReport;
-
 import java.util.Locale;
 
 public final class App {
