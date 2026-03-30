@@ -25,6 +25,8 @@ import java.util.Objects;
 public final class JobPostingSwingDemo {
     private final JobRepository jobRepository;
     private final JobIdGenerator jobIdGenerator;
+    private final String fixedOrganiserId;
+    private final String headerUserName;
 
     private final JTextField courseTitleField = new JTextField(26);
     private final JTextField taughtByField = new JTextField(18);
@@ -36,8 +38,19 @@ public final class JobPostingSwingDemo {
     private final JTextArea resultArea = new JTextArea(9, 46);
 
     public JobPostingSwingDemo(JobRepository jobRepository, JobIdGenerator jobIdGenerator) {
+        this(jobRepository, jobIdGenerator, "", "MO Demo");
+    }
+
+    public JobPostingSwingDemo(
+        JobRepository jobRepository,
+        JobIdGenerator jobIdGenerator,
+        String fixedOrganiserId,
+        String headerUserName
+    ) {
         this.jobRepository = Objects.requireNonNull(jobRepository);
         this.jobIdGenerator = Objects.requireNonNull(jobIdGenerator);
+        this.fixedOrganiserId = fixedOrganiserId == null ? "" : fixedOrganiserId.trim();
+        this.headerUserName = (headerUserName == null || headerUserName.isBlank()) ? "MO Demo" : headerUserName.trim();
     }
 
     public void show() {
@@ -83,6 +96,7 @@ public final class JobPostingSwingDemo {
         panel.add(title, BorderLayout.WEST);
 
         JLabel user = new JLabel("MO Demo");
+        user.setText(headerUserName);
         user.setForeground(new Color(90, 90, 90));
         panel.add(user, BorderLayout.EAST);
 
@@ -159,6 +173,11 @@ public final class JobPostingSwingDemo {
             - Schedule slots: use ';' or ',' to separate, e.g. MON-10:00-12:00; THU-14:00-16:00
             - Weekly hours: integer
             """);
+
+        if (!fixedOrganiserId.isBlank()) {
+            taughtByField.setText(fixedOrganiserId);
+            taughtByField.setEditable(false);
+        }
 
         addField(form, 0, "Course Title", courseTitleField);
         addField(form, 1, "Taught By (organiserId)", taughtByField);
@@ -284,7 +303,7 @@ public final class JobPostingSwingDemo {
 
     private void clear() {
         courseTitleField.setText("");
-        taughtByField.setText("");
+        taughtByField.setText(fixedOrganiserId);
         moduleOrActivityField.setText("");
         weeklyHoursField.setText("");
         scheduleSlotsField.setText("");

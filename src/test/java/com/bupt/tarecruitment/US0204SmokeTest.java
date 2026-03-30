@@ -18,6 +18,11 @@ import com.bupt.tarecruitment.applicant.ApplicantProfileValidator;
 import com.bupt.tarecruitment.applicant.TextFileApplicantCvRepository;
 import com.bupt.tarecruitment.applicant.TextFileApplicantProfileRepository;
 import com.bupt.tarecruitment.applicant.TextFileCvStorage;
+import com.bupt.tarecruitment.auth.AuthService;
+import com.bupt.tarecruitment.auth.AuthValidator;
+import com.bupt.tarecruitment.auth.TextFileUserRepository;
+import com.bupt.tarecruitment.auth.UserRepository;
+import com.bupt.tarecruitment.auth.UserRole;
 import com.bupt.tarecruitment.common.storage.DataFile;
 import com.bupt.tarecruitment.job.JobPosting;
 import com.bupt.tarecruitment.job.JobRepository;
@@ -43,16 +48,23 @@ public final class US0204SmokeTest {
             ApplicantCvRepository cvRepository = new TextFileApplicantCvRepository(tempDataDirectory);
             ApplicationRepository applicationRepository = new TextFileApplicationRepository(tempDataDirectory);
             JobRepository jobRepository = new TextFileJobRepository(tempDataDirectory);
+            UserRepository userRepository = new TextFileUserRepository(tempDataDirectory);
+            AuthService authService = new AuthService(userRepository, new AuthValidator());
+            authService.register("ta101", "pass-ta101", UserRole.APPLICANT);
+            authService.register("ta102", "pass-ta102", UserRole.APPLICANT);
+            authService.register("mo101", "pass-mo101", UserRole.MO);
 
             ApplicantProfileService profileService = new ApplicantProfileService(
                 profileRepository,
-                new ApplicantProfileValidator()
+                new ApplicantProfileValidator(),
+                userRepository
             );
             ApplicantCvLibraryService cvLibraryService = new ApplicantCvLibraryService(
                 profileRepository,
                 cvRepository,
                 new ApplicantCvIdGenerator(cvRepository),
-                new TextFileCvStorage(tempDataDirectory)
+                new TextFileCvStorage(tempDataDirectory),
+                userRepository
             );
             ApplicantCvService cvService = new ApplicantCvService(
                 applicationRepository,
@@ -64,7 +76,8 @@ public final class US0204SmokeTest {
                 applicationRepository,
                 new ApplicationIdGenerator(applicationRepository),
                 profileRepository,
-                cvRepository
+                cvRepository,
+                userRepository
             );
 
             profileService.createProfile(buildProfile("profile101", "ta101", "231225101", "Applicant One"));
@@ -96,7 +109,11 @@ public final class US0204SmokeTest {
             );
             expectFailure(
                 () -> jobApplicationService.applyToJobWithCv("ta404", "job-open-2", cv101.cvId()),
-                "No applicant profile exists"
+                "No registered user exists"
+            );
+            expectFailure(
+                () -> jobApplicationService.applyToJobWithCv("mo101", "job-open-2", cv101.cvId()),
+                "ACTIVE APPLICANT account"
             );
             expectFailure(
                 () -> jobApplicationService.applyToJobWithCv("ta101", "job404", cv101.cvId()),
@@ -146,6 +163,7 @@ public final class US0204SmokeTest {
     }
 
     private static void bootstrapDataFiles(Path tempDataDirectory) throws Exception {
+        Files.write(tempDataDirectory.resolve(DataFile.USERS.fileName()), List.of(DataFile.USERS.initialLines().getFirst()), StandardCharsets.UTF_8);
         Files.write(tempDataDirectory.resolve(DataFile.PROFILES.fileName()), DataFile.PROFILES.initialLines(), StandardCharsets.UTF_8);
         Files.write(tempDataDirectory.resolve(DataFile.CVS.fileName()), DataFile.CVS.initialLines(), StandardCharsets.UTF_8);
         Files.write(tempDataDirectory.resolve(DataFile.APPLICATIONS.fileName()), DataFile.APPLICATIONS.initialLines(), StandardCharsets.UTF_8);

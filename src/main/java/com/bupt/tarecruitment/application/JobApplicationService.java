@@ -3,6 +3,9 @@ package com.bupt.tarecruitment.application;
 import com.bupt.tarecruitment.applicant.ApplicantCv;
 import com.bupt.tarecruitment.applicant.ApplicantCvRepository;
 import com.bupt.tarecruitment.applicant.ApplicantProfileRepository;
+import com.bupt.tarecruitment.auth.UserAccessPolicy;
+import com.bupt.tarecruitment.auth.UserRepository;
+import com.bupt.tarecruitment.auth.UserRole;
 import com.bupt.tarecruitment.job.JobPosting;
 import com.bupt.tarecruitment.job.JobRepository;
 import com.bupt.tarecruitment.job.JobStatus;
@@ -16,6 +19,7 @@ public final class JobApplicationService {
     private final ApplicationIdGenerator applicationIdGenerator;
     private final ApplicantProfileRepository profileRepository;
     private final ApplicantCvRepository cvRepository;
+    private final UserAccessPolicy userAccessPolicy;
 
     public JobApplicationService(
         JobRepository jobRepository,
@@ -24,11 +28,48 @@ public final class JobApplicationService {
         ApplicantProfileRepository profileRepository,
         ApplicantCvRepository cvRepository
     ) {
+        this(
+            jobRepository,
+            applicationRepository,
+            applicationIdGenerator,
+            profileRepository,
+            cvRepository,
+            UserAccessPolicy.noOp()
+        );
+    }
+
+    public JobApplicationService(
+        JobRepository jobRepository,
+        ApplicationRepository applicationRepository,
+        ApplicationIdGenerator applicationIdGenerator,
+        ApplicantProfileRepository profileRepository,
+        ApplicantCvRepository cvRepository,
+        UserRepository userRepository
+    ) {
+        this(
+            jobRepository,
+            applicationRepository,
+            applicationIdGenerator,
+            profileRepository,
+            cvRepository,
+            new UserAccessPolicy(userRepository)
+        );
+    }
+
+    private JobApplicationService(
+        JobRepository jobRepository,
+        ApplicationRepository applicationRepository,
+        ApplicationIdGenerator applicationIdGenerator,
+        ApplicantProfileRepository profileRepository,
+        ApplicantCvRepository cvRepository,
+        UserAccessPolicy userAccessPolicy
+    ) {
         this.jobRepository = Objects.requireNonNull(jobRepository);
         this.applicationRepository = Objects.requireNonNull(applicationRepository);
         this.applicationIdGenerator = Objects.requireNonNull(applicationIdGenerator);
         this.profileRepository = Objects.requireNonNull(profileRepository);
         this.cvRepository = Objects.requireNonNull(cvRepository);
+        this.userAccessPolicy = Objects.requireNonNull(userAccessPolicy);
     }
 
     public JobApplication applyToJobWithCv(String applicantUserId, String jobId, String cvId) {
@@ -36,6 +77,7 @@ public final class JobApplicationService {
         requireNonBlank(jobId, "jobId");
         requireNonBlank(cvId, "cvId");
 
+        userAccessPolicy.requireActiveUserWithRole(applicantUserId, UserRole.APPLICANT);
         profileRepository.findByUserId(applicantUserId)
             .orElseThrow(() -> new IllegalArgumentException("No applicant profile exists for userId: " + applicantUserId));
 
