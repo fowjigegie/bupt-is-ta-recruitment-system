@@ -8,18 +8,27 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
+import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.WindowConstants;
+import javax.swing.JOptionPane;
 import java.awt.BorderLayout;
 import java.awt.CardLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.RenderingHints;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
+import java.awt.geom.RoundRectangle2D;
+import javax.swing.BoxLayout;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 public final class JobPostingSwingDemo {
@@ -27,6 +36,20 @@ public final class JobPostingSwingDemo {
     private final JobIdGenerator jobIdGenerator;
     private final String fixedOrganiserId;
     private final String headerUserName;
+
+    private final Color selectedNavBg = new Color(80, 110, 160);
+    private final Color selectedNavFg = Color.WHITE;
+
+    private Map<JButton, Color> navDefaultBg;
+    private Map<JButton, Color> navDefaultFg;
+    private JButton navPostButton;
+    private JButton navManageButton;
+    private JButton navReviewButton;
+    private JPanel jobsListPanel;
+    private JLabel managementInfoLabel;
+
+    private CardLayout cardLayout;
+    private JPanel contentPanel;
 
     private final JTextField courseTitleField = new JTextField(26);
     private final JTextField taughtByField = new JTextField(18);
@@ -62,28 +85,52 @@ public final class JobPostingSwingDemo {
             JPanel header = buildHeader();
             JPanel navigation = buildNavigation();
 
-            CardLayout cardLayout = new CardLayout();
-            JPanel content = new JPanel(cardLayout);
-            content.add(buildNewPostingPanel(), "new-posting");
-            content.add(buildPlaceholderPanel("Job Management (coming soon)"), "job-management");
-            content.add(buildPlaceholderPanel("Application Review (coming soon)"), "application-review");
+            cardLayout = new CardLayout();
+            contentPanel = new JPanel(cardLayout);
+            contentPanel.add(buildDashboardPanel(), "dashboard");
+            contentPanel.add(buildNewPostingPanel(), "new-posting");
+            contentPanel.add(buildJobManagementPanel(), "job-management");
+            contentPanel.add(buildPlaceholderPanel("Application Review (coming soon)"), "application-review");
 
-            cardLayout.show(content, "new-posting");
+            cardLayout.show(contentPanel, "dashboard");
 
             JPanel root = new JPanel(new BorderLayout(12, 12));
             root.setBorder(BorderFactory.createEmptyBorder(12, 12, 12, 12));
             root.add(header, BorderLayout.NORTH);
             root.add(navigation, BorderLayout.WEST);
-            root.add(content, BorderLayout.CENTER);
+            root.add(contentPanel, BorderLayout.CENTER);
 
             frame.add(root, BorderLayout.CENTER);
             frame.pack();
             frame.setLocationRelativeTo(null);
             frame.setVisible(true);
 
-            ((JButton) navigation.getClientProperty("btn-post")).addActionListener(e -> cardLayout.show(content, "new-posting"));
-            ((JButton) navigation.getClientProperty("btn-manage")).addActionListener(e -> cardLayout.show(content, "job-management"));
-            ((JButton) navigation.getClientProperty("btn-review")).addActionListener(e -> cardLayout.show(content, "application-review"));
+            JButton btnDashboard = (JButton) navigation.getClientProperty("btn-dashboard");
+            JButton btnPost = (JButton) navigation.getClientProperty("btn-post");
+            JButton btnManage = (JButton) navigation.getClientProperty("btn-manage");
+            JButton btnReview = (JButton) navigation.getClientProperty("btn-review");
+
+            btnDashboard.addActionListener(e -> {
+                applyNavigationSelected(btnDashboard);
+                cardLayout.show(contentPanel, "dashboard");
+                refreshDashboardList();
+            });
+            btnPost.addActionListener(e -> {
+                applyNavigationSelected(btnPost);
+                cardLayout.show(contentPanel, "new-posting");
+            });
+            btnManage.addActionListener(e -> {
+                applyNavigationSelected(btnManage);
+                cardLayout.show(contentPanel, "job-management");
+            });
+            btnReview.addActionListener(e -> {
+                applyNavigationSelected(btnReview);
+                cardLayout.show(contentPanel, "application-review");
+            });
+
+            // default selected = dashboard
+            applyNavigationSelected(btnDashboard);
+            refreshDashboardList();
         });
     }
 
@@ -123,8 +170,9 @@ public final class JobPostingSwingDemo {
         JButton btnManage = new JButton("Job Management");
         JButton btnReview = new JButton("Application review");
 
-        btnPost.setBackground(new Color(80, 110, 160));
-        btnPost.setForeground(Color.WHITE);
+        navPostButton = btnPost;
+        navManageButton = btnManage;
+        navReviewButton = btnReview;
 
         c.gridy = 0;
         nav.add(btnDashboard, c);
@@ -135,10 +183,246 @@ public final class JobPostingSwingDemo {
         c.gridy = 3;
         nav.add(btnReview, c);
 
+        navDefaultBg = new HashMap<>();
+        navDefaultFg = new HashMap<>();
+        for (JButton button : List.of(btnDashboard, btnPost, btnManage, btnReview)) {
+            navDefaultBg.put(button, button.getBackground());
+            navDefaultFg.put(button, button.getForeground());
+            button.setOpaque(true);
+        }
+
         nav.putClientProperty("btn-post", btnPost);
         nav.putClientProperty("btn-manage", btnManage);
         nav.putClientProperty("btn-review", btnReview);
+        nav.putClientProperty("btn-dashboard", btnDashboard);
         return nav;
+    }
+
+    private void applyNavigationSelected(JButton selected) {
+        if (navDefaultBg == null || navDefaultFg == null) {
+            return;
+        }
+
+        for (JButton button : navDefaultBg.keySet()) {
+            boolean isSelected = button == selected;
+            button.setBackground(isSelected ? selectedNavBg : navDefaultBg.get(button));
+            button.setForeground(isSelected ? selectedNavFg : navDefaultFg.get(button));
+        }
+    }
+
+    private JPanel buildDashboardPanel() {
+        JPanel panel = new JPanel(new BorderLayout(12, 12));
+        panel.setBorder(BorderFactory.createEmptyBorder(8, 8, 8, 8));
+
+        JLabel welcome = new JLabel("Welcome Back", SwingConstants.CENTER);
+        welcome.setFont(welcome.getFont().deriveFont(Font.BOLD, 36f));
+        welcome.setForeground(new Color(60, 90, 160));
+
+        JPanel shortcutsRow = buildDashboardShortcutsRow();
+
+        JPanel topPanel = new JPanel(new BorderLayout());
+        topPanel.add(welcome, BorderLayout.NORTH);
+        topPanel.add(shortcutsRow, BorderLayout.CENTER);
+
+        panel.add(topPanel, BorderLayout.NORTH);
+
+        JLabel listTitle = new JLabel("Jobs I have posted");
+        listTitle.setFont(listTitle.getFont().deriveFont(Font.BOLD, 14f));
+        listTitle.setHorizontalAlignment(SwingConstants.LEFT);
+
+        jobsListPanel = new JPanel();
+        jobsListPanel.setLayout(new BoxLayout(jobsListPanel, BoxLayout.Y_AXIS));
+
+        JPanel center = new JPanel(new BorderLayout(12, 12));
+        center.setOpaque(false);
+        center.add(listTitle, BorderLayout.NORTH);
+        center.add(new JScrollPane(jobsListPanel), BorderLayout.CENTER);
+
+        panel.add(center, BorderLayout.CENTER);
+        panel.add(new JLabel("No further information ...", SwingConstants.CENTER), BorderLayout.SOUTH);
+
+        return panel;
+    }
+
+    private JPanel buildDashboardShortcutsRow() {
+        JButton postShortcut = createRoundedShortcutButton(
+            "Post a new vacancy",
+            null,
+            new Color(245, 179, 199)
+        );
+
+        JButton pendingShortcut = createRoundedShortcutButton(
+            "Pending\napplications",
+            String.valueOf(countPendingApplications()),
+            new Color(245, 179, 199)
+        );
+
+        JButton chatShortcut = createRoundedShortcutButton(
+            "Chat",
+            "3",
+            new Color(245, 179, 199)
+        );
+
+        postShortcut.addActionListener(e -> {
+            applyNavigationSelected(navPostButton);
+            cardLayout.show(contentPanel, "new-posting");
+        });
+
+        pendingShortcut.addActionListener(e -> {
+            applyNavigationSelected(navReviewButton);
+            cardLayout.show(contentPanel, "application-review");
+        });
+
+        chatShortcut.addActionListener(e -> {
+            JOptionPane.showMessageDialog(
+                null,
+                "Chat UI is coming soon.",
+                "Not implemented",
+                JOptionPane.INFORMATION_MESSAGE
+            );
+        });
+
+        JPanel row = new JPanel(new FlowLayout(FlowLayout.CENTER, 40, 10));
+        row.setOpaque(false);
+        row.add(postShortcut);
+        row.add(pendingShortcut);
+        row.add(chatShortcut);
+        return row;
+    }
+
+    private int countPendingApplications() {
+        try {
+            // Reuse the app repository only if it exists via default constructor path.
+            // For now, keep it simple: count SUBMITTED records from the file-based repository.
+            var repo = new com.bupt.tarecruitment.application.TextFileApplicationRepository();
+            long pendingCount = repo.findAll().stream()
+                .filter(app -> app.status() == com.bupt.tarecruitment.application.ApplicationStatus.SUBMITTED)
+                .count();
+
+            return pendingCount > Integer.MAX_VALUE ? Integer.MAX_VALUE : (int) pendingCount;
+        } catch (Exception ignored) {
+            return 0;
+        }
+    }
+
+    private JButton createRoundedShortcutButton(String text, String badgeText, Color bg) {
+        RoundedShortcutButton btn = new RoundedShortcutButton(text, bg);
+        btn.setPreferredSize(new Dimension(240, 80));
+
+        if (badgeText != null) {
+            btn.setBadgeText(badgeText);
+        }
+
+        return btn;
+    }
+
+    private static final class RoundedShortcutButton extends JButton {
+        private final Color fill;
+        private String badgeText;
+
+        RoundedShortcutButton(String text, Color fill) {
+            super(text);
+            this.fill = fill;
+            setContentAreaFilled(false);
+            setBorderPainted(false);
+            setFocusPainted(false);
+            setOpaque(false);
+            setForeground(Color.WHITE);
+            setHorizontalAlignment(SwingConstants.CENTER);
+        }
+
+        void setBadgeText(String badgeText) {
+            this.badgeText = badgeText;
+        }
+
+        @Override
+        protected void paintComponent(Graphics g) {
+            Graphics2D g2 = (Graphics2D) g.create();
+            try {
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+                int w = getWidth();
+                int h = getHeight();
+                RoundRectangle2D rect = new RoundRectangle2D.Double(0, 0, w - 1, h - 1, 26, 26);
+                g2.setColor(fill);
+                g2.fill(rect);
+
+                super.paintComponent(g);
+
+                if (badgeText != null && !badgeText.isBlank()) {
+                    int bw = 28;
+                    int bh = 28;
+                    int x = w - bw / 2 - 8;
+                    int y = -10;
+
+                    g2.setColor(new Color(229, 57, 53));
+                    g2.fillOval(x, y, bw, bh);
+                    g2.setColor(Color.WHITE);
+                    g2.setFont(getFont().deriveFont(Font.BOLD, 12f));
+                    // Simple centered text (approx)
+                    g2.drawString(badgeText, x + 8, y + 19);
+                }
+            } finally {
+                g2.dispose();
+            }
+        }
+    }
+
+    private void refreshDashboardList() {
+        if (jobsListPanel == null) {
+            return;
+        }
+
+        jobsListPanel.removeAll();
+
+        List<JobPosting> jobs = jobRepository.findAll();
+        if (jobs.isEmpty()) {
+            JLabel empty = new JLabel("(no jobs found in data/jobs.txt)");
+            jobsListPanel.add(empty);
+        } else {
+            for (JobPosting job : jobs) {
+                jobsListPanel.add(buildJobRow(job));
+            }
+        }
+
+        jobsListPanel.revalidate();
+        jobsListPanel.repaint();
+    }
+
+    private JPanel buildJobRow(JobPosting job) {
+        String statusText = job.status() == JobStatus.OPEN ? "Open" : "Closed";
+
+        JPanel row = new JPanel(new BorderLayout(12, 12));
+        row.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(new Color(240, 120, 170)),
+            BorderFactory.createEmptyBorder(10, 12, 10, 12)
+        ));
+        row.setBackground(Color.WHITE);
+
+        JPanel text = new JPanel(new BorderLayout());
+        text.setOpaque(false);
+
+        JLabel headline = new JLabel("%s - %s".formatted(job.moduleOrActivity(), job.title()));
+        headline.setFont(headline.getFont().deriveFont(Font.BOLD, 14f));
+
+        JLabel meta = new JLabel("Status: %s".formatted(statusText));
+        meta.setForeground(new Color(70, 70, 70));
+
+        text.add(headline, BorderLayout.NORTH);
+        text.add(meta, BorderLayout.SOUTH);
+
+        JButton manageButton = new JButton("Managing This Job");
+        manageButton.addActionListener(e -> {
+            if (managementInfoLabel != null) {
+                managementInfoLabel.setText("Managing job: " + job.jobId() + " (" + statusText + ")");
+            }
+            applyNavigationSelected(navManageButton);
+            cardLayout.show(contentPanel, "job-management");
+        });
+
+        row.add(text, BorderLayout.CENTER);
+        row.add(manageButton, BorderLayout.EAST);
+        return row;
     }
 
     private JPanel buildNewPostingPanel() {
@@ -164,12 +448,10 @@ public final class JobPostingSwingDemo {
         resultArea.setLineWrap(true);
         resultArea.setWrapStyleWord(true);
         resultArea.setText("""
-            Job Posting UI (demo)
-
             Publish will create a JobPosting and save it into data/jobs.txt.
 
             Input hints:
-            - Job Requirements: use ';' or ',' to separate required skills
+            - Job Requirements (skills): use ';' or ',' to separate
             - Schedule slots: use ';' or ',' to separate, e.g. MON-10:00-12:00; THU-14:00-16:00
             - Weekly hours: integer
             """);
@@ -216,6 +498,23 @@ public final class JobPostingSwingDemo {
         JLabel label = new JLabel(text);
         label.setBorder(BorderFactory.createEmptyBorder(16, 16, 16, 16));
         panel.add(label, BorderLayout.NORTH);
+        return panel;
+    }
+
+    private JPanel buildJobManagementPanel() {
+        JPanel panel = new JPanel(new BorderLayout(12, 12));
+        panel.setBorder(BorderFactory.createEmptyBorder(8, 8, 8, 8));
+
+        JLabel title = new JLabel("Job Management");
+        title.setFont(title.getFont().deriveFont(Font.BOLD, 16f));
+        panel.add(title, BorderLayout.NORTH);
+
+        managementInfoLabel = new JLabel("Select a job in Dashboard to manage (stub).");
+        managementInfoLabel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+
+        panel.add(managementInfoLabel, BorderLayout.CENTER);
+        panel.add(new JLabel("This part is coming soon.", SwingConstants.CENTER), BorderLayout.SOUTH);
+
         return panel;
     }
 
@@ -296,6 +595,8 @@ public final class JobPostingSwingDemo {
                 String.join(", ", posting.scheduleSlots()),
                 posting.status().name()
             ));
+
+            refreshDashboardList();
         } catch (IllegalArgumentException exception) {
             resultArea.setText("Publish failed.\\n\\n" + exception.getMessage());
         }
