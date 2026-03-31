@@ -8,7 +8,14 @@ import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
+import javafx.scene.layout.Background;
+import javafx.scene.layout.BackgroundFill;
+import javafx.scene.layout.Border;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.BorderStroke;
+import javafx.scene.layout.BorderStrokeStyle;
+import javafx.scene.layout.BorderWidths;
+import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
@@ -26,30 +33,58 @@ public class PostVacanciesPage extends Application {
 
     static Scene createScene(NavigationManager nav, UiAppContext context) {
         VBox center = new VBox(22);
-        center.setPadding(new Insets(30, 40, 30, 40));
+        center.setPadding(new Insets(35, 40, 28, 40));
 
-        TextField titleField = createField("Course title / job title");
-        TextField organiserField = createField("Module organiser");
+        TextField titleField = createField();
+        TextField organiserField = createField();
         organiserField.setText(context.session().userId());
         organiserField.setEditable(false);
 
-        TextField moduleField = createField("Classes in need of assistance / module");
-        TextField weeklyHoursField = createField("Weekly hours");
-        TextField scheduleField = createField("Schedule slots, separated by ';' or ','");
-        TextArea descriptionArea = createArea("Describe the work expected from the TA.");
-        TextArea requirementArea = createArea("List required skills, separated by ';' or ','.");
+        TextField moduleField = createField();
+        TextField weeklyHoursField = createField();
+        TextField scheduleField = createField();
+        TextArea descriptionArea = createArea();
+        TextArea requirementArea = createArea();
 
         Label statusLabel = new Label();
         statusLabel.setWrapText(true);
         statusLabel.setTextFill(Color.web("#b00020"));
 
-        HBox tagRow = new HBox(16,
-            UiTheme.createTag("Role: Module Organiser", 260),
-            UiTheme.createTag("Organiser: " + context.session().userId(), 260),
-            UiTheme.createTag("Posts will be saved to data/jobs.txt", 330)
+        Label titleLabel = new Label("New Posting");
+        titleLabel.setStyle(
+            "-fx-font-size: 32px;" +
+                "-fx-font-weight: bold;" +
+                "-fx-text-fill: #ff66b3;"
         );
 
-        var publishButton = UiTheme.createPrimaryButton("Publish vacancy", 240, 70);
+        VBox formBox = new VBox(18);
+        formBox.setPadding(new Insets(28));
+        formBox.setPrefWidth(930);
+        formBox.setBackground(new Background(
+            new BackgroundFill(Color.WHITE, new CornerRadii(26), Insets.EMPTY)
+        ));
+        formBox.setBorder(new Border(new BorderStroke(
+            Color.web("#f4d9e6"),
+            BorderStrokeStyle.SOLID,
+            new CornerRadii(26),
+            new BorderWidths(2)
+        )));
+
+        HBox firstRow = new HBox(18,
+            createLabeledFieldBox("Course Title", titleField, 390),
+            createLabeledFieldBox("Taught By", organiserField, 390)
+        );
+
+        HBox metaRow = new HBox(18,
+            createLabeledFieldBox("Classes in Need of Assistance", moduleField, 390),
+            createLabeledFieldBox("Weekly Hours", weeklyHoursField, 390)
+        );
+
+        VBox scheduleBox = createLabeledFieldBox("Schedule Slots", scheduleField, 798);
+        VBox descriptionBox = createLabeledAreaBox("Job Description", descriptionArea, 798, 130);
+        VBox requirementBox = createLabeledAreaBox("Job Requirements", requirementArea, 798, 150);
+
+        var publishButton = UiTheme.createPrimaryButton("Publish", 180, 52);
         publishButton.setOnAction(event -> publish(
             context,
             titleField,
@@ -73,24 +108,28 @@ public class PostVacanciesPage extends Application {
             statusLabel.setText("");
         });
 
-        HBox footer = new HBox(16, UiTheme.createBackButton(nav), publishButton, clearButton);
+        HBox actionRow = new HBox(12, clearButton, publishButton);
+        actionRow.setAlignment(Pos.CENTER_RIGHT);
+
+        formBox.getChildren().addAll(
+            firstRow,
+            metaRow,
+            scheduleBox,
+            descriptionBox,
+            requirementBox,
+            statusLabel,
+            actionRow
+        );
+
+        HBox footer = new HBox(UiTheme.createBackButton(nav));
         footer.setAlignment(Pos.CENTER_LEFT);
 
         Region spacer = new Region();
         VBox.setVgrow(spacer, Priority.ALWAYS);
 
         center.getChildren().addAll(
-            UiTheme.createPageHeading("Post vacancies"),
-            UiTheme.createMutedText("This page now publishes real jobs through JobPostingService."),
-            tagRow,
-            titleField,
-            organiserField,
-            moduleField,
-            weeklyHoursField,
-            scheduleField,
-            descriptionArea,
-            requirementArea,
-            statusLabel,
+            titleLabel,
+            formBox,
             spacer,
             footer
         );
@@ -156,35 +195,62 @@ public class PostVacanciesPage extends Application {
             .toList();
     }
 
-    private static TextField createField(String prompt) {
+    private static VBox createLabeledFieldBox(String labelText, TextField field, double width) {
+        VBox box = new VBox(8);
+
+        Label label = new Label(labelText + " :");
+        label.setStyle(
+            "-fx-font-size: 18px;" +
+                "-fx-font-weight: bold;" +
+                "-fx-text-fill: #4664a8;"
+        );
+
+        field.setPrefWidth(width);
+        box.getChildren().addAll(label, field);
+        return box;
+    }
+
+    private static VBox createLabeledAreaBox(String labelText, TextArea area, double width, double height) {
+        VBox box = new VBox(8);
+
+        Label label = new Label(labelText + " :");
+        label.setStyle(
+            "-fx-font-size: 18px;" +
+                "-fx-font-weight: bold;" +
+                "-fx-text-fill: #4664a8;"
+        );
+
+        area.setPrefSize(width, height);
+        box.getChildren().addAll(label, area);
+        return box;
+    }
+
+    private static TextField createField() {
         TextField field = new TextField();
-        field.setPromptText(prompt);
         field.setPrefHeight(52);
         field.setStyle(
-            "-fx-background-color: white;" +
-                "-fx-background-radius: 24;" +
-                "-fx-border-radius: 24;" +
+            "-fx-background-color: #fff3f7;" +
+                "-fx-background-radius: 20;" +
                 "-fx-border-color: #f4d9e6;" +
+                "-fx-border-radius: 20;" +
                 "-fx-border-width: 2;" +
-                "-fx-padding: 0 18 0 18;" +
-                "-fx-font-size: 15px;"
+                "-fx-font-size: 16px;"
         );
         return field;
     }
 
-    private static TextArea createArea(String prompt) {
+    private static TextArea createArea() {
         TextArea area = new TextArea();
-        area.setPromptText(prompt);
         area.setPrefRowCount(4);
         area.setWrapText(true);
         area.setStyle(
-            "-fx-control-inner-background: white;" +
-                "-fx-background-color: white;" +
-                "-fx-background-radius: 24;" +
-                "-fx-border-radius: 24;" +
-                "-fx-border-color: #f4d9e6;" +
+            "-fx-control-inner-background: #fff3f7;" +
+                "-fx-background-color: #fff3f7;" +
+                "-fx-background-radius: 20;" +
+                "-fx-border-color: #ffd6e8;" +
+                "-fx-border-radius: 20;" +
                 "-fx-border-width: 2;" +
-                "-fx-font-size: 15px;"
+                "-fx-font-size: 16px;"
         );
         return area;
     }

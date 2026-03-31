@@ -47,7 +47,8 @@ public class MessagesPage extends Application {
 
         center.getChildren().addAll(
             UiTheme.createPageHeading("Messages"),
-            UiTheme.createMutedText("This page now participates in real navigation, even though the message data is still static."),
+            buildChatContextHint(context),
+            UiTheme.createMutedText("Message list is still static in this step. Next step will render real conversation data."),
             listBox,
             footer
         );
@@ -60,6 +61,19 @@ public class MessagesPage extends Application {
             context
         );
         return UiTheme.createScene(root);
+    }
+
+    private static Label buildChatContextHint(UiAppContext context) {
+        String selectedJobId = context.selectedJobId();
+        String peerUserId = context.selectedChatPeerUserId();
+
+        String text;
+        if (selectedJobId == null || peerUserId == null) {
+            text = "No active chat context yet. Open chat from a job card/detail page.";
+        } else {
+            text = "Active chat context: jobId=%s, peer=%s".formatted(selectedJobId, peerUserId);
+        }
+        return UiTheme.createMutedText(text);
     }
 
     private static HBox createMessageRow(String name, String preview, boolean unreadCountVisible, int unreadCount, boolean redDot) {
