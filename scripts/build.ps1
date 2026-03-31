@@ -24,8 +24,9 @@ try {
     }
 
     $sourceFiles | Set-Content -Path $argFile -Encoding Ascii
+    $javaFxArgs = Get-JavaFxJavacArgs -SourceFiles $sourceFiles
 
-    & $javac -encoding UTF-8 -d $stagedOutputDir "@$argFile"
+    & $javac @javaFxArgs -encoding UTF-8 -d $stagedOutputDir "@$argFile"
     if ($LASTEXITCODE -ne 0) {
         throw "javac failed when compiling main sources."
     }

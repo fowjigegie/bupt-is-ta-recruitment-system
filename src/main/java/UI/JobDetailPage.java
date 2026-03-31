@@ -1,282 +1,189 @@
 package UI;
 
+import com.bupt.tarecruitment.applicant.ApplicantCv;
+import com.bupt.tarecruitment.application.JobApplication;
+import com.bupt.tarecruitment.job.JobPosting;
+import com.bupt.tarecruitment.job.JobStatus;
 import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
+import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
-import javafx.scene.layout.AnchorPane;
-import javafx.scene.layout.Background;
-import javafx.scene.layout.BackgroundFill;
-import javafx.scene.layout.Border;
 import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.BorderStroke;
-import javafx.scene.layout.BorderStrokeStyle;
-import javafx.scene.layout.BorderWidths;
-import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
-import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
-import javafx.scene.paint.CycleMethod;
-import javafx.scene.paint.LinearGradient;
-import javafx.scene.paint.Stop;
-import javafx.scene.shape.Circle;
-import javafx.scene.shape.Polygon;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.stage.Stage;
+import javafx.util.StringConverter;
+
+import java.util.Comparator;
+import java.util.List;
 
 public class JobDetailPage extends Application {
-
     @Override
     public void start(Stage stage) {
-        BorderPane root = new BorderPane();
-
-        Stop[] bgStops = new Stop[]{
-                new Stop(0, Color.web("#fff5f8")),
-                new Stop(1, Color.web("#fff9e6"))
-        };
-        LinearGradient pageBg = new LinearGradient(
-                0, 0, 1, 1, true, CycleMethod.NO_CYCLE, bgStops
-        );
-        root.setBackground(new Background(new BackgroundFill(pageBg, CornerRadii.EMPTY, Insets.EMPTY)));
-
-        HBox topBar = createNavBar("BUPT-TA", "Job Detail page");
-        VBox sideBar = createSideBar(stage);
-        AnchorPane mainContent = createMainContent();
-        Region bottomBar = createBottomBar();
-
-        root.setTop(topBar);
-        root.setLeft(sideBar);
-        root.setCenter(mainContent);
-        root.setBottom(bottomBar);
-
-        Scene scene = new Scene(root, 1350, 820);
-        stage.setTitle("BUPT-TA Job Detail Page");
-        stage.setScene(scene);
-        stage.show();
+        UiLauncher.launch(PageId.JOB_DETAIL, stage);
     }
 
-    private HBox createNavBar(String leftText, String rightText) {
-        HBox navBar = new HBox();
-        navBar.setAlignment(Pos.CENTER_LEFT);
-        navBar.setPadding(new Insets(12, 24, 12, 24));
+    static Scene createScene(NavigationManager nav, UiAppContext context) {
+        JobPosting selectedJob = resolveSelectedJob(context);
 
-        Stop[] navStops = new Stop[]{
-                new Stop(0, Color.web("#ffe6e6")),
-                new Stop(1, Color.web("#ffd6d6"))
-        };
-        LinearGradient navGradient = new LinearGradient(
-                0, 0, 1, 0, true, CycleMethod.NO_CYCLE, navStops
-        );
-        navBar.setBackground(new Background(new BackgroundFill(navGradient, CornerRadii.EMPTY, Insets.EMPTY)));
+        VBox main = new VBox(18);
+        main.setPadding(new Insets(28, 40, 28, 40));
 
-        Label leftLabel = new Label(leftText);
-        leftLabel.setTextFill(Color.BLACK);
-        leftLabel.setFont(Font.font("Arial", FontWeight.BOLD, 16));
-
-        Region spacer = new Region();
-        HBox.setHgrow(spacer, Priority.ALWAYS);
-
-        Label rightLabel = new Label(rightText);
-        rightLabel.setFont(Font.font("Arial", FontWeight.BOLD, 16));
-        rightLabel.setTextFill(Color.web("#1f3b8f"));
-
-        Polygon redIcon = new Polygon(
-                0.0, 8.0,
-                8.0, 0.0,
-                16.0, 8.0,
-                8.0, 16.0
-        );
-        redIcon.setFill(Color.web("#ff4d4d"));
-
-        Circle purpleCircle = new Circle(9);
-        purpleCircle.setFill(Color.web("#b266ff"));
-
-        HBox rightGroup = new HBox(10, rightLabel, redIcon, purpleCircle);
-        rightGroup.setAlignment(Pos.CENTER);
-
-        navBar.getChildren().addAll(leftLabel, spacer, rightGroup);
-        return navBar;
-    }
-
-    private VBox createSideBar(Stage stage) {
-        VBox sideBar = new VBox();
-        sideBar.setPrefWidth(180);
-        sideBar.setBackground(new Background(
-                new BackgroundFill(Color.web("#f5b4e6"), CornerRadii.EMPTY, Insets.EMPTY)
-        ));
-
-        Button dashBtn = createMenuButton("Dash Board", false);
-        Button jobsBtn = createMenuButton("More Jobs", true);
-        Button resumeBtn = createMenuButton("Resume\nDatabase", false);
-        Button statusBtn = createMenuButton("application\nstatus", false);
-
-        dashBtn.setOnAction(e -> System.out.println("Go to dashboard"));
-        jobsBtn.setOnAction(e -> System.out.println("Already on more jobs"));
-        resumeBtn.setOnAction(e -> System.out.println("Go to resume database"));
-        statusBtn.setOnAction(e -> System.out.println("Go to application status"));
-
-        Region filler = new Region();
-        VBox.setVgrow(filler, Priority.ALWAYS);
-
-        sideBar.getChildren().addAll(dashBtn, jobsBtn, resumeBtn, statusBtn, filler);
-        return sideBar;
-    }
-
-    private Button createMenuButton(String text, boolean selected) {
-        Button button = new Button(text);
-        button.setPrefWidth(180);
-        button.setMinHeight(70);
-        button.setWrapText(true);
-        button.setFont(Font.font("Arial", FontWeight.BOLD, 16));
-
-        if (selected) {
-            button.setStyle(
-                    "-fx-background-color: #4565a8;" +
-                            "-fx-text-fill: white;" +
-                            "-fx-background-radius: 0 35 35 0;" +
-                            "-fx-cursor: hand;"
+        if (selectedJob == null) {
+            main.getChildren().addAll(
+                UiTheme.createPageHeading("Job detail"),
+                UiTheme.createWhiteCard("No job selected", "Go back to the More Jobs page and choose an OPEN job first."),
+                new HBox(UiTheme.createBackButton(nav))
             );
         } else {
-            button.setStyle(
-                    "-fx-background-color: #f5b4e6;" +
-                            "-fx-text-fill: white;" +
-                            "-fx-border-color: white;" +
-                            "-fx-border-width: 0 0 2 0;" +
-                            "-fx-background-radius: 0;" +
-                            "-fx-cursor: hand;"
-            );
+            context.selectJob(selectedJob.jobId());
+            main.getChildren().addAll(createJobDetailContent(nav, context, selectedJob));
         }
 
-        return button;
+        BorderPane root = UiTheme.createPage(
+            "Job Detail",
+            UiTheme.createApplicantSidebar(nav, PageId.MORE_JOBS),
+            main,
+            nav,
+            context
+        );
+        return UiTheme.createScene(root);
     }
 
-    private AnchorPane createMainContent() {
-        AnchorPane main = new AnchorPane();
-        main.setPadding(new Insets(25));
+    private static List<javafx.scene.Node> createJobDetailContent(NavigationManager nav, UiAppContext context, JobPosting job) {
+        var courseTag = UiTheme.createTag("Course Title : " + job.title(), 500);
+        var teacherTag = UiTheme.createTag("Taught By : " + job.organiserId(), 280);
+        var classTag = UiTheme.createTag("Module / Activity : " + job.moduleOrActivity(), 420);
+        var hoursTag = UiTheme.createTag("Weekly Hours : " + job.weeklyHours(), 260);
+        var statusTag = UiTheme.createTag("Status : " + job.status().name(), 220);
 
-        StackPane courseTag = createTag("Course Title :   EBU6501-Middleware", 500);
-        StackPane teacherTag = createTag("Taught By :   Eric", 280);
-        StackPane classTag = createTag("Classes in Need of Assistance :   2024215117 ~ 2024215120", 860);
-
-        VBox descriptionBox = createInfoBox("Job Description :  Assist 5 labs & 3 tests.");
-        VBox requirementBox = createInfoBox(
-                "Job Requirements :  You are required to complete the summary of all tasks on time,\n" +
-                "ensuring the accuracy and proper formatting of the data, and synchronizing the\n" +
-                "progress in a timely manner."
+        VBox details = new VBox(16,
+            new HBox(20, courseTag, teacherTag),
+            new HBox(20, classTag, hoursTag, statusTag),
+            UiTheme.createWhiteCard(
+                "Job Description",
+                job.description()
+            ),
+            UiTheme.createWhiteCard(
+                "Requirements",
+                "Required skills: " + (job.requiredSkills().isEmpty() ? "(none listed)" : String.join(", ", job.requiredSkills())) +
+                    System.lineSeparator() +
+                    System.lineSeparator() +
+                    "Schedule: " + (job.scheduleSlots().isEmpty() ? "(none listed)" : String.join(", ", job.scheduleSlots()))
+            )
         );
 
-        Button backButton = createBackButton();
+        Label applyTitle = new Label("Apply with one of your CVs");
+        applyTitle.setFont(Font.font("Arial", FontWeight.BOLD, 22));
+        applyTitle.setTextFill(Color.web("#4664a8"));
 
-        AnchorPane.setTopAnchor(courseTag, 70.0);
-        AnchorPane.setLeftAnchor(courseTag, 40.0);
+        Label statusLabel = new Label();
+        statusLabel.setWrapText(true);
+        statusLabel.setTextFill(Color.web("#b00020"));
 
-        AnchorPane.setTopAnchor(teacherTag, 70.0);
-        AnchorPane.setRightAnchor(teacherTag, 40.0);
+        ComboBox<ApplicantCv> cvBox = new ComboBox<>();
+        cvBox.setPrefWidth(380);
+        cvBox.setPrefHeight(42);
+        cvBox.setConverter(new StringConverter<>() {
+            @Override
+            public String toString(ApplicantCv applicantCv) {
+                if (applicantCv == null) {
+                    return "";
+                }
+                return applicantCv.cvId() + " - " + applicantCv.title();
+            }
 
-        AnchorPane.setTopAnchor(classTag, 155.0);
-        AnchorPane.setLeftAnchor(classTag, 40.0);
+            @Override
+            public ApplicantCv fromString(String string) {
+                return null;
+            }
+        });
 
-        AnchorPane.setTopAnchor(descriptionBox, 250.0);
-        AnchorPane.setLeftAnchor(descriptionBox, 40.0);
-        AnchorPane.setRightAnchor(descriptionBox, 40.0);
+        if (context.session().isAuthenticated()) {
+            try {
+                List<ApplicantCv> cvs = context.services().cvLibraryService()
+                    .listCvsByUserId(context.session().userId())
+                    .stream()
+                    .sorted(Comparator.comparing(ApplicantCv::cvId))
+                    .toList();
+                cvBox.getItems().addAll(cvs);
+                if (!cvs.isEmpty()) {
+                    cvBox.getSelectionModel().selectFirst();
+                }
+            } catch (IllegalArgumentException exception) {
+                statusLabel.setText(exception.getMessage());
+            }
+        }
 
-        AnchorPane.setTopAnchor(requirementBox, 430.0);
-        AnchorPane.setLeftAnchor(requirementBox, 40.0);
-        AnchorPane.setRightAnchor(requirementBox, 40.0);
+        var applyButton = UiTheme.createPrimaryButton("Apply now", 190, 56);
+        applyButton.setDisable(job.status() != JobStatus.OPEN);
+        applyButton.setOnAction(event -> applyToJob(context, job, cvBox, statusLabel));
 
-        AnchorPane.setBottomAnchor(backButton, 30.0);
-        AnchorPane.setLeftAnchor(backButton, 40.0);
+        var backButton = UiTheme.createBackButton(nav);
 
-        main.getChildren().addAll(
-                courseTag,
-                teacherTag,
-                classTag,
-                descriptionBox,
-                requirementBox,
-                backButton
+        HBox actions = new HBox(16, cvBox, applyButton);
+        actions.setAlignment(Pos.CENTER_LEFT);
+
+        HBox footer = new HBox(16, backButton);
+        footer.setAlignment(Pos.CENTER_LEFT);
+
+        return List.of(
+            UiTheme.createPageHeading("Job detail"),
+            details,
+            applyTitle,
+            actions,
+            statusLabel,
+            footer
         );
-
-        return main;
     }
 
-    private StackPane createTag(String text, double width) {
-        Label label = new Label(text);
-        label.setTextFill(Color.WHITE);
-        label.setFont(Font.font("Arial", FontWeight.BOLD, 18));
+    private static void applyToJob(
+        UiAppContext context,
+        JobPosting job,
+        ComboBox<ApplicantCv> cvBox,
+        Label statusLabel
+    ) {
+        statusLabel.setTextFill(Color.web("#b00020"));
+        statusLabel.setText("");
 
-        StackPane tag = new StackPane(label);
-        tag.setAlignment(Pos.CENTER_LEFT);
-        tag.setPadding(new Insets(0, 25, 0, 25));
-        tag.setPrefWidth(width);
-        tag.setPrefHeight(58);
+        ApplicantCv selectedCv = cvBox.getValue();
+        if (selectedCv == null) {
+            statusLabel.setText("Please create or choose a CV before applying.");
+            return;
+        }
 
-        tag.setBackground(new Background(
-                new BackgroundFill(Color.web("#ffb3d9"), new CornerRadii(30), Insets.EMPTY)
-        ));
-
-        return tag;
+        try {
+            JobApplication application = context.services().jobApplicationService().applyToJobWithCv(
+                context.session().userId(),
+                job.jobId(),
+                selectedCv.cvId()
+            );
+            context.selectApplication(application.applicationId());
+            statusLabel.setTextFill(Color.web("#2e7d32"));
+            statusLabel.setText("Application submitted successfully: " + application.applicationId());
+        } catch (IllegalArgumentException exception) {
+            statusLabel.setTextFill(Color.web("#b00020"));
+            statusLabel.setText(exception.getMessage());
+        }
     }
 
-    private VBox createInfoBox(String text) {
-        VBox box = new VBox();
-        box.setPadding(new Insets(28));
-        box.setSpacing(10);
+    private static JobPosting resolveSelectedJob(UiAppContext context) {
+        String selectedJobId = context.selectedJobId();
+        if (selectedJobId != null) {
+            return context.services().jobRepository().findByJobId(selectedJobId).orElse(null);
+        }
 
-        box.setBackground(new Background(
-                new BackgroundFill(Color.WHITE, new CornerRadii(24), Insets.EMPTY)
-        ));
-        box.setBorder(new Border(new BorderStroke(
-                Color.web("#f4d9e6"),
-                BorderStrokeStyle.SOLID,
-                new CornerRadii(24),
-                new BorderWidths(2)
-        )));
-
-        Label content = new Label(text);
-        content.setWrapText(true);
-        content.setTextFill(Color.web("#333333"));
-        content.setFont(Font.font("Arial", 18));
-
-        box.getChildren().add(content);
-        return box;
-    }
-
-    private Button createBackButton() {
-        Button button = new Button("⬅");
-        button.setPrefSize(56, 56);
-        button.setStyle(
-                "-fx-background-color: #b266ff;" +
-                        "-fx-text-fill: white;" +
-                        "-fx-font-size: 22px;" +
-                        "-fx-font-weight: bold;" +
-                        "-fx-background-radius: 28;" +
-                        "-fx-cursor: hand;"
-        );
-        return button;
-    }
-
-    private Region createBottomBar() {
-        Region bottomBar = new Region();
-        bottomBar.setPrefHeight(18);
-
-        Stop[] bottomStops = new Stop[]{
-                new Stop(0, Color.web("#ffe6e6")),
-                new Stop(1, Color.web("#ffd6d6"))
-        };
-        LinearGradient bottomGradient = new LinearGradient(
-                0, 0, 1, 0, true, CycleMethod.NO_CYCLE, bottomStops
-        );
-
-        bottomBar.setBackground(new Background(
-                new BackgroundFill(bottomGradient, CornerRadii.EMPTY, Insets.EMPTY)
-        ));
-        return bottomBar;
+        return context.services().jobRepository().findAll().stream()
+            .filter(job -> job.status() == JobStatus.OPEN)
+            .sorted(Comparator.comparing(JobPosting::jobId))
+            .findFirst()
+            .orElse(null);
     }
 
     public static void main(String[] args) {

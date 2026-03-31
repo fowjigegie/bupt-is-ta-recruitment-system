@@ -84,6 +84,96 @@ function Get-JavaToolPath {
     throw "No $ToolName executable with version $MinimumVersion or newer was found. Please install or configure JDK $MinimumVersion+."
 }
 
+function Get-JavaFxLibPath {
+    param(
+        [switch]$Required
+    )
+
+    $candidates = New-Object System.Collections.Generic.List[string]
+
+    if ($env:JAVA_FX_HOME) {
+        $candidates.Add((Join-Path $env:JAVA_FX_HOME "lib"))
+        $candidates.Add($env:JAVA_FX_HOME)
+    }
+
+    $fallbacks = @(
+        "C:\Java\javafx-sdk-21.0.2\lib",
+        "C:\Java\javafx-sdk-21.0.2",
+        "C:\Java\javafx-sdk-*\lib",
+        "C:\Java\javafx-sdk-*"
+    )
+
+    foreach ($fallback in $fallbacks) {
+        if ($fallback.Contains("*")) {
+            $resolved = Get-ChildItem -Path $fallback -ErrorAction SilentlyContinue | Select-Object -ExpandProperty FullName
+            foreach ($item in $resolved) {
+                $candidates.Add($item)
+            }
+        } else {
+            $candidates.Add($fallback)
+        }
+    }
+
+    foreach ($candidate in ($candidates | Select-Object -Unique)) {
+        if (-not (Test-Path $candidate)) {
+            continue
+        }
+
+        if (Test-Path (Join-Path $candidate "javafx.controls.jar")) {
+            return $candidate
+        }
+
+        $libPath = Join-Path $candidate "lib"
+        if (Test-Path (Join-Path $libPath "javafx.controls.jar")) {
+            return $libPath
+        }
+    }
+
+    if ($Required) {
+        throw "JavaFX SDK was not found. Set JAVA_FX_HOME or install the SDK under C:\Java\javafx-sdk-21.0.2."
+    }
+
+    return $null
+}
+
+function Test-JavaFxSourcesPresent {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string[]]$SourceFiles
+    )
+
+    if (-not $SourceFiles) {
+        return $false
+    }
+
+    return Select-String -Path $SourceFiles -Pattern '^\s*import javafx\.' -Quiet
+}
+
+function Get-JavaFxJavacArgs {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string[]]$SourceFiles
+    )
+
+    if (-not (Test-JavaFxSourcesPresent -SourceFiles $SourceFiles)) {
+        return @()
+    }
+
+    $javaFxLibPath = Get-JavaFxLibPath -Required
+    return @(
+        "--module-path", $javaFxLibPath,
+        "--add-modules", "javafx.controls"
+    )
+}
+
+function Get-JavaFxJavaArgs {
+    $javaFxLibPath = Get-JavaFxLibPath -Required
+    return @(
+        "--module-path", $javaFxLibPath,
+        "--add-modules", "javafx.controls"
+    )
+}
+
 function New-TempWorkspace {
     param(
         [Parameter(Mandatory = $true)]

@@ -1,347 +1,450 @@
 package UI;
 
+import com.bupt.tarecruitment.applicant.ApplicantCv;
+import com.bupt.tarecruitment.applicant.ApplicantProfile;
 import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
-import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
-import javafx.scene.control.Tab;
-import javafx.scene.control.TabPane;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
-import javafx.scene.layout.Background;
-import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
-import javafx.scene.layout.FlowPane;
 import javafx.scene.paint.Color;
-import javafx.scene.paint.CycleMethod;
-import javafx.scene.paint.LinearGradient;
-import javafx.scene.paint.Stop;
-import javafx.scene.shape.Circle;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Font;
-import javafx.scene.text.FontWeight;
 import javafx.stage.Stage;
 
-public class ResumeDatabasePage extends Application {
+import java.util.Comparator;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 
+public class ResumeDatabasePage extends Application {
     @Override
     public void start(Stage stage) {
-        BorderPane root = new BorderPane();
-
-        Stop[] bgStops = new Stop[]{
-                new Stop(0, Color.web("#fff8fb")),
-                new Stop(1, Color.web("#fffdf5"))
-        };
-        LinearGradient pageBg = new LinearGradient(
-                0, 0, 1, 1, true, CycleMethod.NO_CYCLE, bgStops
-        );
-        root.setBackground(new Background(new BackgroundFill(pageBg, CornerRadii.EMPTY, Insets.EMPTY)));
-
-        HBox topBar = createTopBar();
-        VBox leftMenu = createLeftMenu();
-        BorderPane centerArea = createCenterArea();
-
-        root.setTop(topBar);
-        root.setLeft(leftMenu);
-        root.setCenter(centerArea);
-
-        Scene scene = new Scene(root, 1360, 830);
-        stage.setTitle("BUPT-TA Resume Database");
-        stage.setScene(scene);
-        stage.show();
+        UiLauncher.launch(PageId.RESUME_DATABASE, stage);
     }
 
-    private HBox createTopBar() {
-        HBox topBar = new HBox();
-        topBar.setAlignment(Pos.CENTER_LEFT);
-        topBar.setPadding(new Insets(16, 28, 16, 28));
-
-        Stop[] navStops = new Stop[]{
-                new Stop(0, Color.web("#f7edb5")),
-                new Stop(0.55, Color.web("#f9d9df")),
-                new Stop(1, Color.web("#d79af7"))
-        };
-        LinearGradient navBg = new LinearGradient(
-                0, 0, 1, 0, true, CycleMethod.NO_CYCLE, navStops
-        );
-        topBar.setBackground(new Background(new BackgroundFill(navBg, CornerRadii.EMPTY, Insets.EMPTY)));
-
-        Label leftTitle = new Label("BUPT-TA");
-        leftTitle.setFont(Font.font("Arial", FontWeight.BOLD, 18));
-        leftTitle.setTextFill(Color.BLACK);
-
-        Region spacer = new Region();
-        HBox.setHgrow(spacer, Priority.ALWAYS);
-
-        Label bellIcon = new Label("🔔");
-        bellIcon.setFont(Font.font(22));
-
-        Label rightTitle = new Label("LI HUA");
-        rightTitle.setFont(Font.font("Arial", FontWeight.BOLD, 18));
-        rightTitle.setTextFill(Color.web("#1f3d8f"));
-
-        Label dept = new Label("computer department");
-        dept.setFont(Font.font("Arial", 14));
-        dept.setTextFill(Color.web("#3f6cc0"));
-
-        VBox rightTextGroup = new VBox(2, rightTitle, dept);
-        rightTextGroup.setAlignment(Pos.CENTER_LEFT);
-
-        Circle starCircle = new Circle(22);
-        starCircle.setFill(Color.web("#a15be8"));
-        Label starLabel = new Label("★");
-        starLabel.setTextFill(Color.web("#3b2d86"));
-        starLabel.setFont(Font.font("Arial", FontWeight.BOLD, 22));
-
-        StackPane starPane = new StackPane(starCircle, starLabel);
-
-        HBox rightGroup = new HBox(12, bellIcon, rightTextGroup, starPane);
-        rightGroup.setAlignment(Pos.CENTER);
-
-        topBar.getChildren().addAll(leftTitle, spacer, rightGroup);
-        return topBar;
-    }
-
-    private VBox createLeftMenu() {
-        VBox menu = new VBox();
-        menu.setPrefWidth(180);
-        menu.setPadding(new Insets(0));
-        menu.setStyle("-fx-background-color: #f5b4e6;");
-
-        Button dashBtn = createMenuButton("Dash Board", false);
-        Button jobsBtn = createMenuButton("More Jobs", false);
-        Button resumeBtn = createMenuButton("Resume\nDatabase", true);
-        Button statusBtn = createMenuButton("application\nstatus", false);
-
-        Region filler = new Region();
-        VBox.setVgrow(filler, Priority.ALWAYS);
-
-        menu.getChildren().addAll(dashBtn, jobsBtn, resumeBtn, statusBtn, filler);
-        return menu;
-    }
-
-    private Button createMenuButton(String text, boolean selected) {
-        Button button = new Button(text);
-        button.setPrefWidth(180);
-        button.setMinHeight(70);
-        button.setWrapText(true);
-        button.setFont(Font.font("Arial", FontWeight.BOLD, 16));
-
-        if (selected) {
-            button.setStyle(
-                    "-fx-background-color: #4565a8;" +
-                    "-fx-text-fill: white;" +
-                    "-fx-background-radius: 0 35 35 0;" +
-                    "-fx-cursor: hand;"
-            );
-        } else {
-            button.setStyle(
-                    "-fx-background-color: #f5b4e6;" +
-                    "-fx-text-fill: white;" +
-                    "-fx-border-color: white;" +
-                    "-fx-border-width: 0 0 2 0;" +
-                    "-fx-background-radius: 0;" +
-                    "-fx-cursor: hand;"
-            );
-        }
-        return button;
-    }
-
-    private BorderPane createCenterArea() {
+    static Scene createScene(NavigationManager nav, UiAppContext context) {
         BorderPane centerPane = new BorderPane();
         centerPane.setPadding(new Insets(24, 32, 24, 32));
 
+        TextField nameField = createRoundedField("Full Name", 260);
+        ComboBox<String> gradeBox = createGradeBox();
+        TextField programmeField = createRoundedField("Programme", 260);
+        TextField studentIdField = createRoundedField("Student ID", 260);
+        TextField availabilityField = createRoundedField("Availability slots separated by ';'", 544);
+        TextField cvTitleField = createRoundedField("CV Title", 544);
+        TextArea skillsArea = createLargeTextArea("Skills (letters only, separated by commas or new lines)");
+        TextArea positionsArea = createLargeTextArea("Desired positions (letters only, separated by commas or new lines)");
+
+        javafx.scene.control.Label statusLabel = new javafx.scene.control.Label();
+        statusLabel.setWrapText(true);
+        statusLabel.setTextFill(Color.web("#b00020"));
+
+        AtomicReference<ApplicantCv> selectedCvRef = new AtomicReference<>();
+        VBox tabsRow = new VBox(8);
+        javafx.scene.control.Label selectedCvLabel = new javafx.scene.control.Label("Selected CV: none");
+        selectedCvLabel.setTextFill(Color.web("#4664a8"));
+        selectedCvLabel.setStyle("-fx-font-size: 16px; -fx-font-weight: bold;");
+
+        Runnable refreshCvTabs = () -> rebuildCvTabs(
+            context,
+            tabsRow,
+            selectedCvRef,
+            selectedCvLabel,
+            nameField,
+            gradeBox,
+            programmeField,
+            studentIdField,
+            availabilityField,
+            cvTitleField,
+            skillsArea,
+            positionsArea
+        );
+
+        prefillProfile(context, nameField, gradeBox, programmeField, studentIdField, availabilityField, skillsArea, positionsArea);
+        refreshCvTabs.run();
+
         VBox content = new VBox(18);
         content.getChildren().addAll(
-                createResumeTabs(),
-                createFormSection(),
-                createBottomHelperRow()
+            tabsRow,
+            selectedCvLabel,
+            createFormSection(
+                nav,
+                context,
+                refreshCvTabs,
+                selectedCvRef,
+                nameField,
+                gradeBox,
+                programmeField,
+                studentIdField,
+                availabilityField,
+                cvTitleField,
+                skillsArea,
+                positionsArea,
+                statusLabel
+            ),
+            statusLabel,
+            createBottomHelperRow(nav)
         );
 
         centerPane.setCenter(content);
-        return centerPane;
+
+        BorderPane root = UiTheme.createPage(
+            "Resume Database",
+            UiTheme.createApplicantSidebar(nav, PageId.RESUME_DATABASE),
+            centerPane,
+            nav,
+            context
+        );
+        return UiTheme.createScene(root);
     }
 
-    private HBox createResumeTabs() {
-        HBox tabRow = new HBox(25);
+    private static void rebuildCvTabs(
+        UiAppContext context,
+        VBox tabsRow,
+        AtomicReference<ApplicantCv> selectedCvRef,
+        javafx.scene.control.Label selectedCvLabel,
+        TextField nameField,
+        ComboBox<String> gradeBox,
+        TextField programmeField,
+        TextField studentIdField,
+        TextField availabilityField,
+        TextField cvTitleField,
+        TextArea skillsArea,
+        TextArea positionsArea
+    ) {
+        tabsRow.getChildren().clear();
+        HBox tabRow = new HBox(12);
         tabRow.setAlignment(Pos.CENTER_LEFT);
 
-        Button resume1 = new Button("Resume1");
-        resume1.setStyle(
-                "-fx-background-color: #f56bc7;" +
-                "-fx-text-fill: white;" +
-                "-fx-font-size: 18px;" +
-                "-fx-background-radius: 24 24 0 0;" +
-                "-fx-padding: 12 28 12 28;" +
-                "-fx-cursor: hand;"
-        );
+        List<ApplicantCv> cvs = context.services().cvLibraryService()
+            .listCvsByUserId(context.session().userId())
+            .stream()
+            .sorted(Comparator.comparing(ApplicantCv::cvId))
+            .toList();
 
-        Button resume2 = new Button("Resume2");
-        resume2.setStyle(
-                "-fx-background-color: transparent;" +
-                "-fx-text-fill: #34539c;" +
-                "-fx-font-size: 18px;" +
-                "-fx-cursor: hand;"
-        );
+        if (cvs.isEmpty()) {
+            tabRow.getChildren().add(UiTheme.createMutedText("No CVs yet. Save a new CV after filling the form below."));
+            selectedCvRef.set(null);
+            selectedCvLabel.setText("Selected CV: none");
+        } else {
+            ApplicantCv activeCv = selectedCvRef.get();
+            String activeCvId = activeCv == null ? null : activeCv.cvId();
+            if (activeCvId == null || cvs.stream().noneMatch(cv -> cv.cvId().equals(activeCvId))) {
+                activeCv = cvs.getFirst();
+                selectedCvRef.set(activeCv);
+                loadCvIntoFields(context, activeCv, nameField, gradeBox, programmeField, studentIdField, availabilityField, cvTitleField, skillsArea, positionsArea);
+            }
 
-        Button resume3 = new Button("Resume3");
-        resume3.setStyle(
-                "-fx-background-color: transparent;" +
-                "-fx-text-fill: #34539c;" +
-                "-fx-font-size: 18px;" +
-                "-fx-cursor: hand;"
-        );
+            selectedCvLabel.setText("Selected CV: " + activeCv.cvId() + " | " + activeCv.title());
 
-        Region spacer = new Region();
-        HBox.setHgrow(spacer, Priority.ALWAYS);
+            for (ApplicantCv cv : cvs) {
+                boolean selected = activeCv.cvId().equals(cv.cvId());
+                var button = selected
+                    ? UiTheme.createPrimaryButton(cv.title(), 170, 52)
+                    : UiTheme.createOutlineButton(cv.title(), 170, 52);
+                button.setOnAction(event -> {
+                    selectedCvRef.set(cv);
+                    selectedCvLabel.setText("Selected CV: " + cv.cvId() + " | " + cv.title());
+                    loadCvIntoFields(context, cv, nameField, gradeBox, programmeField, studentIdField, availabilityField, cvTitleField, skillsArea, positionsArea);
+                    rebuildCvTabs(context, tabsRow, selectedCvRef, selectedCvLabel, nameField, gradeBox, programmeField, studentIdField, availabilityField, cvTitleField, skillsArea, positionsArea);
+                });
+                tabRow.getChildren().add(button);
+            }
+        }
 
-        Button addResume = new Button("+ add resume");
-        addResume.setStyle(
-                "-fx-background-color: transparent;" +
-                "-fx-text-fill: #c45be7;" +
-                "-fx-font-size: 18px;" +
-                "-fx-cursor: hand;"
-        );
-
-        tabRow.getChildren().addAll(resume1, resume2, resume3, spacer, addResume);
-        return tabRow;
+        tabsRow.getChildren().add(tabRow);
     }
 
-    private HBox createFormSection() {
+    private static HBox createFormSection(
+        NavigationManager nav,
+        UiAppContext context,
+        Runnable refreshCvTabs,
+        AtomicReference<ApplicantCv> selectedCvRef,
+        TextField nameField,
+        ComboBox<String> gradeBox,
+        TextField programmeField,
+        TextField studentIdField,
+        TextField availabilityField,
+        TextField cvTitleField,
+        TextArea skillsArea,
+        TextArea positionsArea,
+        javafx.scene.control.Label statusLabel
+    ) {
         HBox mainRow = new HBox(28);
         mainRow.setAlignment(Pos.TOP_LEFT);
 
         VBox leftForm = new VBox(16);
         leftForm.setPrefWidth(700);
 
-        HBox row1 = new HBox(24);
-        TextField nameField = createRoundedField("Name:", 260);
-        ComboBox<String> gradeBox = createGradeBox();
-
-        VBox gradeBoxWrapper = new VBox();
-        gradeBoxWrapper.getChildren().add(gradeBox);
-
-        row1.getChildren().addAll(nameField, gradeBoxWrapper);
-
-        HBox row2 = new HBox(24);
-        TextField dobField = createRoundedField("DoB:", 260);
-        TextField telField = createRoundedField("Tel:", 260);
-        row2.getChildren().addAll(dobField, telField);
-
-        TextField emailField = createRoundedField("E-mail ad:", 544);
-
-        TextArea schoolExpArea = createLargeTextArea("My School Experience :");
-        TextArea advantagesArea = createLargeTextArea("My Advantages :");
-
-        leftForm.getChildren().addAll(row1, row2, emailField, schoolExpArea, advantagesArea);
+        HBox row1 = new HBox(24, nameField, gradeBox);
+        HBox row2 = new HBox(24, programmeField, studentIdField);
+        leftForm.getChildren().addAll(row1, row2, availabilityField, cvTitleField, skillsArea, positionsArea);
 
         VBox rightPanel = new VBox(18);
         rightPanel.setAlignment(Pos.TOP_CENTER);
         rightPanel.setPrefWidth(280);
 
         StackPane avatarPane = createAvatarPane();
-
-        Label completionLabel = new Label("The completeness of the resume");
-        completionLabel.setFont(Font.font("Arial", 14));
-        completionLabel.setTextFill(Color.web("#4a63af"));
-
-        ProgressBar progressBar = new ProgressBar(0.60);
+        ProgressBar progressBar = new ProgressBar(0.85);
         progressBar.setPrefWidth(220);
         progressBar.setPrefHeight(18);
-        progressBar.setStyle(
-                "-fx-accent: #f15bbe;" +
-                "-fx-control-inner-background: #f8c4ea;"
-        );
+        progressBar.setStyle("-fx-accent: #f15bbe; -fx-control-inner-background: #f8c4ea;");
 
-        Label progressText = new Label("60%");
-        progressText.setFont(Font.font("Arial", FontWeight.BOLD, 18));
-        progressText.setTextFill(Color.WHITE);
-        progressText.setStyle(
-                "-fx-background-color: #f15bbe;" +
-                "-fx-background-radius: 20;" +
-                "-fx-padding: 4 14 4 14;"
-        );
+        var saveProfileButton = UiTheme.createOutlineButton("Save profile", 180, 46);
+        saveProfileButton.setOnAction(event -> {
+            try {
+                saveProfile(context, nameField, gradeBox, programmeField, studentIdField, availabilityField, skillsArea, positionsArea);
+                statusLabel.setTextFill(Color.web("#2e7d32"));
+                statusLabel.setText("Profile saved successfully.");
+            } catch (IllegalArgumentException exception) {
+                statusLabel.setTextFill(Color.web("#b00020"));
+                statusLabel.setText(exception.getMessage());
+            }
+        });
 
-        StackPane progressStack = new StackPane(progressBar, progressText);
-        progressStack.setAlignment(Pos.CENTER);
+        var saveNewCvButton = UiTheme.createOutlineButton("Save new CV", 180, 46);
+        saveNewCvButton.setOnAction(event -> {
+            try {
+                saveProfile(context, nameField, gradeBox, programmeField, studentIdField, availabilityField, skillsArea, positionsArea);
+                context.services().cvLibraryService().createCv(
+                    context.session().userId(),
+                    cvTitleField.getText().trim(),
+                    buildCvContent(nameField, gradeBox, programmeField, studentIdField, availabilityField, skillsArea, positionsArea)
+                );
+                statusLabel.setTextFill(Color.web("#2e7d32"));
+                statusLabel.setText("New CV saved successfully.");
+                refreshCvTabs.run();
+            } catch (IllegalArgumentException exception) {
+                statusLabel.setTextFill(Color.web("#b00020"));
+                statusLabel.setText(exception.getMessage());
+            }
+        });
 
-        StackPane uploadBox = new StackPane();
-        uploadBox.setPrefSize(220, 110);
-        uploadBox.setStyle(
-                "-fx-border-color: #f4a6dc;" +
-                "-fx-border-width: 3;" +
-                "-fx-border-style: segments(8, 8);" +
-                "-fx-background-color: transparent;"
-        );
+        var updateCvButton = UiTheme.createOutlineButton("Update selected CV", 180, 46);
+        updateCvButton.setOnAction(event -> {
+            ApplicantCv selectedCv = selectedCvRef.get();
+            if (selectedCv == null) {
+                statusLabel.setTextFill(Color.web("#b00020"));
+                statusLabel.setText("Please create or select a CV first.");
+                return;
+            }
 
-        Label uploadLabel = new Label("Upload here...");
-        uploadLabel.setFont(Font.font("Arial", 16));
-        uploadLabel.setTextFill(Color.web("#4d6ab2"));
-        uploadBox.getChildren().add(uploadLabel);
+            try {
+                saveProfile(context, nameField, gradeBox, programmeField, studentIdField, availabilityField, skillsArea, positionsArea);
+                context.services().cvLibraryService().updateCvContent(
+                    selectedCv.cvId(),
+                    buildCvContent(nameField, gradeBox, programmeField, studentIdField, availabilityField, skillsArea, positionsArea)
+                );
+                statusLabel.setTextFill(Color.web("#2e7d32"));
+                statusLabel.setText("CV updated successfully: " + selectedCv.cvId());
+                refreshCvTabs.run();
+            } catch (IllegalArgumentException exception) {
+                statusLabel.setTextFill(Color.web("#b00020"));
+                statusLabel.setText(exception.getMessage());
+            }
+        });
 
-        Button matchBtn = new Button("Match & analyze\nyour TA skills!");
-        matchBtn.setPrefSize(190, 58);
-        matchBtn.setStyle(
-                "-fx-background-color: white;" +
-                "-fx-text-fill: black;" +
-                "-fx-font-size: 16px;" +
-                "-fx-font-weight: bold;" +
-                "-fx-background-radius: 28;" +
-                "-fx-border-color: black;" +
-                "-fx-border-radius: 28;" +
-                "-fx-border-width: 2;" +
-                "-fx-cursor: hand;"
-        );
-
-        Button chatBtn = new Button("Click here to chat");
-        chatBtn.setPrefSize(160, 46);
-        chatBtn.setStyle(
-                "-fx-background-color: white;" +
-                "-fx-text-fill: black;" +
-                "-fx-font-size: 15px;" +
-                "-fx-background-radius: 25;" +
-                "-fx-border-color: #d66adf;" +
-                "-fx-border-radius: 25;" +
-                "-fx-cursor: hand;"
-        );
-
-        Label robot = new Label("🤖");
-        robot.setFont(Font.font(60));
-
-        HBox robotRow = new HBox(16, robot, chatBtn);
-        robotRow.setAlignment(Pos.CENTER);
+        var chatButton = UiTheme.createOutlineButton("Click here to chat", 180, 46);
+        chatButton.setOnAction(event -> nav.goTo(PageId.MESSAGES));
 
         rightPanel.getChildren().addAll(
-                avatarPane,
-                completionLabel,
-                progressStack,
-                uploadBox,
-                matchBtn,
-                robotRow
+            avatarPane,
+            UiTheme.createMutedText("Profile and CV data are now backed by the real services."),
+            progressBar,
+            UiTheme.createTag("Profile + CV", 220),
+            saveProfileButton,
+            saveNewCvButton,
+            updateCvButton,
+            chatButton
         );
 
         mainRow.getChildren().addAll(leftForm, rightPanel);
         return mainRow;
     }
 
-    private TextField createRoundedField(String prompt, double width) {
+    private static void prefillProfile(
+        UiAppContext context,
+        TextField nameField,
+        ComboBox<String> gradeBox,
+        TextField programmeField,
+        TextField studentIdField,
+        TextField availabilityField,
+        TextArea skillsArea,
+        TextArea positionsArea
+    ) {
+        context.services().profileRepository().findByUserId(context.session().userId()).ifPresent(profile -> {
+            nameField.setText(profile.fullName());
+            gradeBox.setValue(gradeLabel(profile.yearOfStudy(), profile.educationLevel()));
+            programmeField.setText(profile.programme());
+            studentIdField.setText(profile.studentId());
+            availabilityField.setText(String.join("; ", profile.availabilitySlots()));
+            skillsArea.setText(String.join(System.lineSeparator(), profile.skills()));
+            positionsArea.setText(String.join(System.lineSeparator(), profile.desiredPositions()));
+        });
+    }
+
+    private static void loadCvIntoFields(
+        UiAppContext context,
+        ApplicantCv cv,
+        TextField nameField,
+        ComboBox<String> gradeBox,
+        TextField programmeField,
+        TextField studentIdField,
+        TextField availabilityField,
+        TextField cvTitleField,
+        TextArea skillsArea,
+        TextArea positionsArea
+    ) {
+        cvTitleField.setText(cv.title());
+        prefillProfile(context, nameField, gradeBox, programmeField, studentIdField, availabilityField, skillsArea, positionsArea);
+
+        try {
+            String content = context.services().cvLibraryService().loadCvContentByCvId(cv.cvId());
+            applyCvContent(content, nameField, gradeBox, programmeField, studentIdField, availabilityField, skillsArea, positionsArea);
+        } catch (IllegalArgumentException ignored) {
+        }
+    }
+
+    private static void applyCvContent(
+        String content,
+        TextField nameField,
+        ComboBox<String> gradeBox,
+        TextField programmeField,
+        TextField studentIdField,
+        TextField availabilityField,
+        TextArea skillsArea,
+        TextArea positionsArea
+    ) {
+        if (content == null || content.isBlank()) {
+            return;
+        }
+
+        for (String line : content.split("\\R")) {
+            if (line.startsWith("Name: ")) {
+                nameField.setText(line.substring("Name: ".length()).trim());
+            } else if (line.startsWith("Grade: ")) {
+                gradeBox.setValue(line.substring("Grade: ".length()).trim());
+            } else if (line.startsWith("Programme: ")) {
+                programmeField.setText(line.substring("Programme: ".length()).trim());
+            } else if (line.startsWith("Student ID: ")) {
+                studentIdField.setText(line.substring("Student ID: ".length()).trim());
+            } else if (line.startsWith("Availability: ")) {
+                availabilityField.setText(line.substring("Availability: ".length()).trim());
+            } else if (line.startsWith("Skills: ")) {
+                skillsArea.setText(line.substring("Skills: ".length()).trim().replace(", ", System.lineSeparator()));
+            } else if (line.startsWith("Desired Positions: ")) {
+                positionsArea.setText(line.substring("Desired Positions: ".length()).trim().replace(", ", System.lineSeparator()));
+            }
+        }
+    }
+
+    private static ApplicantProfile saveProfile(
+        UiAppContext context,
+        TextField nameField,
+        ComboBox<String> gradeBox,
+        TextField programmeField,
+        TextField studentIdField,
+        TextField availabilityField,
+        TextArea skillsArea,
+        TextArea positionsArea
+    ) {
+        GradeMapping mapping = mapGrade(gradeBox.getValue());
+        ApplicantProfile profile = new ApplicantProfile(
+            context.services().profileRepository().findByUserId(context.session().userId())
+                .map(ApplicantProfile::profileId)
+                .orElseGet(() -> context.services().profileIdGenerator().nextProfileId()),
+            context.session().userId(),
+            studentIdField.getText().trim(),
+            nameField.getText().trim(),
+            programmeField.getText().trim(),
+            mapping.yearOfStudy(),
+            mapping.educationLevel(),
+            splitValueList(skillsArea.getText()),
+            splitValueList(availabilityField.getText()),
+            splitValueList(positionsArea.getText())
+        );
+
+        if (context.services().profileRepository().findByUserId(context.session().userId()).isPresent()) {
+            return context.services().profileService().updateProfile(profile);
+        }
+        return context.services().profileService().createProfile(profile);
+    }
+
+    private static String buildCvContent(
+        TextField nameField,
+        ComboBox<String> gradeBox,
+        TextField programmeField,
+        TextField studentIdField,
+        TextField availabilityField,
+        TextArea skillsArea,
+        TextArea positionsArea
+    ) {
+        return String.join(
+            System.lineSeparator(),
+            "Name: " + nameField.getText().trim(),
+            "Grade: " + gradeBox.getValue(),
+            "Programme: " + programmeField.getText().trim(),
+            "Student ID: " + studentIdField.getText().trim(),
+            "Availability: " + availabilityField.getText().trim(),
+            "Skills: " + String.join(", ", splitValueList(skillsArea.getText())),
+            "Desired Positions: " + String.join(", ", splitValueList(positionsArea.getText()))
+        );
+    }
+
+    private static List<String> splitValueList(String raw) {
+        if (raw == null || raw.isBlank()) {
+            return List.of();
+        }
+
+        return List.of(raw.replace(System.lineSeparator(), ",").replace(';', ',').split(",")).stream()
+            .map(String::trim)
+            .filter(value -> !value.isBlank())
+            .toList();
+    }
+
+    private static String gradeLabel(int year, String educationLevel) {
+        boolean graduated = "graduated".equalsIgnoreCase(educationLevel);
+        if (!graduated && year == 4) {
+            return "Senior undergraduate";
+        }
+        return switch (year) {
+            case 1 -> "First-year graduate";
+            case 2 -> "Second-year graduate";
+            case 3 -> "Third-year graduate";
+            default -> "Senior undergraduate";
+        };
+    }
+
+    private static GradeMapping mapGrade(String label) {
+        if (label == null) {
+            return new GradeMapping(4, "Not Graduated");
+        }
+
+        return switch (label) {
+            case "First-year graduate" -> new GradeMapping(1, "Graduated");
+            case "Second-year graduate" -> new GradeMapping(2, "Graduated");
+            case "Third-year graduate" -> new GradeMapping(3, "Graduated");
+            default -> new GradeMapping(4, "Not Graduated");
+        };
+    }
+
+    private static TextField createRoundedField(String prompt, double width) {
         TextField field = new TextField();
         field.setPromptText(prompt);
         field.setPrefWidth(width);
         field.setPrefHeight(58);
         field.setFont(Font.font("Arial", 16));
         field.setStyle(
-                "-fx-background-color: #eba8df;" +
+            "-fx-background-color: #eba8df;" +
                 "-fx-background-radius: 25;" +
                 "-fx-border-radius: 25;" +
                 "-fx-border-color: transparent;" +
@@ -352,19 +455,19 @@ public class ResumeDatabasePage extends Application {
         return field;
     }
 
-    private ComboBox<String> createGradeBox() {
+    private static ComboBox<String> createGradeBox() {
         ComboBox<String> gradeBox = new ComboBox<>();
         gradeBox.getItems().addAll(
-                "Senior undergraduate",
-                "First-year graduate",
-                "Second-year graduate",
-                "Third-year graduate"
+            "Senior undergraduate",
+            "First-year graduate",
+            "Second-year graduate",
+            "Third-year graduate"
         );
         gradeBox.setValue("Senior undergraduate");
         gradeBox.setPrefWidth(260);
         gradeBox.setPrefHeight(58);
         gradeBox.setStyle(
-                "-fx-background-color: #eba8df;" +
+            "-fx-background-color: #eba8df;" +
                 "-fx-background-radius: 25;" +
                 "-fx-border-radius: 25;" +
                 "-fx-font-size: 16px;" +
@@ -373,7 +476,7 @@ public class ResumeDatabasePage extends Application {
         return gradeBox;
     }
 
-    private TextArea createLargeTextArea(String prompt) {
+    private static TextArea createLargeTextArea(String prompt) {
         TextArea area = new TextArea();
         area.setPromptText(prompt);
         area.setPrefWidth(544);
@@ -381,7 +484,7 @@ public class ResumeDatabasePage extends Application {
         area.setWrapText(true);
         area.setFont(Font.font("Arial", 16));
         area.setStyle(
-                "-fx-control-inner-background: white;" +
+            "-fx-control-inner-background: white;" +
                 "-fx-background-color: white;" +
                 "-fx-background-radius: 0;" +
                 "-fx-border-color: #f3b2df;" +
@@ -392,7 +495,7 @@ public class ResumeDatabasePage extends Application {
         return area;
     }
 
-    private StackPane createAvatarPane() {
+    private static StackPane createAvatarPane() {
         StackPane avatarPane = new StackPane();
         avatarPane.setPrefSize(110, 130);
 
@@ -401,36 +504,19 @@ public class ResumeDatabasePage extends Application {
         outer.setStroke(Color.web("#db4b87"));
         outer.setStrokeWidth(3);
 
-        Label avatarIcon = new Label("👤");
-        avatarIcon.setFont(Font.font(42));
-        avatarIcon.setTextFill(Color.web("#db4b87"));
-
-        Button editBtn = new Button("edit");
-        editBtn.setStyle(
-                "-fx-background-color: #db4b87;" +
-                "-fx-text-fill: white;" +
-                "-fx-background-radius: 0;" +
-                "-fx-cursor: hand;"
-        );
-        editBtn.setPrefWidth(72);
-
-        VBox box = new VBox(8, new StackPane(outer, avatarIcon), editBtn);
+        VBox box = new VBox(8, new StackPane(outer));
         box.setAlignment(Pos.CENTER);
-
         avatarPane.getChildren().add(box);
         return avatarPane;
     }
 
-    private HBox createBottomHelperRow() {
-        HBox row = new HBox();
+    private static HBox createBottomHelperRow(NavigationManager nav) {
+        HBox row = new HBox(UiTheme.createBackButton(nav));
         row.setAlignment(Pos.CENTER_LEFT);
-
-        Label arrow = new Label("⬅");
-        arrow.setFont(Font.font(38));
-        arrow.setTextFill(Color.web("#c45be7"));
-
-        row.getChildren().add(arrow);
         return row;
+    }
+
+    private record GradeMapping(int yearOfStudy, String educationLevel) {
     }
 
     public static void main(String[] args) {
