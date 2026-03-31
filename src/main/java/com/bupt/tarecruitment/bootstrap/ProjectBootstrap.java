@@ -20,6 +20,11 @@ public final class ProjectBootstrap {
         "Computer Science focused CV tailored for tutorial support.",
         "Highlights programming fundamentals and student-facing communication."
     );
+    private static final List<String> SAMPLE_CV_THREE_LINES = List.of(
+        "Apply Demo Applicant",
+        "Computer Science applicant available for tutorials and lab support.",
+        "Comfortable with Python, communication, and student-facing support work."
+    );
 
     public StartupReport initialize() {
         Path projectRoot = Path.of("").toAbsolutePath();
@@ -49,6 +54,13 @@ public final class ProjectBootstrap {
             if (Files.notExists(sampleCvTwoPath)) {
                 Files.write(sampleCvTwoPath, SAMPLE_CV_TWO_LINES, StandardCharsets.UTF_8);
                 createdFiles.add(sampleCvTwoPath);
+            }
+
+            Path sampleCvThreePath = dataDirectory.resolve("cvs").resolve("ta002").resolve("cv004.txt");
+            Files.createDirectories(sampleCvThreePath.getParent());
+            if (Files.notExists(sampleCvThreePath)) {
+                Files.write(sampleCvThreePath, SAMPLE_CV_THREE_LINES, StandardCharsets.UTF_8);
+                createdFiles.add(sampleCvThreePath);
             }
         } catch (IOException exception) {
             throw new IllegalStateException("Failed to initialize project data directory.", exception);

@@ -19,8 +19,13 @@ import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Font;
+import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
@@ -41,6 +46,8 @@ public class ResumeDatabasePage extends Application {
         TextField studentIdField = createRoundedField("Student ID", 260);
         TextField availabilityField = createRoundedField("Availability slots separated by ';'", 544);
         TextField cvTitleField = createRoundedField("CV Title", 544);
+        TextArea cvContentArea = createLargeTextArea("Paste CV text here or import a local .txt file");
+        cvContentArea.setPrefHeight(170);
         TextArea skillsArea = createLargeTextArea("Skills (letters only, separated by commas or new lines)");
         TextArea positionsArea = createLargeTextArea("Desired positions (letters only, separated by commas or new lines)");
 
@@ -65,6 +72,7 @@ public class ResumeDatabasePage extends Application {
             studentIdField,
             availabilityField,
             cvTitleField,
+            cvContentArea,
             skillsArea,
             positionsArea
         );
@@ -87,6 +95,7 @@ public class ResumeDatabasePage extends Application {
                 studentIdField,
                 availabilityField,
                 cvTitleField,
+                cvContentArea,
                 skillsArea,
                 positionsArea,
                 statusLabel
@@ -118,6 +127,7 @@ public class ResumeDatabasePage extends Application {
         TextField studentIdField,
         TextField availabilityField,
         TextField cvTitleField,
+        TextArea cvContentArea,
         TextArea skillsArea,
         TextArea positionsArea
     ) {
@@ -141,7 +151,19 @@ public class ResumeDatabasePage extends Application {
             if (activeCvId == null || cvs.stream().noneMatch(cv -> cv.cvId().equals(activeCvId))) {
                 activeCv = cvs.getFirst();
                 selectedCvRef.set(activeCv);
-                loadCvIntoFields(context, activeCv, nameField, gradeBox, programmeField, studentIdField, availabilityField, cvTitleField, skillsArea, positionsArea);
+                loadCvIntoFields(
+                    context,
+                    activeCv,
+                    nameField,
+                    gradeBox,
+                    programmeField,
+                    studentIdField,
+                    availabilityField,
+                    cvTitleField,
+                    cvContentArea,
+                    skillsArea,
+                    positionsArea
+                );
             }
 
             selectedCvLabel.setText("Selected CV: " + activeCv.cvId() + " | " + activeCv.title());
@@ -154,8 +176,34 @@ public class ResumeDatabasePage extends Application {
                 button.setOnAction(event -> {
                     selectedCvRef.set(cv);
                     selectedCvLabel.setText("Selected CV: " + cv.cvId() + " | " + cv.title());
-                    loadCvIntoFields(context, cv, nameField, gradeBox, programmeField, studentIdField, availabilityField, cvTitleField, skillsArea, positionsArea);
-                    rebuildCvTabs(context, tabsRow, selectedCvRef, selectedCvLabel, nameField, gradeBox, programmeField, studentIdField, availabilityField, cvTitleField, skillsArea, positionsArea);
+                    loadCvIntoFields(
+                        context,
+                        cv,
+                        nameField,
+                        gradeBox,
+                        programmeField,
+                        studentIdField,
+                        availabilityField,
+                        cvTitleField,
+                        cvContentArea,
+                        skillsArea,
+                        positionsArea
+                    );
+                    rebuildCvTabs(
+                        context,
+                        tabsRow,
+                        selectedCvRef,
+                        selectedCvLabel,
+                        nameField,
+                        gradeBox,
+                        programmeField,
+                        studentIdField,
+                        availabilityField,
+                        cvTitleField,
+                        cvContentArea,
+                        skillsArea,
+                        positionsArea
+                    );
                 });
                 tabRow.getChildren().add(button);
             }
@@ -175,6 +223,7 @@ public class ResumeDatabasePage extends Application {
         TextField studentIdField,
         TextField availabilityField,
         TextField cvTitleField,
+        TextArea cvContentArea,
         TextArea skillsArea,
         TextArea positionsArea,
         javafx.scene.control.Label statusLabel
@@ -187,7 +236,15 @@ public class ResumeDatabasePage extends Application {
 
         HBox row1 = new HBox(24, nameField, gradeBox);
         HBox row2 = new HBox(24, programmeField, studentIdField);
-        leftForm.getChildren().addAll(row1, row2, availabilityField, cvTitleField, skillsArea, positionsArea);
+        leftForm.getChildren().addAll(
+            row1,
+            row2,
+            availabilityField,
+            cvTitleField,
+            createLabeledTextArea("CV Text", cvContentArea),
+            createLabeledTextArea("Skills", skillsArea),
+            createLabeledTextArea("Desired Positions", positionsArea)
+        );
 
         VBox rightPanel = new VBox(18);
         rightPanel.setAlignment(Pos.TOP_CENTER);
@@ -199,12 +256,16 @@ public class ResumeDatabasePage extends Application {
         progressBar.setPrefHeight(18);
         progressBar.setStyle("-fx-accent: #f15bbe; -fx-control-inner-background: #f8c4ea;");
 
-        var saveProfileButton = UiTheme.createOutlineButton("Save profile", 180, 46);
+        var saveProfileButton = UiTheme.createOutlineButton("Create profile", 180, 46);
+        var profileStateLabel = UiTheme.createMutedText("");
+        refreshProfileActionState(context, saveProfileButton, profileStateLabel);
         saveProfileButton.setOnAction(event -> {
+            boolean updatingExistingProfile = hasSavedProfile(context);
             try {
                 saveProfile(context, nameField, gradeBox, programmeField, studentIdField, availabilityField, skillsArea, positionsArea);
+                refreshProfileActionState(context, saveProfileButton, profileStateLabel);
                 statusLabel.setTextFill(Color.web("#2e7d32"));
-                statusLabel.setText("Profile saved successfully.");
+                statusLabel.setText(updatingExistingProfile ? "Profile updated successfully." : "Profile created successfully.");
             } catch (IllegalArgumentException exception) {
                 statusLabel.setTextFill(Color.web("#b00020"));
                 statusLabel.setText(exception.getMessage());
@@ -215,10 +276,20 @@ public class ResumeDatabasePage extends Application {
         saveNewCvButton.setOnAction(event -> {
             try {
                 saveProfile(context, nameField, gradeBox, programmeField, studentIdField, availabilityField, skillsArea, positionsArea);
+                refreshProfileActionState(context, saveProfileButton, profileStateLabel);
                 context.services().cvLibraryService().createCv(
                     context.session().userId(),
                     cvTitleField.getText().trim(),
-                    buildCvContent(nameField, gradeBox, programmeField, studentIdField, availabilityField, skillsArea, positionsArea)
+                    resolveCvContent(
+                        cvContentArea,
+                        nameField,
+                        gradeBox,
+                        programmeField,
+                        studentIdField,
+                        availabilityField,
+                        skillsArea,
+                        positionsArea
+                    )
                 );
                 statusLabel.setTextFill(Color.web("#2e7d32"));
                 statusLabel.setText("New CV saved successfully.");
@@ -240,9 +311,19 @@ public class ResumeDatabasePage extends Application {
 
             try {
                 saveProfile(context, nameField, gradeBox, programmeField, studentIdField, availabilityField, skillsArea, positionsArea);
+                refreshProfileActionState(context, saveProfileButton, profileStateLabel);
                 context.services().cvLibraryService().updateCvContent(
                     selectedCv.cvId(),
-                    buildCvContent(nameField, gradeBox, programmeField, studentIdField, availabilityField, skillsArea, positionsArea)
+                    resolveCvContent(
+                        cvContentArea,
+                        nameField,
+                        gradeBox,
+                        programmeField,
+                        studentIdField,
+                        availabilityField,
+                        skillsArea,
+                        positionsArea
+                    )
                 );
                 statusLabel.setTextFill(Color.web("#2e7d32"));
                 statusLabel.setText("CV updated successfully: " + selectedCv.cvId());
@@ -253,6 +334,20 @@ public class ResumeDatabasePage extends Application {
             }
         });
 
+        var importButton = UiTheme.createOutlineButton("Import .txt CV", 180, 46);
+        importButton.setOnAction(event -> importTxtCv(
+            cvTitleField,
+            cvContentArea,
+            nameField,
+            gradeBox,
+            programmeField,
+            studentIdField,
+            availabilityField,
+            skillsArea,
+            positionsArea,
+            statusLabel
+        ));
+
         var chatButton = UiTheme.createOutlineButton("Click here to chat", 180, 46);
         chatButton.setOnAction(event -> nav.goTo(PageId.MESSAGES));
 
@@ -261,7 +356,9 @@ public class ResumeDatabasePage extends Application {
             UiTheme.createMutedText("Profile and CV data are now backed by the real services."),
             progressBar,
             UiTheme.createTag("Profile + CV", 220),
+            profileStateLabel,
             saveProfileButton,
+            importButton,
             saveNewCvButton,
             updateCvButton,
             chatButton
@@ -301,6 +398,7 @@ public class ResumeDatabasePage extends Application {
         TextField studentIdField,
         TextField availabilityField,
         TextField cvTitleField,
+        TextArea cvContentArea,
         TextArea skillsArea,
         TextArea positionsArea
     ) {
@@ -309,8 +407,10 @@ public class ResumeDatabasePage extends Application {
 
         try {
             String content = context.services().cvLibraryService().loadCvContentByCvId(cv.cvId());
+            cvContentArea.setText(content);
             applyCvContent(content, nameField, gradeBox, programmeField, studentIdField, availabilityField, skillsArea, positionsArea);
         } catch (IllegalArgumentException ignored) {
+            cvContentArea.clear();
         }
     }
 
@@ -379,6 +479,24 @@ public class ResumeDatabasePage extends Application {
         return context.services().profileService().createProfile(profile);
     }
 
+    private static boolean hasSavedProfile(UiAppContext context) {
+        return context.services().profileRepository().findByUserId(context.session().userId()).isPresent();
+    }
+
+    private static void refreshProfileActionState(
+        UiAppContext context,
+        javafx.scene.control.Button saveProfileButton,
+        javafx.scene.control.Label profileStateLabel
+    ) {
+        boolean hasExistingProfile = hasSavedProfile(context);
+        saveProfileButton.setText(hasExistingProfile ? "Update profile" : "Create profile");
+        profileStateLabel.setText(
+            hasExistingProfile
+                ? "Editing existing applicant profile. Required fields are validated before saving."
+                : "No saved profile yet. Fill the required fields to create your applicant profile."
+        );
+    }
+
     private static String buildCvContent(
         TextField nameField,
         ComboBox<String> gradeBox,
@@ -400,12 +518,88 @@ public class ResumeDatabasePage extends Application {
         );
     }
 
+    private static String resolveCvContent(
+        TextArea cvContentArea,
+        TextField nameField,
+        ComboBox<String> gradeBox,
+        TextField programmeField,
+        TextField studentIdField,
+        TextField availabilityField,
+        TextArea skillsArea,
+        TextArea positionsArea
+    ) {
+        String rawContent = cvContentArea.getText();
+        if (rawContent != null && !rawContent.isBlank()) {
+            return rawContent.strip();
+        }
+
+        return buildCvContent(
+            nameField,
+            gradeBox,
+            programmeField,
+            studentIdField,
+            availabilityField,
+            skillsArea,
+            positionsArea
+        );
+    }
+
+    private static void importTxtCv(
+        TextField cvTitleField,
+        TextArea cvContentArea,
+        TextField nameField,
+        ComboBox<String> gradeBox,
+        TextField programmeField,
+        TextField studentIdField,
+        TextField availabilityField,
+        TextArea skillsArea,
+        TextArea positionsArea,
+        javafx.scene.control.Label statusLabel
+    ) {
+        FileChooser chooser = new FileChooser();
+        chooser.setTitle("Choose a .txt CV file");
+        chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Text files (*.txt)", "*.txt"));
+
+        Path selectedPath = null;
+        if (cvTitleField.getScene() != null && cvTitleField.getScene().getWindow() != null) {
+            var selectedFile = chooser.showOpenDialog(cvTitleField.getScene().getWindow());
+            if (selectedFile != null) {
+                selectedPath = selectedFile.toPath();
+            }
+        }
+
+        if (selectedPath == null) {
+            return;
+        }
+
+        String fileName = selectedPath.getFileName().toString();
+        if (!fileName.toLowerCase().endsWith(".txt")) {
+            statusLabel.setTextFill(Color.web("#b00020"));
+            statusLabel.setText("Only .txt CV files are supported.");
+            return;
+        }
+
+        try {
+            String content = Files.readString(selectedPath, StandardCharsets.UTF_8);
+            cvContentArea.setText(content);
+            if (cvTitleField.getText().isBlank()) {
+                cvTitleField.setText(fileName.substring(0, fileName.length() - 4));
+            }
+            applyCvContent(content, nameField, gradeBox, programmeField, studentIdField, availabilityField, skillsArea, positionsArea);
+            statusLabel.setTextFill(Color.web("#2e7d32"));
+            statusLabel.setText("Local .txt file loaded into the CV editor.");
+        } catch (IOException exception) {
+            statusLabel.setTextFill(Color.web("#b00020"));
+            statusLabel.setText("Failed to read the selected .txt file: " + exception.getMessage());
+        }
+    }
+
     private static List<String> splitValueList(String raw) {
         if (raw == null || raw.isBlank()) {
             return List.of();
         }
 
-        return List.of(raw.replace(System.lineSeparator(), ",").replace(';', ',').split(",")).stream()
+        return List.of(raw.split("(?:,|;|\\R)+")).stream()
             .map(String::trim)
             .filter(value -> !value.isBlank())
             .toList();
@@ -493,6 +687,16 @@ public class ResumeDatabasePage extends Application {
                 "-fx-padding: 12;"
         );
         return area;
+    }
+
+    private static VBox createLabeledTextArea(String labelText, TextArea area) {
+        javafx.scene.control.Label label = new javafx.scene.control.Label(labelText);
+        label.setFont(Font.font("Arial", javafx.scene.text.FontWeight.BOLD, 17));
+        label.setTextFill(Color.web("#4664a8"));
+
+        VBox box = new VBox(6, label, area);
+        box.setAlignment(Pos.CENTER_LEFT);
+        return box;
     }
 
     private static StackPane createAvatarPane() {
