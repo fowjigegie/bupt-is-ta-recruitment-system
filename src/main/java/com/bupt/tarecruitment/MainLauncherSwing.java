@@ -2,11 +2,15 @@ package com.bupt.tarecruitment;
 
 import com.bupt.tarecruitment.auth.UserAccount;
 import com.bupt.tarecruitment.auth.UserRole;
+import com.bupt.tarecruitment.job.JobPosting;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.DefaultListCellRenderer;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
@@ -20,6 +24,7 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.awt.Insets;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -27,7 +32,7 @@ public final class MainLauncherSwing {
     private final ProjectModuleFactory moduleFactory;
 
     private final JTextField applicantUserIdField = new JTextField(18);
-    private final JTextField jobIdField = new JTextField("job003", 18);
+    private final JComboBox<JobPosting> jobSelectionBox = new JComboBox<>();
     private final JTextArea statusArea = new JTextArea(12, 48);
 
     private JButton authButton;
@@ -36,6 +41,7 @@ public final class MainLauncherSwing {
     private JButton jobPostingButton;
     private JButton cvReviewButton;
     private JButton applyButton;
+    private JButton refreshJobsButton;
 
     private String lastActionMessage = """
         Main launcher is ready.
@@ -57,6 +63,7 @@ public final class MainLauncherSwing {
             frame.setLayout(new BorderLayout(12, 12));
 
             applicantUserIdField.setEditable(false);
+            configureJobSelection();
 
             JPanel root = new JPanel(new BorderLayout(12, 12));
             root.setBorder(BorderFactory.createEmptyBorder(12, 12, 12, 12));
@@ -174,26 +181,34 @@ public final class MainLauncherSwing {
         c.gridx = 0;
         c.gridy = 2;
         c.insets = new Insets(4, 0, 4, 12);
-        panel.add(new JLabel("Job ID"), c);
+        panel.add(new JLabel("Selected Job"), c);
 
         c.gridx = 1;
         c.insets = new Insets(4, 0, 4, 0);
-        panel.add(jobIdField, c);
+        panel.add(jobSelectionBox, c);
+
+        refreshJobsButton = createLaunchButton("Refresh Jobs", this::refreshJobSelection);
+        c.gridx = 0;
+        c.gridy = 3;
+        c.gridwidth = 2;
+        c.insets = new Insets(8, 0, 6, 0);
+        panel.add(refreshJobsButton, c);
 
         applyButton = createLaunchButton("Open Apply to Job UI", this::openApplyUi);
         c.gridx = 0;
-        c.gridy = 3;
+        c.gridy = 4;
         c.gridwidth = 2;
         c.insets = new Insets(12, 0, 6, 0);
         panel.add(applyButton, c);
 
-        c.gridy = 4;
+        c.gridy = 5;
         JTextArea helperArea = new JTextArea("""
-            Suggested demo values:
+            Suggested demo flow:
             - Sign in as ta001 to use the applicant flow
-            - Default jobId: job003
+            - Click Refresh Jobs to load OPEN jobs
+            - Pick a job, then open the apply detail page
 
-            This launcher now uses the signed-in user instead of manual applicant userId input.
+            This launcher now uses the signed-in user and selected job context.
             """);
         helperArea.setEditable(false);
         helperArea.setLineWrap(true);
@@ -267,16 +282,16 @@ public final class MainLauncherSwing {
             return;
         }
 
-        String jobId = jobIdField.getText().trim();
-        if (jobId.isBlank()) {
-            setLastActionMessage("Job ID is required before opening US04.");
+        JobPosting selectedJob = (JobPosting) jobSelectionBox.getSelectedItem();
+        if (selectedJob == null) {
+            setLastActionMessage("Please select an OPEN job before opening US04.");
             return;
         }
 
-        moduleFactory.createUs04Ui(jobId, currentUser.get().userId()).show();
+        moduleFactory.createUs04Ui(selectedJob.jobId(), currentUser.get().userId()).show();
         setLastActionMessage(
-            "Opened US04 Apply UI for applicantUserId=%s and jobId=%s."
-                .formatted(currentUser.get().userId(), jobId)
+            "Opened US04 Apply UI for applicantUserId=%s and jobId=%s (%s)."
+                .formatted(currentUser.get().userId(), selectedJob.jobId(), selectedJob.title())
         );
     }
 
@@ -297,10 +312,14 @@ public final class MainLauncherSwing {
         applicantProfileButton.setEnabled(applicantSignedIn);
         cvLibraryButton.setEnabled(applicantSignedIn);
         applyButton.setEnabled(applicantSignedIn);
+        refreshJobsButton.setEnabled(applicantSignedIn);
         jobPostingButton.setEnabled(moSignedIn);
         cvReviewButton.setEnabled(moSignedIn);
 
         applicantUserIdField.setText(applicantSignedIn ? currentUser.orElseThrow().userId() : "");
+        if (applicantSignedIn) {
+            refreshJobSelection();
+        }
 
         String sessionSummary;
         if (currentUser.isEmpty()) {
@@ -321,5 +340,53 @@ public final class MainLauncherSwing {
         }
 
         statusArea.setText(sessionSummary + System.lineSeparator() + System.lineSeparator() + lastActionMessage);
+    }
+
+    private void configureJobSelection() {
+        jobSelectionBox.setRenderer(new DefaultListCellRenderer() {
+            @Override
+            public java.awt.Component getListCellRendererComponent(
+                JList<?> list,
+                Object value,
+                int index,
+                boolean isSelected,
+                boolean cellHasFocus
+            ) {
+                JLabel label = (JLabel) super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+                if (value instanceof JobPosting jobPosting) {
+                    label.setText("%s | %s".formatted(jobPosting.jobId(), jobPosting.title()));
+                } else {
+                    label.setText("(no OPEN jobs)");
+                }
+                return label;
+            }
+        });
+    }
+
+    private void refreshJobSelection() {
+        List<JobPosting> openJobs = moduleFactory.listOpenJobs();
+        JobPosting previous = (JobPosting) jobSelectionBox.getSelectedItem();
+
+        jobSelectionBox.removeAllItems();
+        for (JobPosting jobPosting : openJobs) {
+            jobSelectionBox.addItem(jobPosting);
+        }
+
+        if (openJobs.isEmpty()) {
+            return;
+        }
+
+        if (previous == null) {
+            jobSelectionBox.setSelectedIndex(0);
+            return;
+        }
+
+        for (int index = 0; index < openJobs.size(); index++) {
+            if (openJobs.get(index).jobId().equals(previous.jobId())) {
+                jobSelectionBox.setSelectedIndex(index);
+                return;
+            }
+        }
+        jobSelectionBox.setSelectedIndex(0);
     }
 }
