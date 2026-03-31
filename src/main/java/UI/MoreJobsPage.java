@@ -117,14 +117,23 @@ public class MoreJobsPage extends Application {
         courseLabel.setFont(Font.font("Arial", FontWeight.BOLD, 20));
         courseLabel.setTextFill(Color.web("#4664a8"));
 
-        Label moLabel = new Label("MO : " + job.organiserId() + " | " + job.moduleOrActivity() + " | " + job.weeklyHours() + "h/week");
+        Label idLabel = new Label("Job ID : " + job.jobId());
+        idLabel.setFont(Font.font("Arial", FontWeight.BOLD, 16));
+        idLabel.setTextFill(Color.web("#ff66b3"));
+
+        Label moLabel = new Label("MO : " + job.organiserId() + " | " + job.moduleOrActivity());
         moLabel.setFont(Font.font("Arial", 17));
         moLabel.setTextFill(Color.web("#8b7fa0"));
+
+        Label hoursAndScheduleLabel = UiTheme.createMutedText(
+            "Weekly Hours: " + job.weeklyHours() + "h/week | Schedule: " +
+                (job.scheduleSlots().isEmpty() ? "(none listed)" : String.join(", ", job.scheduleSlots()))
+        );
 
         Label skillsLabel = UiTheme.createMutedText(
             "Skills: " + (job.requiredSkills().isEmpty() ? "(none listed)" : String.join(", ", job.requiredSkills()))
         );
-        textBox.getChildren().addAll(courseLabel, moLabel, skillsLabel);
+        textBox.getChildren().addAll(courseLabel, idLabel, moLabel, hoursAndScheduleLabel, skillsLabel);
 
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
