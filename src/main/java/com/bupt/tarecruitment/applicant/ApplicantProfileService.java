@@ -55,6 +55,15 @@ public final class ApplicantProfileService {
     public ApplicantProfile updateProfile(ApplicantProfile profile) {
         validator.validate(profile);
         userAccessPolicy.requireActiveUserWithRole(profile.userId(), UserRole.APPLICANT);
+        ApplicantProfile existingProfile = repository.findByUserId(profile.userId())
+            .orElseThrow(() -> new IllegalArgumentException("No profile exists for userId: " + profile.userId()));
+
+        if (!existingProfile.profileId().equals(profile.profileId())) {
+            throw new IllegalArgumentException(
+                "profileId does not match the existing profile for userId: " + profile.userId()
+            );
+        }
+
         ensureStudentIdIsUnique(profile);
         repository.save(profile);
         return profile;

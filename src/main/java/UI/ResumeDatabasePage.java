@@ -256,12 +256,16 @@ public class ResumeDatabasePage extends Application {
         progressBar.setPrefHeight(18);
         progressBar.setStyle("-fx-accent: #f15bbe; -fx-control-inner-background: #f8c4ea;");
 
-        var saveProfileButton = UiTheme.createOutlineButton("Save profile", 180, 46);
+        var saveProfileButton = UiTheme.createOutlineButton("Create profile", 180, 46);
+        var profileStateLabel = UiTheme.createMutedText("");
+        refreshProfileActionState(context, saveProfileButton, profileStateLabel);
         saveProfileButton.setOnAction(event -> {
+            boolean updatingExistingProfile = hasSavedProfile(context);
             try {
                 saveProfile(context, nameField, gradeBox, programmeField, studentIdField, availabilityField, skillsArea, positionsArea);
+                refreshProfileActionState(context, saveProfileButton, profileStateLabel);
                 statusLabel.setTextFill(Color.web("#2e7d32"));
-                statusLabel.setText("Profile saved successfully.");
+                statusLabel.setText(updatingExistingProfile ? "Profile updated successfully." : "Profile created successfully.");
             } catch (IllegalArgumentException exception) {
                 statusLabel.setTextFill(Color.web("#b00020"));
                 statusLabel.setText(exception.getMessage());
@@ -272,6 +276,7 @@ public class ResumeDatabasePage extends Application {
         saveNewCvButton.setOnAction(event -> {
             try {
                 saveProfile(context, nameField, gradeBox, programmeField, studentIdField, availabilityField, skillsArea, positionsArea);
+                refreshProfileActionState(context, saveProfileButton, profileStateLabel);
                 context.services().cvLibraryService().createCv(
                     context.session().userId(),
                     cvTitleField.getText().trim(),
@@ -306,6 +311,7 @@ public class ResumeDatabasePage extends Application {
 
             try {
                 saveProfile(context, nameField, gradeBox, programmeField, studentIdField, availabilityField, skillsArea, positionsArea);
+                refreshProfileActionState(context, saveProfileButton, profileStateLabel);
                 context.services().cvLibraryService().updateCvContent(
                     selectedCv.cvId(),
                     resolveCvContent(
@@ -350,6 +356,7 @@ public class ResumeDatabasePage extends Application {
             UiTheme.createMutedText("Profile and CV data are now backed by the real services."),
             progressBar,
             UiTheme.createTag("Profile + CV", 220),
+            profileStateLabel,
             saveProfileButton,
             importButton,
             saveNewCvButton,
@@ -472,6 +479,24 @@ public class ResumeDatabasePage extends Application {
         return context.services().profileService().createProfile(profile);
     }
 
+    private static boolean hasSavedProfile(UiAppContext context) {
+        return context.services().profileRepository().findByUserId(context.session().userId()).isPresent();
+    }
+
+    private static void refreshProfileActionState(
+        UiAppContext context,
+        javafx.scene.control.Button saveProfileButton,
+        javafx.scene.control.Label profileStateLabel
+    ) {
+        boolean hasExistingProfile = hasSavedProfile(context);
+        saveProfileButton.setText(hasExistingProfile ? "Update profile" : "Create profile");
+        profileStateLabel.setText(
+            hasExistingProfile
+                ? "Editing existing applicant profile. Required fields are validated before saving."
+                : "No saved profile yet. Fill the required fields to create your applicant profile."
+        );
+    }
+
     private static String buildCvContent(
         TextField nameField,
         ComboBox<String> gradeBox,
@@ -574,7 +599,7 @@ public class ResumeDatabasePage extends Application {
             return List.of();
         }
 
-        return List.of(raw.replace(System.lineSeparator(), ",").replace(';', ',').split(",")).stream()
+        return List.of(raw.split("(?:,|;|\\R)+")).stream()
             .map(String::trim)
             .filter(value -> !value.isBlank())
             .toList();
