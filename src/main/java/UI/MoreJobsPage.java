@@ -145,7 +145,10 @@ public class MoreJobsPage extends Application {
         });
 
         var chatButton = UiTheme.createSoftButton("Chat with MO", 180, 44);
-        chatButton.setOnAction(event -> nav.goTo(PageId.MESSAGES));
+        chatButton.setOnAction(event -> {
+            context.openChatContext(job.jobId(), job.organiserId());
+            nav.goTo(PageId.MESSAGES);
+        });
 
         row.getChildren().addAll(textBox, spacer, viewDetails, chatButton);
         return new VBox(row);

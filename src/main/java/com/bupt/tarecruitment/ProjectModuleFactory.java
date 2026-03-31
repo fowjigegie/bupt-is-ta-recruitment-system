@@ -29,14 +29,17 @@ import com.bupt.tarecruitment.auth.UserAccount;
 import com.bupt.tarecruitment.auth.UserRepository;
 import com.bupt.tarecruitment.job.JobDetailApplyStubSwingDemo;
 import com.bupt.tarecruitment.job.JobIdGenerator;
+import com.bupt.tarecruitment.job.JobPosting;
 import com.bupt.tarecruitment.job.JobPostingSwingDemo;
 import com.bupt.tarecruitment.job.JobPostingService;
 import com.bupt.tarecruitment.job.JobRepository;
+import com.bupt.tarecruitment.job.JobStatus;
 import com.bupt.tarecruitment.job.TextFileJobRepository;
 
 import java.io.InputStream;
 import java.io.PrintStream;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -159,6 +162,12 @@ public final class ProjectModuleFactory {
     public JobPostingService createJobPostingService() {
         JobRepository jobRepository = createJobRepository();
         return new JobPostingService(jobRepository, new JobIdGenerator(jobRepository), userRepository);
+    }
+
+    public List<JobPosting> listOpenJobs() {
+        return createJobRepository().findAll().stream()
+            .filter(jobPosting -> jobPosting.status() == JobStatus.OPEN)
+            .toList();
     }
 
     public JobDetailApplyStubSwingDemo createUs04Ui(String jobId, String applicantUserId) {

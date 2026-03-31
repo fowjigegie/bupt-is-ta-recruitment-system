@@ -124,10 +124,15 @@ public class JobDetailPage extends Application {
         var applyButton = UiTheme.createPrimaryButton("Apply now", 190, 56);
         applyButton.setDisable(job.status() != JobStatus.OPEN);
         applyButton.setOnAction(event -> applyToJob(context, job, cvBox, statusLabel));
+        var chatButton = UiTheme.createSoftButton("Chat with MO", 170, 56);
+        chatButton.setOnAction(event -> {
+            context.openChatContext(job.jobId(), job.organiserId());
+            nav.goTo(PageId.MESSAGES);
+        });
 
         var backButton = UiTheme.createBackButton(nav);
 
-        HBox actions = new HBox(16, cvBox, applyButton);
+        HBox actions = new HBox(16, cvBox, applyButton, chatButton);
         actions.setAlignment(Pos.CENTER_LEFT);
 
         HBox footer = new HBox(16, backButton);

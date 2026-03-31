@@ -109,9 +109,11 @@ public class DashboardPages extends Application {
         StackPane badge = new StackPane(badgeCircle, badgeLabel);
         badge.setTranslateX(75);
         badge.setTranslateY(-35);
+        badge.setMouseTransparent(true);
 
         StackPane wrapper = new StackPane(baseButton, badge);
         wrapper.setAlignment(Pos.CENTER);
+        wrapper.setOnMouseClicked(event -> baseButton.fire());
         return wrapper;
     }
 

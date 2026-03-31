@@ -16,6 +16,9 @@ import com.bupt.tarecruitment.application.ApplicationIdGenerator;
 import com.bupt.tarecruitment.application.ApplicationRepository;
 import com.bupt.tarecruitment.application.JobApplicationService;
 import com.bupt.tarecruitment.application.TextFileApplicationRepository;
+import com.bupt.tarecruitment.communication.MessageRepository;
+import com.bupt.tarecruitment.communication.MessageService;
+import com.bupt.tarecruitment.communication.TextFileMessageRepository;
 import com.bupt.tarecruitment.auth.TextFileUserRepository;
 import com.bupt.tarecruitment.auth.UserRepository;
 import com.bupt.tarecruitment.job.JobIdGenerator;
@@ -32,12 +35,14 @@ public final class UiServices {
     private final CvTextStorage cvStorage;
     private final ApplicationRepository applicationRepository;
     private final JobRepository jobRepository;
+    private final MessageRepository messageRepository;
     private final ApplicantProfileService profileService;
     private final ApplicantProfileIdGenerator profileIdGenerator;
     private final ApplicantCvLibraryService cvLibraryService;
     private final ApplicantCvReviewService cvReviewService;
     private final JobPostingService jobPostingService;
     private final JobApplicationService jobApplicationService;
+    private final MessageService messageService;
 
     private UiServices(
         UserRepository userRepository,
@@ -46,12 +51,14 @@ public final class UiServices {
         CvTextStorage cvStorage,
         ApplicationRepository applicationRepository,
         JobRepository jobRepository,
+        MessageRepository messageRepository,
         ApplicantProfileService profileService,
         ApplicantProfileIdGenerator profileIdGenerator,
         ApplicantCvLibraryService cvLibraryService,
         ApplicantCvReviewService cvReviewService,
         JobPostingService jobPostingService,
-        JobApplicationService jobApplicationService
+        JobApplicationService jobApplicationService,
+        MessageService messageService
     ) {
         this.userRepository = userRepository;
         this.profileRepository = profileRepository;
@@ -59,12 +66,14 @@ public final class UiServices {
         this.cvStorage = cvStorage;
         this.applicationRepository = applicationRepository;
         this.jobRepository = jobRepository;
+        this.messageRepository = messageRepository;
         this.profileService = profileService;
         this.profileIdGenerator = profileIdGenerator;
         this.cvLibraryService = cvLibraryService;
         this.cvReviewService = cvReviewService;
         this.jobPostingService = jobPostingService;
         this.jobApplicationService = jobApplicationService;
+        this.messageService = messageService;
     }
 
     public static UiServices create(Path dataDirectory) {
@@ -74,6 +83,7 @@ public final class UiServices {
         CvTextStorage cvStorage = new TextFileCvStorage(dataDirectory);
         ApplicationRepository applicationRepository = new TextFileApplicationRepository(dataDirectory);
         JobRepository jobRepository = new TextFileJobRepository(dataDirectory);
+        MessageRepository messageRepository = new TextFileMessageRepository(dataDirectory);
 
         ApplicantProfileService profileService = new ApplicantProfileService(
             profileRepository,
@@ -107,6 +117,7 @@ public final class UiServices {
             cvRepository,
             userRepository
         );
+        MessageService messageService = new MessageService(messageRepository);
 
         return new UiServices(
             userRepository,
@@ -115,12 +126,14 @@ public final class UiServices {
             cvStorage,
             applicationRepository,
             jobRepository,
+            messageRepository,
             profileService,
             profileIdGenerator,
             cvLibraryService,
             cvReviewService,
             jobPostingService,
-            jobApplicationService
+            jobApplicationService,
+            messageService
         );
     }
 
@@ -148,6 +161,10 @@ public final class UiServices {
         return jobRepository;
     }
 
+    public MessageRepository messageRepository() {
+        return messageRepository;
+    }
+
     public ApplicantProfileService profileService() {
         return profileService;
     }
@@ -170,5 +187,9 @@ public final class UiServices {
 
     public JobApplicationService jobApplicationService() {
         return jobApplicationService;
+    }
+
+    public MessageService messageService() {
+        return messageService;
     }
 }

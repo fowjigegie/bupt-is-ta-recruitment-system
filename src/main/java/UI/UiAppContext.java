@@ -15,6 +15,7 @@ public final class UiAppContext {
 
     private String selectedJobId;
     private String selectedApplicationId;
+    private String selectedChatPeerUserId;
 
     private UiAppContext(StartupReport startupReport, AuthService authService, UiServices services) {
         this.startupReport = startupReport;
@@ -75,9 +76,23 @@ public final class UiAppContext {
         return selectedApplicationId;
     }
 
+    public void selectChatPeer(String peerUserId) {
+        selectedChatPeerUserId = blankToNull(peerUserId);
+    }
+
+    public String selectedChatPeerUserId() {
+        return selectedChatPeerUserId;
+    }
+
+    public void openChatContext(String jobId, String peerUserId) {
+        selectJob(jobId);
+        selectChatPeer(peerUserId);
+    }
+
     public void clearSelections() {
         selectedJobId = null;
         selectedApplicationId = null;
+        selectedChatPeerUserId = null;
     }
 
     private String blankToNull(String value) {
