@@ -1,6 +1,7 @@
 package UI;
 
 import com.bupt.tarecruitment.applicant.ApplicantCv;
+import com.bupt.tarecruitment.application.ApplicationStatus;
 import com.bupt.tarecruitment.application.JobApplication;
 import com.bupt.tarecruitment.job.JobPosting;
 import com.bupt.tarecruitment.job.JobStatus;
@@ -12,7 +13,6 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
@@ -121,9 +121,20 @@ public class JobDetailPage extends Application {
             }
         }
 
+        JobApplication currentApplication = resolveActiveApplicationForCurrentJob(context, job);
+
         var applyButton = UiTheme.createPrimaryButton("Apply now", 190, 56);
-        applyButton.setDisable(job.status() != JobStatus.OPEN);
-        applyButton.setOnAction(event -> applyToJob(context, job, cvBox, statusLabel));
+        applyButton.setDisable(job.status() != JobStatus.OPEN || currentApplication != null);
+        applyButton.setOnAction(event -> applyToJob(nav, context, job, cvBox, statusLabel));
+
+        var withdrawButton = UiTheme.createOutlineButton("Withdraw application", 220, 56);
+        withdrawButton.setDisable(currentApplication == null);
+        withdrawButton.setOnAction(event -> {
+            if (currentApplication != null) {
+                withdrawApplication(nav, context, currentApplication, statusLabel);
+            }
+        });
+
         var chatButton = UiTheme.createSoftButton("Chat with MO", 170, 56);
         chatButton.setOnAction(event -> {
             context.openChatContext(job.jobId(), job.organiserId());
@@ -132,11 +143,17 @@ public class JobDetailPage extends Application {
 
         var backButton = UiTheme.createBackButton(nav);
 
-        HBox actions = new HBox(16, cvBox, applyButton, chatButton);
+        HBox actions = new HBox(16, cvBox, applyButton, withdrawButton, chatButton);
         actions.setAlignment(Pos.CENTER_LEFT);
 
         HBox footer = new HBox(16, backButton);
         footer.setAlignment(Pos.CENTER_LEFT);
+
+        if (currentApplication != null) {
+            statusLabel.setTextFill(Color.web("#4664a8"));
+            statusLabel.setText("Current application: " + currentApplication.applicationId()
+                + " (" + currentApplication.status().name() + ")");
+        }
 
         return List.of(
             UiTheme.createPageHeading("Job detail"),
@@ -149,6 +166,7 @@ public class JobDetailPage extends Application {
     }
 
     private static void applyToJob(
+        NavigationManager nav,
         UiAppContext context,
         JobPosting job,
         ComboBox<ApplicantCv> cvBox,
@@ -156,6 +174,16 @@ public class JobDetailPage extends Application {
     ) {
         statusLabel.setTextFill(Color.web("#b00020"));
         statusLabel.setText("");
+
+        if (!context.session().isAuthenticated()) {
+            statusLabel.setText("Please log in before applying.");
+            return;
+        }
+
+        if (job.status() != JobStatus.OPEN) {
+            statusLabel.setText("This job is no longer open for application.");
+            return;
+        }
 
         ApplicantCv selectedCv = cvBox.getValue();
         if (selectedCv == null) {
@@ -169,13 +197,74 @@ public class JobDetailPage extends Application {
                 job.jobId(),
                 selectedCv.cvId()
             );
+
             context.selectApplication(application.applicationId());
+
             statusLabel.setTextFill(Color.web("#2e7d32"));
             statusLabel.setText("Application submitted successfully: " + application.applicationId());
+
+            nav.goTo(PageId.JOB_DETAIL);
+
+        } catch (IllegalArgumentException exception) {
+            String message = exception.getMessage();
+
+            if (message != null && message.toLowerCase().contains("duplicate")) {
+                statusLabel.setText("You have already applied for this job.");
+            } else if (message != null && message.toLowerCase().contains("closed")) {
+                statusLabel.setText("This job is already closed.");
+            } else {
+                statusLabel.setText(message);
+            }
+
+            statusLabel.setTextFill(Color.web("#b00020"));
+        }
+    }
+
+    private static void withdrawApplication(
+        NavigationManager nav,
+        UiAppContext context,
+        JobApplication application,
+        Label statusLabel
+    ) {
+        statusLabel.setTextFill(Color.web("#b00020"));
+        statusLabel.setText("");
+
+        if (!context.session().isAuthenticated()) {
+            statusLabel.setText("Please log in before withdrawing an application.");
+            return;
+        }
+
+        try {
+            JobApplication updated = context.services().jobApplicationService().withdrawApplication(
+                context.session().userId(),
+                application.applicationId()
+            );
+
+            context.selectApplication(updated.applicationId());
+
+            statusLabel.setTextFill(Color.web("#2e7d32"));
+            statusLabel.setText("Application withdrawn successfully: " + updated.applicationId());
+
+            nav.goTo(PageId.JOB_DETAIL);
+
         } catch (IllegalArgumentException exception) {
             statusLabel.setTextFill(Color.web("#b00020"));
             statusLabel.setText(exception.getMessage());
         }
+    }
+
+    private static JobApplication resolveActiveApplicationForCurrentJob(UiAppContext context, JobPosting job) {
+        if (context.session() == null || !context.session().isAuthenticated()) {
+            return null;
+        }
+
+        return context.services().applicationRepository()
+            .findByApplicantUserId(context.session().userId())
+            .stream()
+            .filter(application -> application.jobId().equals(job.jobId()))
+            .filter(application -> application.status() != ApplicationStatus.WITHDRAWN)
+            .findFirst()
+            .orElse(null);
     }
 
     private static JobPosting resolveSelectedJob(UiAppContext context) {
