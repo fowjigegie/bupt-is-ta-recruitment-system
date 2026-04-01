@@ -300,7 +300,18 @@ final class UiTheme {
         for (NavEntry entry : entries) {
             boolean selected = entry.pageId() == selectedPage;
             Button button = createSidebarButton(entry.text(), selected);
-            button.setOnAction(event -> nav.goTo(entry.pageId()));
+            button.setOnAction(event -> {
+                // MO: Post Vacancies should default to \"new posting\" unless explicitly triggered by Edit Details.
+                if (entry.pageId() == PageId.POST_VACANCIES) {
+                    nav.context().clearJobEdit();
+                }
+                // MO: Sidebar entry should show ALL applications by default (not filtered by a previously selected job).
+                if (entry.pageId() == PageId.APPLICATION_REVIEW) {
+                    nav.context().selectJob(null);
+                    nav.context().selectApplication(null);
+                }
+                nav.goTo(entry.pageId());
+            });
             sideBar.getChildren().add(button);
         }
 

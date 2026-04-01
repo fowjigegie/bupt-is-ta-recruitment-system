@@ -1,6 +1,7 @@
 package UI;
 
 import com.bupt.tarecruitment.job.JobPosting;
+import com.bupt.tarecruitment.job.JobStatus;
 import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -24,6 +25,7 @@ import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 
 import java.util.List;
+import java.util.Optional;
 
 public class PostVacanciesPage extends Application {
     @Override
@@ -34,6 +36,19 @@ public class PostVacanciesPage extends Application {
     static Scene createScene(NavigationManager nav, UiAppContext context) {
         VBox center = new VBox(22);
         center.setPadding(new Insets(35, 40, 28, 40));
+
+        Optional<JobPosting> editJob = Optional.ofNullable(context.editingJobId())
+            .flatMap(jobId -> context.services().jobRepository().findByJobId(jobId))
+            .filter(job -> job.organiserId().equals(context.session().userId()))
+            .filter(job -> {
+                if (job.status() == JobStatus.CLOSED) {
+                    // Closed postings are not editable; fall back to "new posting".
+                    context.clearJobEdit();
+                    return false;
+                }
+                return true;
+            });
+        boolean isEditMode = editJob.isPresent();
 
         TextField titleField = createField();
         TextField organiserField = createField();
@@ -46,11 +61,21 @@ public class PostVacanciesPage extends Application {
         TextArea descriptionArea = createArea();
         TextArea requirementArea = createArea();
 
+        if (isEditMode) {
+            JobPosting job = editJob.get();
+            titleField.setText(job.title());
+            moduleField.setText(job.moduleOrActivity());
+            weeklyHoursField.setText(Integer.toString(job.weeklyHours()));
+            scheduleField.setText(String.join("; ", job.scheduleSlots()));
+            descriptionArea.setText(job.description());
+            requirementArea.setText(String.join("; ", job.requiredSkills()));
+        }
+
         Label statusLabel = new Label();
         statusLabel.setWrapText(true);
         statusLabel.setTextFill(Color.web("#b00020"));
 
-        Label titleLabel = new Label("New Posting");
+        Label titleLabel = new Label(isEditMode ? "Edit Posting" : "New Posting");
         titleLabel.setStyle(
             "-fx-font-size: 32px;" +
                 "-fx-font-weight: bold;" +
@@ -84,28 +109,56 @@ public class PostVacanciesPage extends Application {
         VBox descriptionBox = createLabeledAreaBox("Job Description", descriptionArea, 798, 130);
         VBox requirementBox = createLabeledAreaBox("Job Requirements", requirementArea, 798, 150);
 
-        var publishButton = UiTheme.createPrimaryButton("Publish", 180, 52);
-        publishButton.setOnAction(event -> publish(
-            context,
-            titleField,
-            organiserField,
-            moduleField,
-            weeklyHoursField,
-            scheduleField,
-            descriptionArea,
-            requirementArea,
-            statusLabel
-        ));
+        var publishButton = UiTheme.createPrimaryButton(isEditMode ? "Update" : "Publish", 180, 52);
+        publishButton.setOnAction(event -> {
+            if (isEditMode) {
+                update(
+                    context,
+                    editJob.get(),
+                    titleField,
+                    organiserField,
+                    moduleField,
+                    weeklyHoursField,
+                    scheduleField,
+                    descriptionArea,
+                    requirementArea,
+                    statusLabel
+                );
+            } else {
+                publish(
+                    context,
+                    titleField,
+                    organiserField,
+                    moduleField,
+                    weeklyHoursField,
+                    scheduleField,
+                    descriptionArea,
+                    requirementArea,
+                    statusLabel
+                );
+            }
+        });
 
         var clearButton = UiTheme.createSoftButton("Clear", 110, 46);
         clearButton.setOnAction(event -> {
-            titleField.clear();
-            moduleField.clear();
-            weeklyHoursField.clear();
-            scheduleField.clear();
-            descriptionArea.clear();
-            requirementArea.clear();
-            statusLabel.setText("");
+            if (isEditMode) {
+                JobPosting job = editJob.get();
+                titleField.setText(job.title());
+                moduleField.setText(job.moduleOrActivity());
+                weeklyHoursField.setText(Integer.toString(job.weeklyHours()));
+                scheduleField.setText(String.join("; ", job.scheduleSlots()));
+                descriptionArea.setText(job.description());
+                requirementArea.setText(String.join("; ", job.requiredSkills()));
+                statusLabel.setText("");
+            } else {
+                titleField.clear();
+                moduleField.clear();
+                weeklyHoursField.clear();
+                scheduleField.clear();
+                descriptionArea.clear();
+                requirementArea.clear();
+                statusLabel.setText("");
+            }
         });
 
         HBox actionRow = new HBox(12, clearButton, publishButton);
@@ -179,6 +232,52 @@ public class PostVacanciesPage extends Application {
             context.selectJob(posting.jobId());
             statusLabel.setTextFill(Color.web("#2e7d32"));
             statusLabel.setText("Published successfully: " + posting.jobId());
+        } catch (IllegalArgumentException exception) {
+            statusLabel.setText(exception.getMessage());
+        }
+    }
+
+    private static void update(
+        UiAppContext context,
+        JobPosting existingJob,
+        TextField titleField,
+        TextField organiserField,
+        TextField moduleField,
+        TextField weeklyHoursField,
+        TextField scheduleField,
+        TextArea descriptionArea,
+        TextArea requirementArea,
+        Label statusLabel
+    ) {
+        statusLabel.setTextFill(Color.web("#b00020"));
+        statusLabel.setText("");
+
+        final int weeklyHours;
+        try {
+            weeklyHours = Integer.parseInt(weeklyHoursField.getText().trim());
+        } catch (NumberFormatException exception) {
+            statusLabel.setText("Weekly hours must be an integer.");
+            return;
+        }
+
+        try {
+            JobPosting updated = new JobPosting(
+                existingJob.jobId(),
+                organiserField.getText().trim(),
+                titleField.getText().trim(),
+                moduleField.getText().trim(),
+                descriptionArea.getText().trim(),
+                splitList(requirementArea.getText()),
+                weeklyHours,
+                splitList(scheduleField.getText()),
+                existingJob.status() == null ? JobStatus.OPEN : existingJob.status()
+            );
+
+            context.services().jobPostingService().publish(updated);
+            context.selectJob(updated.jobId());
+            context.clearJobEdit();
+            statusLabel.setTextFill(Color.web("#2e7d32"));
+            statusLabel.setText("Updated successfully: " + updated.jobId());
         } catch (IllegalArgumentException exception) {
             statusLabel.setText(exception.getMessage());
         }

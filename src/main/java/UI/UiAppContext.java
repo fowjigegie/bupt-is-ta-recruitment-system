@@ -14,6 +14,7 @@ public final class UiAppContext {
     private final UiServices services;
 
     private String selectedJobId;
+    private String editingJobId;
     private String selectedApplicationId;
     private String selectedChatPeerUserId;
 
@@ -68,6 +69,22 @@ public final class UiAppContext {
         return selectedJobId;
     }
 
+    /**
+     * Editing context for MO Post Vacancies page.
+     * Only set when the user clicks \"Edit Details\" from Job Management.
+     */
+    public void beginEditJob(String jobId) {
+        editingJobId = blankToNull(jobId);
+    }
+
+    public String editingJobId() {
+        return editingJobId;
+    }
+
+    public void clearJobEdit() {
+        editingJobId = null;
+    }
+
     public void selectApplication(String applicationId) {
         selectedApplicationId = blankToNull(applicationId);
     }
@@ -91,6 +108,7 @@ public final class UiAppContext {
 
     public void clearSelections() {
         selectedJobId = null;
+        editingJobId = null;
         selectedApplicationId = null;
         selectedChatPeerUserId = null;
     }
