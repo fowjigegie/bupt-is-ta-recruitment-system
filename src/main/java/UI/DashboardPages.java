@@ -1,5 +1,6 @@
 package UI;
 
+import com.bupt.tarecruitment.application.ApplicationStatus;
 import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -38,9 +39,13 @@ public class DashboardPages extends Application {
         long openJobs = context.services().jobRepository().findAll().stream()
             .filter(job -> job.status() == com.bupt.tarecruitment.job.JobStatus.OPEN)
             .count();
+
         long myApplications = context.services().applicationRepository()
             .findByApplicantUserId(context.session().userId())
-            .size();
+            .stream()
+            .filter(application -> application.status() != ApplicationStatus.WITHDRAWN)
+            .count();
+
         long unreadMessages = 3;
 
         VBox center = new VBox(26);
@@ -66,7 +71,7 @@ public class DashboardPages extends Application {
         HBox statRow = new HBox(20,
             UiTheme.createStatCard("Open jobs", Long.toString(openJobs), "Browse jobs or jump directly into the detailed view."),
             UiTheme.createStatCard("Unread messages", Long.toString(unreadMessages), "Messages now route to a dedicated page instead of printing logs."),
-            UiTheme.createStatCard("My applications", Long.toString(myApplications), "Application status lives in its own routed page.")
+            UiTheme.createStatCard("My applications", Long.toString(myApplications), "Withdrawn applications are not counted here.")
         );
 
         VBox jobsArea = new VBox(12);
@@ -152,7 +157,7 @@ public class DashboardPages extends Application {
         Button browseButton = UiTheme.createOutlineButton("More jobs", 140, 46);
         browseButton.setOnAction(event -> {
             context.selectJob(job.jobId());
-            nav.goTo(PageId.MORE_JOBS);
+            nav.goTo(PageId.JOB_DETAIL);
         });
 
         row.getChildren().addAll(courseLabel, teacherLabel, spacer, browseButton, chatButton);
