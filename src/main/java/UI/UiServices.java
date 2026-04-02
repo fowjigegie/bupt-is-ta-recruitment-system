@@ -13,6 +13,7 @@ import com.bupt.tarecruitment.applicant.TextFileApplicantCvRepository;
 import com.bupt.tarecruitment.applicant.TextFileApplicantProfileRepository;
 import com.bupt.tarecruitment.applicant.TextFileCvStorage;
 import com.bupt.tarecruitment.application.ApplicationIdGenerator;
+import com.bupt.tarecruitment.application.ApplicationDecisionService;
 import com.bupt.tarecruitment.application.ApplicationRepository;
 import com.bupt.tarecruitment.application.JobApplicationService;
 import com.bupt.tarecruitment.application.TextFileApplicationRepository;
@@ -42,6 +43,7 @@ public final class UiServices {
     private final ApplicantCvReviewService cvReviewService;
     private final JobPostingService jobPostingService;
     private final JobApplicationService jobApplicationService;
+    private final ApplicationDecisionService applicationDecisionService;
     private final MessageService messageService;
 
     private UiServices(
@@ -58,6 +60,7 @@ public final class UiServices {
         ApplicantCvReviewService cvReviewService,
         JobPostingService jobPostingService,
         JobApplicationService jobApplicationService,
+        ApplicationDecisionService applicationDecisionService,
         MessageService messageService
     ) {
         this.userRepository = userRepository;
@@ -73,6 +76,7 @@ public final class UiServices {
         this.cvReviewService = cvReviewService;
         this.jobPostingService = jobPostingService;
         this.jobApplicationService = jobApplicationService;
+        this.applicationDecisionService = applicationDecisionService;
         this.messageService = messageService;
     }
 
@@ -117,6 +121,11 @@ public final class UiServices {
             cvRepository,
             userRepository
         );
+        ApplicationDecisionService applicationDecisionService = new ApplicationDecisionService(
+            applicationRepository,
+            jobRepository,
+            userRepository
+        );
         MessageService messageService = new MessageService(messageRepository);
 
         return new UiServices(
@@ -133,6 +142,7 @@ public final class UiServices {
             cvReviewService,
             jobPostingService,
             jobApplicationService,
+            applicationDecisionService,
             messageService
         );
     }
@@ -187,6 +197,10 @@ public final class UiServices {
 
     public JobApplicationService jobApplicationService() {
         return jobApplicationService;
+    }
+
+    public ApplicationDecisionService applicationDecisionService() {
+        return applicationDecisionService;
     }
 
     public MessageService messageService() {
