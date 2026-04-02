@@ -7,12 +7,14 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.List;
 import java.util.Optional;
 
 public final class TextFileApplicationRepository implements ApplicationRepository {
     private static final String FIELD_SEPARATOR = "\\|";
     private static final String OUTPUT_SEPARATOR = "|";
+    private static final String REVIEWER_NOTE_PREFIX = "b64:";
 
     private final Path applicationsFilePath;
 
@@ -91,7 +93,7 @@ public final class TextFileApplicationRepository implements ApplicationRepositor
             fields[3],
             ApplicationStatus.valueOf(fields[4]),
             LocalDateTime.parse(fields[5]),
-            fields[6]
+            decodeReviewerNote(fields[6])
         );
     }
 
@@ -119,8 +121,26 @@ public final class TextFileApplicationRepository implements ApplicationRepositor
             application.cvId(),
             application.status().name(),
             application.submittedAt().toString(),
-            application.reviewerNote()
+            encodeReviewerNote(application.reviewerNote())
         );
+    }
+
+    private String encodeReviewerNote(String reviewerNote) {
+        String normalizedNote = reviewerNote == null ? "" : reviewerNote;
+        return REVIEWER_NOTE_PREFIX + Base64.getEncoder().encodeToString(normalizedNote.getBytes(StandardCharsets.UTF_8));
+    }
+
+    private String decodeReviewerNote(String rawValue) {
+        if (!rawValue.startsWith(REVIEWER_NOTE_PREFIX)) {
+            return rawValue;
+        }
+
+        try {
+            byte[] decodedBytes = Base64.getDecoder().decode(rawValue.substring(REVIEWER_NOTE_PREFIX.length()));
+            return new String(decodedBytes, StandardCharsets.UTF_8);
+        } catch (IllegalArgumentException exception) {
+            throw new IllegalStateException("Invalid encoded reviewer note.", exception);
+        }
     }
 
     private void ensureFileExists() {

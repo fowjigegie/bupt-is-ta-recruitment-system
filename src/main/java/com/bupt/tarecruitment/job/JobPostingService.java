@@ -3,6 +3,7 @@ package com.bupt.tarecruitment.job;
 import com.bupt.tarecruitment.auth.UserAccessPolicy;
 import com.bupt.tarecruitment.auth.UserRepository;
 import com.bupt.tarecruitment.auth.UserRole;
+import com.bupt.tarecruitment.common.schedule.ScheduleSlot;
 
 import java.util.List;
 import java.util.Objects;
@@ -46,6 +47,8 @@ public final class JobPostingService {
 
         userAccessPolicy.requireActiveUserWithRole(organiserId, UserRole.MO);
 
+        List<String> normalizedScheduleSlots = normalizeScheduleSlots(scheduleSlots);
+
         JobPosting posting = new JobPosting(
             jobIdGenerator.nextJobId(),
             organiserId.trim(),
@@ -54,7 +57,7 @@ public final class JobPostingService {
             description.trim(),
             normalizeList(requiredSkills),
             weeklyHours,
-            normalizeList(scheduleSlots),
+            normalizedScheduleSlots,
             JobStatus.OPEN
         );
         jobRepository.save(posting);
@@ -73,8 +76,20 @@ public final class JobPostingService {
         }
 
         userAccessPolicy.requireActiveUserWithRole(posting.organiserId(), UserRole.MO);
-        jobRepository.save(posting);
-        return posting;
+
+        JobPosting normalizedPosting = new JobPosting(
+            posting.jobId(),
+            posting.organiserId().trim(),
+            posting.title().trim(),
+            posting.moduleOrActivity().trim(),
+            posting.description().trim(),
+            normalizeList(posting.requiredSkills()),
+            posting.weeklyHours(),
+            normalizeScheduleSlots(posting.scheduleSlots()),
+            posting.status()
+        );
+        jobRepository.save(normalizedPosting);
+        return normalizedPosting;
     }
 
     private List<String> normalizeList(List<String> rawValues) {
@@ -87,6 +102,14 @@ public final class JobPostingService {
             .map(String::trim)
             .filter(value -> !value.isBlank())
             .toList();
+    }
+
+    private List<String> normalizeScheduleSlots(List<String> rawValues) {
+        List<String> normalizedScheduleSlots = normalizeList(rawValues);
+        for (String scheduleSlot : normalizedScheduleSlots) {
+            ScheduleSlot.parse(scheduleSlot);
+        }
+        return normalizedScheduleSlots;
     }
 
     private void requireNonBlank(String value, String fieldName) {
