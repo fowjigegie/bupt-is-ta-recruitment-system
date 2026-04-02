@@ -15,9 +15,11 @@ import com.bupt.tarecruitment.auth.UserRepository;
 import com.bupt.tarecruitment.auth.UserRole;
 import com.bupt.tarecruitment.common.storage.DataFile;
 import com.bupt.tarecruitment.job.JobPosting;
+import com.bupt.tarecruitment.job.JobPostingService;
 import com.bupt.tarecruitment.job.JobRepository;
 import com.bupt.tarecruitment.job.JobStatus;
 import com.bupt.tarecruitment.job.TextFileJobRepository;
+import com.bupt.tarecruitment.job.JobIdGenerator;
 
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -44,6 +46,7 @@ public final class US14SmokeTest {
             authService.register("mo201", "pass-mo201", UserRole.MO);
             authService.register("ta101", "pass-ta101", UserRole.APPLICANT);
             authService.register("ta102", "pass-ta102", UserRole.APPLICANT);
+            authService.register("ta103", "pass-ta103", UserRole.APPLICANT);
 
             seedJobs(jobRepository);
             seedApplications(applicationRepository);
@@ -58,14 +61,29 @@ public final class US14SmokeTest {
                 jobRepository,
                 userRepository
             );
+            JobPostingService jobPostingService = new JobPostingService(
+                jobRepository,
+                new JobIdGenerator(jobRepository),
+                userRepository
+            );
 
-            decisionService.updateStatus("mo101", "application101", ApplicationStatus.ACCEPTED, "Core tutorial support");
+            String multilineReviewerNote = """
+                Core tutorial support
+                Needs follow-up | priority
+                """.trim();
+            decisionService.updateStatus("mo101", "application101", ApplicationStatus.ACCEPTED, multilineReviewerNote);
             decisionService.updateStatus("mo101", "application102", ApplicationStatus.ACCEPTED, "Lab slot accepted");
             decisionService.updateStatus("mo101", "application103", ApplicationStatus.ACCEPTED, "Edge-touch accepted");
             decisionService.updateStatus("mo101", "application104", ApplicationStatus.ACCEPTED, "Contained overlap");
             decisionService.updateStatus("mo101", "application105", ApplicationStatus.ACCEPTED, "Exact overlap");
             decisionService.updateStatus("mo101", "application106", ApplicationStatus.SHORTLISTED, "Wait list");
             decisionService.updateStatus("mo101", "application201", ApplicationStatus.ACCEPTED, "Second TA accepted");
+            decisionService.updateStatus("mo101", "application501", ApplicationStatus.ACCEPTED, "Legacy data imported");
+
+            String storedReviewerNote = applicationRepository.findByApplicationId("application101")
+                .orElseThrow(() -> new IllegalStateException("Missing updated application101."))
+                .reviewerNote();
+            assertEquals(multilineReviewerNote, storedReviewerNote, "Reviewer note should round-trip safely through file storage.");
 
             expectDecisionFailure(
                 () -> decisionService.updateStatus("mo101", "application301", ApplicationStatus.ACCEPTED, "Should fail"),
@@ -79,9 +97,21 @@ public final class US14SmokeTest {
                 () -> decisionService.updateStatus("mo101", "application401", ApplicationStatus.REJECTED, "Withdrawn"),
                 "Withdrawn applications cannot be reviewed"
             );
+            expectFailure(
+                () -> jobPostingService.publish(
+                    "mo101",
+                    "Invalid schedule role",
+                    "Legacy module",
+                    "Should fail",
+                    List.of("Communication"),
+                    2,
+                    List.of("Tuesday 9-11")
+                ),
+                "scheduleSlot must use the format"
+            );
 
             List<WorkloadSummary> summaries = workloadService.listAcceptedTaWorkloads(10);
-            assertEquals(2, summaries.size(), "Only accepted TAs should appear in the workload list.");
+            assertEquals(3, summaries.size(), "Only accepted TAs should appear in the workload list.");
 
             WorkloadSummary ta101Summary = workloadService.getAcceptedTaWorkload("ta101", 10)
                 .orElseThrow(() -> new IllegalStateException("Missing workload summary for ta101."));
@@ -107,6 +137,15 @@ public final class US14SmokeTest {
             assertEquals(4, ta102Summary.totalWeeklyHours(), "Unexpected total weekly hours for ta102.");
             assertTrue(!ta102Summary.overloaded(), "ta102 should not be overloaded.");
             assertTrue(!ta102Summary.hasConflict(), "ta102 should not have schedule conflicts.");
+            assertTrue(!ta102Summary.hasInvalidScheduleData(), "ta102 should not have invalid schedule data.");
+
+            WorkloadSummary ta103Summary = workloadService.getAcceptedTaWorkload("ta103", 10)
+                .orElseThrow(() -> new IllegalStateException("Missing workload summary for ta103."));
+            assertEquals(3, ta103Summary.totalWeeklyHours(), "Unexpected total weekly hours for ta103.");
+            assertTrue(!ta103Summary.overloaded(), "ta103 should not be overloaded.");
+            assertTrue(!ta103Summary.hasConflict(), "Invalid schedule data alone should not be reported as overlap conflict.");
+            assertTrue(ta103Summary.hasInvalidScheduleData(), "ta103 should surface invalid schedule data.");
+            assertEquals(1, ta103Summary.invalidScheduleEntries().size(), "Expected one invalid schedule entry for ta103.");
 
             decisionService.updateStatus("mo101", "application102", ApplicationStatus.REJECTED, "Reduce load");
             decisionService.updateStatus("mo101", "application104", ApplicationStatus.REJECTED, "Reduce load");
@@ -153,6 +192,7 @@ public final class US14SmokeTest {
         jobRepository.save(buildJob("job201", "mo101", 4, List.of("WED-10:00-12:00")));
         jobRepository.save(buildJob("job301", "mo201", 4, List.of("THU-10:00-12:00")));
         jobRepository.save(buildJob("job401", "mo101", 1, List.of("FRI-10:00-11:00")));
+        jobRepository.save(buildJob("job501", "mo101", 3, List.of("Tuesday 9-11")));
     }
 
     private static void seedApplications(ApplicationRepository applicationRepository) {
@@ -165,6 +205,7 @@ public final class US14SmokeTest {
         applicationRepository.save(buildApplication("application201", "job201", "ta102", ApplicationStatus.SUBMITTED));
         applicationRepository.save(buildApplication("application301", "job301", "ta101", ApplicationStatus.SUBMITTED));
         applicationRepository.save(buildApplication("application401", "job401", "ta102", ApplicationStatus.WITHDRAWN));
+        applicationRepository.save(buildApplication("application501", "job501", "ta103", ApplicationStatus.SUBMITTED));
     }
 
     private static JobPosting buildJob(String jobId, String organiserId, int weeklyHours, List<String> scheduleSlots) {
@@ -213,12 +254,16 @@ public final class US14SmokeTest {
     }
 
     private static void expectDecisionFailure(ThrowingRunnable runnable, String expectedMessagePart) {
+        expectFailure(runnable, expectedMessagePart);
+    }
+
+    private static void expectFailure(ThrowingRunnable runnable, String expectedMessagePart) {
         try {
             runnable.run();
-            throw new IllegalStateException("Expected decision failure but operation succeeded.");
+            throw new IllegalStateException("Expected failure but operation succeeded.");
         } catch (IllegalArgumentException exception) {
             if (!exception.getMessage().contains(expectedMessagePart)) {
-                throw new IllegalStateException("Unexpected decision failure message: " + exception.getMessage(), exception);
+                throw new IllegalStateException("Unexpected failure message: " + exception.getMessage(), exception);
             }
         }
     }

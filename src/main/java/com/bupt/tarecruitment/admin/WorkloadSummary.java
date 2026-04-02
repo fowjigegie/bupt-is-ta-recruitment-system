@@ -9,16 +9,20 @@ public record WorkloadSummary(
     int totalWeeklyHours,
     List<AcceptedAssignment> acceptedAssignments,
     List<WorkloadConflict> conflicts,
+    List<String> invalidScheduleEntries,
     boolean overloaded,
-    boolean hasConflict
+    boolean hasConflict,
+    boolean hasInvalidScheduleData
 ) {
     public WorkloadSummary {
         Objects.requireNonNull(applicantUserId);
         Objects.requireNonNull(applicantDisplayName);
         Objects.requireNonNull(acceptedAssignments);
         Objects.requireNonNull(conflicts);
+        Objects.requireNonNull(invalidScheduleEntries);
 
         acceptedAssignments = List.copyOf(acceptedAssignments);
         conflicts = List.copyOf(conflicts);
+        invalidScheduleEntries = List.copyOf(invalidScheduleEntries);
     }
 }
