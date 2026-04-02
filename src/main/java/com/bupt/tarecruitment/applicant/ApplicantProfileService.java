@@ -1,19 +1,42 @@
 package com.bupt.tarecruitment.applicant;
 
+import com.bupt.tarecruitment.auth.UserAccessPolicy;
+import com.bupt.tarecruitment.auth.UserRepository;
+import com.bupt.tarecruitment.auth.UserRole;
+
 import java.util.Objects;
 import java.util.Optional;
 
 public final class ApplicantProfileService {
     private final ApplicantProfileRepository repository;
     private final ApplicantProfileValidator validator;
+    private final UserAccessPolicy userAccessPolicy;
 
     public ApplicantProfileService(ApplicantProfileRepository repository, ApplicantProfileValidator validator) {
+        this(repository, validator, UserAccessPolicy.noOp());
+    }
+
+    public ApplicantProfileService(
+        ApplicantProfileRepository repository,
+        ApplicantProfileValidator validator,
+        UserRepository userRepository
+    ) {
+        this(repository, validator, new UserAccessPolicy(userRepository));
+    }
+
+    private ApplicantProfileService(
+        ApplicantProfileRepository repository,
+        ApplicantProfileValidator validator,
+        UserAccessPolicy userAccessPolicy
+    ) {
         this.repository = Objects.requireNonNull(repository);
         this.validator = Objects.requireNonNull(validator);
+        this.userAccessPolicy = Objects.requireNonNull(userAccessPolicy);
     }
 
     public ApplicantProfile createProfile(ApplicantProfile profile) {
         validator.validate(profile);
+        userAccessPolicy.requireActiveUserWithRole(profile.userId(), UserRole.APPLICANT);
 
         if (repository.findByUserId(profile.userId()).isPresent()) {
             throw new IllegalArgumentException("A profile already exists for userId: " + profile.userId());
@@ -31,6 +54,16 @@ public final class ApplicantProfileService {
 
     public ApplicantProfile updateProfile(ApplicantProfile profile) {
         validator.validate(profile);
+        userAccessPolicy.requireActiveUserWithRole(profile.userId(), UserRole.APPLICANT);
+        ApplicantProfile existingProfile = repository.findByUserId(profile.userId())
+            .orElseThrow(() -> new IllegalArgumentException("No profile exists for userId: " + profile.userId()));
+
+        if (!existingProfile.profileId().equals(profile.profileId())) {
+            throw new IllegalArgumentException(
+                "profileId does not match the existing profile for userId: " + profile.userId()
+            );
+        }
+
         ensureStudentIdIsUnique(profile);
         repository.save(profile);
         return profile;

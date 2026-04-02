@@ -21,6 +21,8 @@ import java.util.Optional;
 public final class ApplicantProfileSwingDemo {
     private final ApplicantProfileService service;
     private final ApplicantProfileIdGenerator profileIdGenerator;
+    private final String fixedUserId;
+    private final boolean lockUserId;
 
     private final JTextField userIdField = new JTextField(24);
     private final JTextField studentIdField = new JTextField(24);
@@ -34,8 +36,19 @@ public final class ApplicantProfileSwingDemo {
     private final JTextArea resultArea = new JTextArea(14, 48);
 
     public ApplicantProfileSwingDemo(ApplicantProfileService service, ApplicantProfileIdGenerator profileIdGenerator) {
+        this(service, profileIdGenerator, "", false);
+    }
+
+    public ApplicantProfileSwingDemo(
+        ApplicantProfileService service,
+        ApplicantProfileIdGenerator profileIdGenerator,
+        String fixedUserId,
+        boolean lockUserId
+    ) {
         this.service = Objects.requireNonNull(service);
         this.profileIdGenerator = Objects.requireNonNull(profileIdGenerator);
+        this.fixedUserId = fixedUserId == null ? "" : fixedUserId.trim();
+        this.lockUserId = lockUserId && !this.fixedUserId.isBlank();
     }
 
     public void show() {
@@ -59,9 +72,11 @@ public final class ApplicantProfileSwingDemo {
 
             JPanel buttonPanel = new JPanel();
             JButton createButton = new JButton("Create Profile");
+            JButton updateButton = new JButton("Update Profile");
             JButton loadButton = new JButton("Load Profile");
             JButton clearButton = new JButton("Clear");
             buttonPanel.add(createButton);
+            buttonPanel.add(updateButton);
             buttonPanel.add(loadButton);
             buttonPanel.add(clearButton);
 
@@ -79,9 +94,17 @@ public final class ApplicantProfileSwingDemo {
                 - Education level must be Graduated or Not Graduated.
                 - Availability must use DAY-HH:MM-HH:MM, for example MON-09:00-11:00.
                 - Click Load Profile to pull an existing profile by userId.
+                - Click Update Profile after editing an existing saved profile.
                 """);
 
+            if (!fixedUserId.isBlank()) {
+                userIdField.setText(fixedUserId);
+                userIdField.setEditable(!lockUserId);
+                tryLoadFixedProfile();
+            }
+
             createButton.addActionListener(event -> createProfile());
+            updateButton.addActionListener(event -> updateProfile());
             loadButton.addActionListener(event -> loadProfile());
             clearButton.addActionListener(event -> clearForm());
 
@@ -135,8 +158,44 @@ public final class ApplicantProfileSwingDemo {
         renderProfile("Profile loaded successfully.", profile.get());
     }
 
+    private void updateProfile() {
+        String userId = userIdField.getText().trim();
+        if (userId.isBlank()) {
+            resultArea.setText("Please enter an applicant userId before updating a profile.");
+            return;
+        }
+
+        Optional<ApplicantProfile> existingProfile = service.getProfileByUserId(userId);
+        if (existingProfile.isEmpty()) {
+            resultArea.setText("No existing profile found for userId " + userId + ". Load or create one first.");
+            return;
+        }
+
+        try {
+            ApplicantProfile profile = new ApplicantProfile(
+                existingProfile.get().profileId(),
+                userId,
+                studentIdField.getText().trim(),
+                fullNameField.getText().trim(),
+                programmeField.getText().trim(),
+                Integer.parseInt(yearOfStudyField.getText().trim()),
+                educationLevelField.getText().trim(),
+                splitList(skillsField.getText()),
+                splitList(availabilityField.getText()),
+                splitList(desiredPositionsField.getText())
+            );
+
+            ApplicantProfile savedProfile = service.updateProfile(profile);
+            renderProfile("Profile updated successfully.", savedProfile);
+        } catch (NumberFormatException exception) {
+            resultArea.setText("Failed to update profile.\n\nYear of study must be an integer between 1 and 4.");
+        } catch (IllegalArgumentException exception) {
+            resultArea.setText("Failed to update profile.\n\n" + exception.getMessage());
+        }
+    }
+
     private void clearForm() {
-        userIdField.setText("");
+        userIdField.setText(lockUserId ? fixedUserId : "");
         studentIdField.setText("");
         fullNameField.setText("");
         programmeField.setText("");
@@ -146,6 +205,14 @@ public final class ApplicantProfileSwingDemo {
         availabilityField.setText("");
         desiredPositionsField.setText("");
         resultArea.setText("Form cleared.");
+    }
+
+    private void tryLoadFixedProfile() {
+        Optional<ApplicantProfile> profile = service.getProfileByUserId(fixedUserId);
+        if (profile.isPresent()) {
+            fillForm(profile.get());
+            renderProfile("Existing profile loaded for the signed-in applicant.", profile.get());
+        }
     }
 
     private void fillForm(ApplicantProfile profile) {
@@ -194,8 +261,7 @@ public final class ApplicantProfileSwingDemo {
             return List.of();
         }
 
-        String normalized = rawValue.replace(',', ';');
-        return List.of(normalized.split(";")).stream()
+        return List.of(rawValue.split("(?:,|;|\\R)+")).stream()
             .map(String::trim)
             .filter(value -> !value.isBlank())
             .toList();

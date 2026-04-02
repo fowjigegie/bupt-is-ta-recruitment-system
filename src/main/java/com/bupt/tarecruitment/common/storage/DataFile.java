@@ -9,14 +9,16 @@ public enum DataFile {
             "# Format: userId|passwordHash|role|displayName|status",
             "admin001|demo-admin-password|ADMIN|System Admin|ACTIVE",
             "mo001|demo-mo-password|MO|Demo Module Organiser|ACTIVE",
-            "ta001|demo-ta-password|APPLICANT|Demo Applicant|ACTIVE"
+            "ta001|demo-ta-password|APPLICANT|Demo Applicant|ACTIVE",
+            "ta002|demo-ta2-password|APPLICANT|Apply Demo Applicant|ACTIVE"
         )
     ),
     PROFILES(
         "profiles.txt",
         List.of(
             "# Format: profileId|userId|studentId|fullName|programme|yearOfStudy|educationLevel|skills(;)|availabilitySlots(;)|desiredPositions(;)",
-            "profile001|ta001|231225700|Demo Applicant|Software Engineering|3|Not Graduated|Java;Communication|MON-09:00-11:00;WED-14:00-16:00|Teaching Assistant;Invigilation"
+            "profile001|ta001|231225700|Demo Applicant|Software Engineering|3|Not Graduated|Java;Communication|MON-09:00-11:00;WED-14:00-16:00|Teaching Assistant;Invigilation",
+            "profile002|ta002|231225701|Apply Demo Applicant|Computer Science|2|Not Graduated|Python;Communication|TUE-14:00-16:00;FRI-10:00-12:00|Teaching Assistant;Lab Support"
         )
     ),
     CVS(
@@ -24,7 +26,8 @@ public enum DataFile {
         List.of(
             "# Format: cvId|ownerUserId|title|fileName|createdAt|updatedAt",
             "cv001|ta001|Software Engineering Focus CV|cvs/ta001/cv001.txt|2026-03-25T13:55:00|2026-03-25T13:55:00",
-            "cv002|ta001|Computer Science Focus CV|cvs/ta001/cv002.txt|2026-03-25T15:20:00|2026-03-25T15:20:00"
+            "cv002|ta001|Computer Science Focus CV|cvs/ta001/cv002.txt|2026-03-25T15:20:00|2026-03-25T15:20:00",
+            "cv004|ta002|General TA CV|cvs/ta002/cv004.txt|2026-03-26T09:00:00|2026-03-26T09:00:00"
         )
     ),
     JOBS(

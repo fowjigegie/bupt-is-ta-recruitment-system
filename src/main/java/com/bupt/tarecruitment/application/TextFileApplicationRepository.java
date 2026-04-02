@@ -1,7 +1,6 @@
 package com.bupt.tarecruitment.application;
 
 import com.bupt.tarecruitment.common.storage.DataFile;
-
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -98,7 +97,7 @@ public final class TextFileApplicationRepository implements ApplicationRepositor
 
     private void writeAll(List<JobApplication> applications) {
         List<String> lines = new ArrayList<>();
-        lines.add(DataFile.APPLICATIONS.initialLines().getFirst());
+        lines.add(DataFile.APPLICATIONS.initialLines().get(0));
 
         for (JobApplication application : applications) {
             lines.add(formatLine(application));

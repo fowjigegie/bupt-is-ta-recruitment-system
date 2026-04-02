@@ -91,10 +91,6 @@ function Get-JavaFxLibPath {
 
     $candidates = New-Object System.Collections.Generic.List[string]
 
-    if ($env:PATH_TO_FX) {
-        $candidates.Add($env:PATH_TO_FX)
-    }
-
     if ($env:JAVA_FX_HOME) {
         $candidates.Add((Join-Path $env:JAVA_FX_HOME "lib"))
         $candidates.Add($env:JAVA_FX_HOME)
