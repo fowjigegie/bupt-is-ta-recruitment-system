@@ -1,6 +1,0 @@
-# Format: applicationId|jobId|applicantUserId|cvId|status|submittedAt|reviewerNote
-application001|job001|ta001|cv001|WITHDRAWN|2026-03-25T14:00|Initial demo application
-application002|job002|ta001|cv002|SUBMITTED|2026-03-25T15:30|Second demo application for a different role
-application003|job001|ta001|cv001|SUBMITTED|2026-04-02T19:48:25.250833500|
-application004|job010|ta001|cv002|WITHDRAWN|2026-04-02T21:57:33.210546700|
-application005|job010|ta001|cv002|SUBMITTED|2026-04-02T22:40:40.083085600|
