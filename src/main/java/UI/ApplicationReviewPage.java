@@ -1,13 +1,17 @@
 package UI;
 
 import com.bupt.tarecruitment.applicant.ApplicantCvReview;
+import com.bupt.tarecruitment.application.ApplicationStatus;
+import com.bupt.tarecruitment.application.ApplicationStatusPresenter;
 import com.bupt.tarecruitment.application.JobApplication;
 import com.bupt.tarecruitment.job.JobPosting;
 import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
+import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
@@ -53,7 +57,13 @@ public class ApplicationReviewPage extends Application {
                     if (application == null) {
                         return "";
                     }
-                    return application.applicationId() + " | " + application.jobId() + " | " + application.applicantUserId();
+                    return application.applicationId()
+                        + " | "
+                        + application.jobId()
+                        + " | "
+                        + application.applicantUserId()
+                        + " | "
+                        + ApplicationStatusPresenter.toDisplayText(application.status());
                 }
 
                 @Override
@@ -85,19 +95,76 @@ public class ApplicationReviewPage extends Application {
                     "-fx-font-size: 15px;"
             );
 
-            javafx.scene.control.Label statusLabel = new javafx.scene.control.Label();
+            TextArea reviewerNoteArea = new TextArea();
+            reviewerNoteArea.setWrapText(true);
+            reviewerNoteArea.setPromptText("Add reviewer note for the selected application...");
+            reviewerNoteArea.setPrefRowCount(4);
+            reviewerNoteArea.setStyle(
+                "-fx-control-inner-background: white;" +
+                    "-fx-background-color: white;" +
+                    "-fx-background-radius: 24;" +
+                    "-fx-border-radius: 24;" +
+                    "-fx-border-color: #f4d9e6;" +
+                    "-fx-border-width: 2;" +
+                    "-fx-font-size: 15px;"
+            );
+
+            Label statusLabel = new Label();
             statusLabel.setWrapText(true);
             statusLabel.setTextFill(Color.web("#b00020"));
 
+            Button shortlistButton = UiTheme.createSoftButton("Shortlist", 140, 42);
+            shortlistButton.setOnAction(event -> updateStatus(
+                nav,
+                context,
+                applicationBox.getValue(),
+                ApplicationStatus.SHORTLISTED,
+                reviewerNoteArea,
+                statusLabel
+            ));
+
+            Button acceptButton = UiTheme.createPrimaryButton("Accept", 140, 42);
+            acceptButton.setOnAction(event -> updateStatus(
+                nav,
+                context,
+                applicationBox.getValue(),
+                ApplicationStatus.ACCEPTED,
+                reviewerNoteArea,
+                statusLabel
+            ));
+
+            Button rejectButton = UiTheme.createOutlineButton("Reject", 140, 42);
+            rejectButton.setOnAction(event -> updateStatus(
+                nav,
+                context,
+                applicationBox.getValue(),
+                ApplicationStatus.REJECTED,
+                reviewerNoteArea,
+                statusLabel
+            ));
+
+            HBox actionRow = new HBox(12, shortlistButton, acceptButton, rejectButton);
+            actionRow.setAlignment(Pos.CENTER_LEFT);
+
             applicationBox.valueProperty().addListener((obs, oldValue, newValue) ->
-                loadReview(context, newValue, detailContainer, cvContentArea, statusLabel)
+                loadReview(context, newValue, detailContainer, cvContentArea, reviewerNoteArea, statusLabel)
             );
-            loadReview(context, initialSelection, detailContainer, cvContentArea, statusLabel);
+            loadReview(context, initialSelection, detailContainer, cvContentArea, reviewerNoteArea, statusLabel);
 
             HBox footer = new HBox(UiTheme.createBackButton(nav));
             footer.setAlignment(Pos.CENTER_LEFT);
 
-            center.getChildren().addAll(applicationBox, detailContainer, cvContentArea, statusLabel, footer);
+            center.getChildren().addAll(
+                applicationBox,
+                detailContainer,
+                UiTheme.createSectionTitle("CV content"),
+                cvContentArea,
+                UiTheme.createSectionTitle("Reviewer note"),
+                reviewerNoteArea,
+                actionRow,
+                statusLabel,
+                footer
+            );
         }
 
         BorderPane root = UiTheme.createPage(
@@ -115,10 +182,12 @@ public class ApplicationReviewPage extends Application {
         JobApplication application,
         VBox detailContainer,
         TextArea cvContentArea,
-        javafx.scene.control.Label statusLabel
+        TextArea reviewerNoteArea,
+        Label statusLabel
     ) {
         detailContainer.getChildren().clear();
         cvContentArea.clear();
+        reviewerNoteArea.clear();
         statusLabel.setText("");
 
         if (application == null) {
@@ -158,6 +227,38 @@ public class ApplicationReviewPage extends Application {
 
             detailContainer.getChildren().addAll(tags, profileCard, skillsCard);
             cvContentArea.setText(review.cvContent());
+            reviewerNoteArea.setText(application.reviewerNote());
+        } catch (IllegalArgumentException exception) {
+            statusLabel.setText(exception.getMessage());
+        }
+    }
+
+    private static void updateStatus(
+        NavigationManager nav,
+        UiAppContext context,
+        JobApplication selectedApplication,
+        ApplicationStatus nextStatus,
+        TextArea reviewerNoteArea,
+        Label statusLabel
+    ) {
+        statusLabel.setTextFill(Color.web("#b00020"));
+        statusLabel.setText("");
+
+        if (selectedApplication == null) {
+            statusLabel.setText("Please choose an application first.");
+            return;
+        }
+
+        try {
+            JobApplication updated = context.services().applicationDecisionService().updateStatus(
+                context.session().userId(),
+                selectedApplication.applicationId(),
+                nextStatus,
+                reviewerNoteArea.getText()
+            );
+            context.selectApplication(updated.applicationId());
+            context.selectJob(updated.jobId());
+            nav.replace(PageId.APPLICATION_REVIEW);
         } catch (IllegalArgumentException exception) {
             statusLabel.setText(exception.getMessage());
         }

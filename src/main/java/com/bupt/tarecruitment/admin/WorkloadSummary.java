@@ -5,18 +5,20 @@ import java.util.Objects;
 
 public record WorkloadSummary(
     String applicantUserId,
+    String applicantDisplayName,
     int totalWeeklyHours,
-    List<String> acceptedJobIds,
-    List<String> scheduleSlots,
+    List<AcceptedAssignment> acceptedAssignments,
+    List<WorkloadConflict> conflicts,
     boolean overloaded,
     boolean hasConflict
 ) {
     public WorkloadSummary {
         Objects.requireNonNull(applicantUserId);
-        Objects.requireNonNull(acceptedJobIds);
-        Objects.requireNonNull(scheduleSlots);
+        Objects.requireNonNull(applicantDisplayName);
+        Objects.requireNonNull(acceptedAssignments);
+        Objects.requireNonNull(conflicts);
 
-        acceptedJobIds = List.copyOf(acceptedJobIds);
-        scheduleSlots = List.copyOf(scheduleSlots);
+        acceptedAssignments = List.copyOf(acceptedAssignments);
+        conflicts = List.copyOf(conflicts);
     }
 }

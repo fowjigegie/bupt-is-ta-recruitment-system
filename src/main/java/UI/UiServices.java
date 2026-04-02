@@ -12,7 +12,9 @@ import com.bupt.tarecruitment.applicant.CvTextStorage;
 import com.bupt.tarecruitment.applicant.TextFileApplicantCvRepository;
 import com.bupt.tarecruitment.applicant.TextFileApplicantProfileRepository;
 import com.bupt.tarecruitment.applicant.TextFileCvStorage;
+import com.bupt.tarecruitment.admin.AdminWorkloadService;
 import com.bupt.tarecruitment.application.ApplicationIdGenerator;
+import com.bupt.tarecruitment.application.ApplicationDecisionService;
 import com.bupt.tarecruitment.application.ApplicationRepository;
 import com.bupt.tarecruitment.application.JobApplicationService;
 import com.bupt.tarecruitment.application.TextFileApplicationRepository;
@@ -42,6 +44,8 @@ public final class UiServices {
     private final ApplicantCvReviewService cvReviewService;
     private final JobPostingService jobPostingService;
     private final JobApplicationService jobApplicationService;
+    private final ApplicationDecisionService applicationDecisionService;
+    private final AdminWorkloadService adminWorkloadService;
     private final MessageService messageService;
 
     private UiServices(
@@ -58,6 +62,8 @@ public final class UiServices {
         ApplicantCvReviewService cvReviewService,
         JobPostingService jobPostingService,
         JobApplicationService jobApplicationService,
+        ApplicationDecisionService applicationDecisionService,
+        AdminWorkloadService adminWorkloadService,
         MessageService messageService
     ) {
         this.userRepository = userRepository;
@@ -73,6 +79,8 @@ public final class UiServices {
         this.cvReviewService = cvReviewService;
         this.jobPostingService = jobPostingService;
         this.jobApplicationService = jobApplicationService;
+        this.applicationDecisionService = applicationDecisionService;
+        this.adminWorkloadService = adminWorkloadService;
         this.messageService = messageService;
     }
 
@@ -117,6 +125,16 @@ public final class UiServices {
             cvRepository,
             userRepository
         );
+        ApplicationDecisionService applicationDecisionService = new ApplicationDecisionService(
+            applicationRepository,
+            jobRepository,
+            userRepository
+        );
+        AdminWorkloadService adminWorkloadService = new AdminWorkloadService(
+            applicationRepository,
+            jobRepository,
+            userRepository
+        );
         MessageService messageService = new MessageService(messageRepository);
 
         return new UiServices(
@@ -133,6 +151,8 @@ public final class UiServices {
             cvReviewService,
             jobPostingService,
             jobApplicationService,
+            applicationDecisionService,
+            adminWorkloadService,
             messageService
         );
     }
@@ -187,6 +207,14 @@ public final class UiServices {
 
     public JobApplicationService jobApplicationService() {
         return jobApplicationService;
+    }
+
+    public ApplicationDecisionService applicationDecisionService() {
+        return applicationDecisionService;
+    }
+
+    public AdminWorkloadService adminWorkloadService() {
+        return adminWorkloadService;
     }
 
     public MessageService messageService() {
