@@ -1,5 +1,0 @@
-# Format: userId|passwordHash|role|displayName|status
-admin001|demo-admin-password|ADMIN|System Admin|ACTIVE
-mo001|demo-mo-password|MO|Demo Module Organiser|ACTIVE
-ta001|demo-ta-password|APPLICANT|Demo Applicant|ACTIVE
-ta002|demo-ta2-password|APPLICANT|Apply Demo Applicant|ACTIVE
