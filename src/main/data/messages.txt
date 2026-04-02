@@ -1,0 +1,6 @@
+# Format: messageId|jobId|senderUserId|receiverUserId|sentAt|content|readStatus
+message001|job001|ta001|mo001|2026-03-25T14:10|Could you clarify the marking workload?|UNREAD
+message002|job001|ta001|mo001|2026-04-02T19:46:26.194667100|哈哈哈哈哈哈|UNREAD
+message003|job001|ta001|mo001|2026-04-02T19:46:37.741283600|没招了|UNREAD
+message004|job006|ta001|mo003|2026-04-02T22:06:27.040620700|hello|UNREAD
+message005|job011|ta001|mo005|2026-04-02T22:11:17.968060400|hi~|UNREAD
