@@ -223,12 +223,14 @@ public class MessagesPage extends Application {
             String peerUserId = message.senderUserId().equals(currentUserId)
                 ? message.receiverUserId()
                 : message.senderUserId();
-            String key = peerUserId;
+            String key = threadKey(message.jobId(), peerUserId);
 
             String peerDisplay = resolveUserDisplay(context, peerUserId);
+            String courseName = resolveCourseName(context, message.jobId());
             int unread = (message.receiverUserId().equals(currentUserId) && !message.read()) ? 1 : 0;
             ChatThread candidate = new ChatThread(
                 message.jobId(),
+                courseName,
                 peerUserId,
                 peerDisplay,
                 message.content(),
@@ -244,6 +246,7 @@ public class MessagesPage extends Application {
                 ChatThread updated = existing.lastAt().isBefore(message.sentAt())
                     ? new ChatThread(
                         message.jobId(),
+                        courseName,
                         peerUserId,
                         peerDisplay,
                         message.content(),
@@ -252,6 +255,7 @@ public class MessagesPage extends Application {
                     )
                     : new ChatThread(
                         existing.jobId(),
+                        existing.courseName(),
                         existing.peerUserId(),
                         existing.peerDisplayName(),
                         existing.preview(),
@@ -267,11 +271,12 @@ public class MessagesPage extends Application {
         if (selectedJobId != null) {
             String peer = selectedPeer != null ? selectedPeer : deriveDefaultPeerByJob(context, selectedJobId, currentUserId);
             if (peer != null) {
-                String key = peer;
+                String key = threadKey(selectedJobId, peer);
                 threadMap.putIfAbsent(
                     key,
                     new ChatThread(
                         selectedJobId,
+                        resolveCourseName(context, selectedJobId),
                         peer,
                         resolveUserDisplay(context, peer),
                         "(no messages yet)",
@@ -325,7 +330,8 @@ public class MessagesPage extends Application {
         boolean existsInList = false;
         if (current != null) {
             for (ChatThread thread : threads) {
-                if (thread.peerUserId().equals(current.peerUserId())) {
+                if (threadKey(thread.jobId(), thread.peerUserId())
+                    .equals(threadKey(current.jobId(), current.peerUserId()))) {
                     existsInList = true;
                     break;
                 }
@@ -337,11 +343,13 @@ public class MessagesPage extends Application {
             String selectedPeerUserId = context.selectedChatPeerUserId();
             if (selectedPeerUserId != null) {
                 for (ChatThread thread : threads) {
-                    if (thread.peerUserId().equals(selectedPeerUserId)) {
+                    if (thread.peerUserId().equals(selectedPeerUserId)
+                        && (selectedJobId == null || thread.jobId().equals(selectedJobId))) {
                         current = (selectedJobId == null)
                             ? thread
                             : new ChatThread(
                                 selectedJobId,
+                                resolveCourseName(context, selectedJobId),
                                 thread.peerUserId(),
                                 thread.peerDisplayName(),
                                 thread.preview(),
@@ -368,6 +376,7 @@ public class MessagesPage extends Application {
             && current.peerUserId().equals(preferredPeerUserId)) {
             current = new ChatThread(
                 preferredJobId,
+                resolveCourseName(context, preferredJobId),
                 current.peerUserId(),
                 current.peerDisplayName(),
                 current.preview(),
@@ -389,10 +398,10 @@ public class MessagesPage extends Application {
         Label conversationTitle,
         ScrollPane messageScroll
     ) {
-        conversationTitle.setText("Conversation with " + thread.peerDisplayName());
+        conversationTitle.setText("Conversation with %s | %s".formatted(thread.peerDisplayName(), thread.courseName()));
 
-        List<InquiryMessage> messages = listConversationByPeer(context, currentUserId, thread.peerUserId());
-        markConversationByPeerAsRead(context, currentUserId, thread.peerUserId(), messages);
+        List<InquiryMessage> messages = listConversationByPeerAndJob(context, currentUserId, thread.peerUserId(), thread.jobId());
+        markConversationAsRead(context, currentUserId, thread.peerUserId(), thread.jobId());
 
         messageFlow.getChildren().clear();
         if (messages.isEmpty()) {
@@ -408,7 +417,7 @@ public class MessagesPage extends Application {
     private static Button createThreadButton(ChatThread thread) {
         String unreadSuffix = thread.unreadCount() > 0 ? "  (unread: %d)".formatted(thread.unreadCount()) : "";
         String preview = thread.preview() == null ? "" : thread.preview();
-        String headline = thread.peerDisplayName() + unreadSuffix;
+        String headline = "%s | %s%s".formatted(thread.peerDisplayName(), thread.courseName(), unreadSuffix);
 
         Label nameLabel = new Label(headline);
         nameLabel.setFont(Font.font("Arial", FontWeight.BOLD, 16));
@@ -492,30 +501,48 @@ public class MessagesPage extends Application {
             .orElse(null);
     }
 
-    private static List<InquiryMessage> listConversationByPeer(UiAppContext context, String userId, String peerUserId) {
+    private static String resolveCourseName(UiAppContext context, String jobId) {
+        String title = context.services().jobRepository().findByJobId(jobId)
+            .map(JobPosting::title)
+            .orElse(jobId);
+        if (title.toLowerCase().startsWith("ta for ")) {
+            return title.substring("ta for ".length());
+        }
+        return title;
+    }
+
+    private static List<InquiryMessage> listConversationByPeerAndJob(
+        UiAppContext context,
+        String userId,
+        String peerUserId,
+        String jobId
+    ) {
         return context.services().messageRepository().findAll().stream()
             .filter(message ->
-                (message.senderUserId().equals(userId) && message.receiverUserId().equals(peerUserId))
-                    || (message.senderUserId().equals(peerUserId) && message.receiverUserId().equals(userId))
+                message.jobId().equals(jobId)
+                    && ((message.senderUserId().equals(userId) && message.receiverUserId().equals(peerUserId))
+                    || (message.senderUserId().equals(peerUserId) && message.receiverUserId().equals(userId)))
             )
             .sorted(Comparator.comparing(InquiryMessage::sentAt).thenComparing(InquiryMessage::messageId))
             .toList();
     }
 
-    private static void markConversationByPeerAsRead(
+    private static void markConversationAsRead(
         UiAppContext context,
         String userId,
         String peerUserId,
-        List<InquiryMessage> messages
+        String jobId
     ) {
-        messages.stream()
-            .map(InquiryMessage::jobId)
-            .distinct()
-            .forEach(jobId -> context.services().messageService().markConversationAsRead(jobId, userId, peerUserId));
+        context.services().messageService().markConversationAsRead(jobId, userId, peerUserId);
+    }
+
+    private static String threadKey(String jobId, String peerUserId) {
+        return jobId + "|" + peerUserId;
     }
 
     private record ChatThread(
         String jobId,
+        String courseName,
         String peerUserId,
         String peerDisplayName,
         String preview,

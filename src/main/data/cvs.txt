@@ -1,0 +1,4 @@
+# Format: cvId|ownerUserId|title|fileName|createdAt|updatedAt
+cv001|ta001|Software Engineering Focus CV|cvs/ta001/cv001.txt|2026-03-25T13:55:00|2026-03-25T13:55:00
+cv002|ta001|Computer Science Focus CV|cvs/ta001/cv002.txt|2026-03-25T15:20:00|2026-03-25T15:20:00
+cv004|ta002|General TA CV|cvs/ta002/cv004.txt|2026-03-26T09:00:00|2026-03-26T09:00:00
