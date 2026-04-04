@@ -5,6 +5,7 @@ import com.bupt.tarecruitment.application.ApplicationStatus;
 import com.bupt.tarecruitment.application.JobApplication;
 import com.bupt.tarecruitment.job.JobPosting;
 import com.bupt.tarecruitment.job.JobStatus;
+import com.bupt.tarecruitment.recommendation.MissingSkillsFeedback;
 import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -23,6 +24,7 @@ import javafx.util.StringConverter;
 
 import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 
 public class JobDetailPage extends Application {
     @Override
@@ -77,7 +79,8 @@ public class JobDetailPage extends Application {
                     System.lineSeparator() +
                     System.lineSeparator() +
                     "Schedule: " + (job.scheduleSlots().isEmpty() ? "(none listed)" : String.join(", ", job.scheduleSlots()))
-            )
+            ),
+            createSkillGapFeedbackCard(context, job)
         );
 
         Label applyTitle = new Label("Apply with one of your CVs");
@@ -210,6 +213,48 @@ public class JobDetailPage extends Application {
             statusLabel,
             footer
         );
+    }
+
+    private static VBox createSkillGapFeedbackCard(UiAppContext context, JobPosting job) {
+        if (!context.session().isAuthenticated()) {
+            return UiTheme.createWhiteCard(
+                "Missing skills feedback",
+                "Log in as an applicant and create your profile to compare your skills with this job."
+            );
+        }
+
+        Optional<MissingSkillsFeedback> feedback = context.services().missingSkillsFeedbackService()
+            .feedbackForApplicantAndJob(context.session().userId(), job.jobId());
+
+        if (feedback.isEmpty()) {
+            return UiTheme.createWhiteCard(
+                "Missing skills feedback",
+                "Create or update your profile in Resume Database to see which required skills you already match and which ones are still missing."
+            );
+        }
+
+        MissingSkillsFeedback skillFeedback = feedback.get();
+        if (skillFeedback.totalRequiredSkillCount() == 0) {
+            return UiTheme.createWhiteCard(
+                "Missing skills feedback",
+                "This job does not list required skills, so there is no skill gap to report."
+            );
+        }
+
+        StringBuilder body = new StringBuilder();
+        body.append("Coverage: ")
+            .append(skillFeedback.coveragePercent())
+            .append("% of listed required skills matched.")
+            .append(System.lineSeparator())
+            .append(System.lineSeparator())
+            .append("Matched skills: ")
+            .append(skillFeedback.matchedSkills().isEmpty() ? "(none yet)" : String.join(", ", skillFeedback.matchedSkills()))
+            .append(System.lineSeparator())
+            .append(System.lineSeparator())
+            .append("Missing skills to improve: ")
+            .append(skillFeedback.missingSkills().isEmpty() ? "(none)" : String.join(", ", skillFeedback.missingSkills()));
+
+        return UiTheme.createWhiteCard("Missing skills feedback", body.toString());
     }
 
     private static void applyToJob(

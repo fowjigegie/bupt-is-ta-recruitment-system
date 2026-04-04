@@ -95,12 +95,53 @@ public final class NavigationManager {
             case ADMIN_DASHBOARD -> AdminDashboardPage.createScene(this, context);
         };
 
+        boolean restoreWindowState = stage.getScene() != null;
+        double currentWidth = stage.getWidth();
+        double currentHeight = stage.getHeight();
+        double currentX = stage.getX();
+        double currentY = stage.getY();
+        boolean maximized = stage.isMaximized();
+        boolean fullScreen = stage.isFullScreen();
+
         stage.setTitle(titleFor(targetPage));
         stage.setScene(scene);
         stage.show();
+
+        if (restoreWindowState) {
+            if (!Double.isNaN(currentWidth) && currentWidth > 0) {
+                stage.setWidth(currentWidth);
+            }
+            if (!Double.isNaN(currentHeight) && currentHeight > 0) {
+                stage.setHeight(currentHeight);
+            }
+            if (!Double.isNaN(currentX)) {
+                stage.setX(currentX);
+            }
+            if (!Double.isNaN(currentY)) {
+                stage.setY(currentY);
+            }
+            if (maximized) {
+                stage.setMaximized(true);
+            }
+            if (fullScreen) {
+                stage.setFullScreen(true);
+            }
+        }
     }
 
     private PageId normalizeTarget(PageId requestedPage) {
+        if (requestedPage == PageId.MESSAGES) {
+            if (!session().isAuthenticated()) {
+                return PageId.LOGIN;
+            }
+
+            if (session().role() == UserRole.APPLICANT || session().role() == UserRole.MO) {
+                return requestedPage;
+            }
+
+            return roleHome(session().role());
+        }
+
         UserRole requiredRole = requiredRole(requestedPage);
         if (requiredRole == null) {
             return requestedPage;
@@ -119,7 +160,7 @@ public final class NavigationManager {
 
     private UserRole requiredRole(PageId pageId) {
         return switch (pageId) {
-            case APPLICANT_DASHBOARD, MORE_JOBS, RESUME_DATABASE, JOB_DETAIL, MESSAGES, INTERVIEW_INVITATION ->
+            case APPLICANT_DASHBOARD, MORE_JOBS, RESUME_DATABASE, JOB_DETAIL, INTERVIEW_INVITATION ->
                 UserRole.APPLICANT;
             case MO_DASHBOARD, POST_VACANCIES, JOB_MANAGEMENT, APPLICATION_REVIEW -> UserRole.MO;
             case ADMIN_DASHBOARD -> UserRole.ADMIN;

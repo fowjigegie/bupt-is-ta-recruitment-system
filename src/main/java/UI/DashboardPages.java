@@ -1,6 +1,8 @@
 package UI;
 
 import com.bupt.tarecruitment.application.ApplicationStatus;
+import com.bupt.tarecruitment.job.JobPosting;
+import com.bupt.tarecruitment.recommendation.RecommendationResult;
 import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -28,6 +30,9 @@ import javafx.stage.Stage;
 
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 public class DashboardPages extends Application {
     @Override
@@ -46,7 +51,7 @@ public class DashboardPages extends Application {
             .filter(application -> application.status() != ApplicationStatus.WITHDRAWN)
             .count();
 
-        long unreadMessages = 3;
+        long unreadMessages = context.services().messageService().countUnreadMessagesForUser(context.session().userId());
 
         VBox center = new VBox(26);
         center.setPadding(new Insets(30, 40, 30, 40));
@@ -65,7 +70,7 @@ public class DashboardPages extends Application {
         Button chatButton = UiTheme.createPrimaryButton("Chat", 220, 110);
         chatButton.setOnAction(event -> nav.goTo(PageId.MESSAGES));
 
-        HBox featureButtons = new HBox(30, invitationButton, createChatBadge(chatButton));
+        HBox featureButtons = new HBox(30, invitationButton, createChatBadge(chatButton, unreadMessages));
         featureButtons.setAlignment(Pos.CENTER_LEFT);
 
         HBox statRow = new HBox(20,
@@ -77,17 +82,29 @@ public class DashboardPages extends Application {
         VBox jobsArea = new VBox(12);
         jobsArea.getChildren().add(UiTheme.createSectionTitle("Recommended jobs"));
 
-        List<com.bupt.tarecruitment.job.JobPosting> recommendedJobs = context.services().jobRepository().findAll().stream()
+        Map<String, JobPosting> openJobsById = context.services().jobRepository().findAll().stream()
             .filter(job -> job.status() == com.bupt.tarecruitment.job.JobStatus.OPEN)
-            .sorted(Comparator.comparing(com.bupt.tarecruitment.job.JobPosting::jobId))
-            .limit(3)
+            .collect(Collectors.toMap(JobPosting::jobId, Function.identity()));
+        List<RecommendedJobView> recommendedJobs = context.services().recommendationService()
+            .recommendJobsForApplicant(context.session().userId(), 3)
+            .stream()
+            .map(recommendation -> new RecommendedJobView(openJobsById.get(recommendation.jobId()), recommendation))
+            .filter(recommendedJob -> recommendedJob.job() != null)
             .toList();
 
         if (recommendedJobs.isEmpty()) {
-            jobsArea.getChildren().add(UiTheme.createWhiteCard("No jobs", "There are no OPEN jobs to recommend right now."));
+            boolean hasProfile = context.services().profileRepository().findByUserId(context.session().userId()).isPresent();
+            jobsArea.getChildren().add(
+                UiTheme.createWhiteCard(
+                    hasProfile ? "No tailored recommendations yet" : "Profile needed for recommendations",
+                    hasProfile
+                        ? "We could not find a strong match from your current skills and desired positions. Try browsing all jobs."
+                        : "Create or update your profile and skills in Resume Database to unlock personalized recommendations."
+                )
+            );
         } else {
-            for (com.bupt.tarecruitment.job.JobPosting job : recommendedJobs) {
-                jobsArea.getChildren().add(createJobRow(nav, context, job));
+            for (RecommendedJobView recommendedJob : recommendedJobs) {
+                jobsArea.getChildren().add(createJobRow(nav, context, recommendedJob));
             }
         }
 
@@ -103,11 +120,15 @@ public class DashboardPages extends Application {
         return UiTheme.createScene(root);
     }
 
-    private static StackPane createChatBadge(Button baseButton) {
+    private static StackPane createChatBadge(Button baseButton, long unreadMessages) {
+        if (unreadMessages <= 0) {
+            return new StackPane(baseButton);
+        }
+
         Circle badgeCircle = new Circle(18);
         badgeCircle.setFill(Color.web("#ff3333"));
 
-        Label badgeLabel = new Label("3");
+        Label badgeLabel = new Label(Long.toString(Math.min(unreadMessages, 99)));
         badgeLabel.setTextFill(Color.WHITE);
         badgeLabel.setFont(Font.font("Arial", FontWeight.BOLD, 18));
 
@@ -125,8 +146,11 @@ public class DashboardPages extends Application {
     private static VBox createJobRow(
         NavigationManager nav,
         UiAppContext context,
-        com.bupt.tarecruitment.job.JobPosting job
+        RecommendedJobView recommendedJob
     ) {
+        JobPosting job = recommendedJob.job();
+        RecommendationResult recommendation = recommendedJob.recommendation();
+
         HBox row = new HBox(20);
         row.setAlignment(Pos.CENTER_LEFT);
         row.setPadding(new Insets(18, 22, 18, 22));
@@ -148,11 +172,30 @@ public class DashboardPages extends Application {
         teacherLabel.setTextFill(Color.web("#4664a8"));
         teacherLabel.setPrefWidth(220);
 
+        Label reasonLabel = UiTheme.createMutedText(String.join(" | ", recommendation.reasons()));
+        reasonLabel.setWrapText(true);
+        reasonLabel.setMaxWidth(760);
+
+        Label scoreLabel = new Label("Match score: " + recommendation.matchScore());
+        scoreLabel.setFont(Font.font("Arial", FontWeight.BOLD, 15));
+        scoreLabel.setTextFill(Color.WHITE);
+        scoreLabel.setStyle(
+            "-fx-background-color: #7bb661;" +
+                "-fx-background-radius: 18;" +
+                "-fx-padding: 6 12 6 12;"
+        );
+
+        VBox contentBox = new VBox(8, courseLabel, teacherLabel, reasonLabel);
+        contentBox.setAlignment(Pos.CENTER_LEFT);
+
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
         Button chatButton = UiTheme.createSoftButton("Chat with Teacher", 190, 46);
-        chatButton.setOnAction(event -> nav.goTo(PageId.MESSAGES));
+        chatButton.setOnAction(event -> {
+            context.openChatContext(job.jobId(), job.organiserId());
+            nav.goTo(PageId.MESSAGES);
+        });
 
         Button browseButton = UiTheme.createOutlineButton("More jobs", 140, 46);
         browseButton.setOnAction(event -> {
@@ -160,7 +203,7 @@ public class DashboardPages extends Application {
             nav.goTo(PageId.JOB_DETAIL);
         });
 
-        row.getChildren().addAll(courseLabel, teacherLabel, spacer, browseButton, chatButton);
+        row.getChildren().addAll(contentBox, scoreLabel, spacer, browseButton, chatButton);
         return new VBox(row);
     }
 
@@ -177,5 +220,8 @@ public class DashboardPages extends Application {
 
     public static void main(String[] args) {
         launch(args);
+    }
+
+    private record RecommendedJobView(JobPosting job, RecommendationResult recommendation) {
     }
 }

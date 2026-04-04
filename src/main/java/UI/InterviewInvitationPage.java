@@ -77,7 +77,6 @@ public class InterviewInvitationPage extends Application {
         String schedule = job == null || job.scheduleSlots().isEmpty()
             ? "(schedule not listed)"
             : String.join(", ", job.scheduleSlots());
-        String status = application.status().name();
         Color accentColor = statusColor(application.status());
 
         VBox wrapper = new VBox();
@@ -105,10 +104,6 @@ public class InterviewInvitationPage extends Application {
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
-        Label statusLabel = new Label(statusLabelText(application.status()));
-        statusLabel.setFont(Font.font("Arial", FontWeight.BOLD, 16));
-        statusLabel.setTextFill(accentColor);
-
         Button detailsButton = new Button("View Details");
         detailsButton.setPrefSize(130, 40);
         detailsButton.setStyle(
@@ -123,7 +118,11 @@ public class InterviewInvitationPage extends Application {
             nav.goTo(PageId.JOB_DETAIL);
         });
 
-        VBox rightInfo = new VBox(14, createStatusChip(statusLabelText(application.status()), accentColor), statusLabel, detailsButton);
+        Label applicationIdLabel = new Label("Application ID: " + application.applicationId());
+        applicationIdLabel.setFont(Font.font("Arial", FontWeight.BOLD, 14));
+        applicationIdLabel.setTextFill(Color.web("#7b7396"));
+
+        VBox rightInfo = new VBox(14, createStatusChip(statusLabelText(application.status()), accentColor), applicationIdLabel, detailsButton);
         rightInfo.setAlignment(Pos.CENTER_RIGHT);
 
         card.getChildren().addAll(leftInfo, spacer, rightInfo);

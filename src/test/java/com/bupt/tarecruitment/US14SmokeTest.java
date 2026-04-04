@@ -68,20 +68,14 @@ public final class US14SmokeTest {
             );
 
             String multilineReviewerNote = """
-                Core tutorial support
+                Safe second TA support
                 Needs follow-up | priority
                 """.trim();
-            decisionService.updateStatus("mo101", "application101", ApplicationStatus.ACCEPTED, multilineReviewerNote);
-            decisionService.updateStatus("mo101", "application102", ApplicationStatus.ACCEPTED, "Lab slot accepted");
-            decisionService.updateStatus("mo101", "application103", ApplicationStatus.ACCEPTED, "Edge-touch accepted");
-            decisionService.updateStatus("mo101", "application104", ApplicationStatus.ACCEPTED, "Contained overlap");
-            decisionService.updateStatus("mo101", "application105", ApplicationStatus.ACCEPTED, "Exact overlap");
+            decisionService.updateStatus("mo101", "application201", ApplicationStatus.ACCEPTED, multilineReviewerNote);
             decisionService.updateStatus("mo101", "application106", ApplicationStatus.SHORTLISTED, "Wait list");
-            decisionService.updateStatus("mo101", "application201", ApplicationStatus.ACCEPTED, "Second TA accepted");
-            decisionService.updateStatus("mo101", "application501", ApplicationStatus.ACCEPTED, "Legacy data imported");
 
-            String storedReviewerNote = applicationRepository.findByApplicationId("application101")
-                .orElseThrow(() -> new IllegalStateException("Missing updated application101."))
+            String storedReviewerNote = applicationRepository.findByApplicationId("application201")
+                .orElseThrow(() -> new IllegalStateException("Missing updated application201."))
                 .reviewerNote();
             assertEquals(multilineReviewerNote, storedReviewerNote, "Reviewer note should round-trip safely through file storage.");
 
@@ -196,16 +190,16 @@ public final class US14SmokeTest {
     }
 
     private static void seedApplications(ApplicationRepository applicationRepository) {
-        applicationRepository.save(buildApplication("application101", "job101", "ta101", ApplicationStatus.SUBMITTED));
-        applicationRepository.save(buildApplication("application102", "job102", "ta101", ApplicationStatus.SUBMITTED));
-        applicationRepository.save(buildApplication("application103", "job103", "ta101", ApplicationStatus.SUBMITTED));
-        applicationRepository.save(buildApplication("application104", "job104", "ta101", ApplicationStatus.SUBMITTED));
-        applicationRepository.save(buildApplication("application105", "job105", "ta101", ApplicationStatus.SUBMITTED));
+        applicationRepository.save(buildApplication("application101", "job101", "ta101", ApplicationStatus.ACCEPTED));
+        applicationRepository.save(buildApplication("application102", "job102", "ta101", ApplicationStatus.ACCEPTED));
+        applicationRepository.save(buildApplication("application103", "job103", "ta101", ApplicationStatus.ACCEPTED));
+        applicationRepository.save(buildApplication("application104", "job104", "ta101", ApplicationStatus.ACCEPTED));
+        applicationRepository.save(buildApplication("application105", "job105", "ta101", ApplicationStatus.ACCEPTED));
         applicationRepository.save(buildApplication("application106", "job106", "ta101", ApplicationStatus.SUBMITTED));
         applicationRepository.save(buildApplication("application201", "job201", "ta102", ApplicationStatus.SUBMITTED));
         applicationRepository.save(buildApplication("application301", "job301", "ta101", ApplicationStatus.SUBMITTED));
         applicationRepository.save(buildApplication("application401", "job401", "ta102", ApplicationStatus.WITHDRAWN));
-        applicationRepository.save(buildApplication("application501", "job501", "ta103", ApplicationStatus.SUBMITTED));
+        applicationRepository.save(buildApplication("application501", "job501", "ta103", ApplicationStatus.ACCEPTED));
     }
 
     private static JobPosting buildJob(String jobId, String organiserId, int weeklyHours, List<String> scheduleSlots) {

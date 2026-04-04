@@ -11,3 +11,4 @@ job009|mo004|TA for Software Testing|COMP340|Assist test design workshops and gr
 job010|mo005|TA for Computer Networks|COMP260|Assist network configuration labs|Networking;Wireshark;Teamwork|5|WED-08:00-11:00;FRI-08:00-10:00|OPEN
 job011|mo005|TA for Information Security|COMP360|Support cryptography tutorials and lab guidance|Security;Python;Analytical Thinking|2|THU-14:00-16:00|OPEN
 job012|mo006|TA for Mobile App Development|COMP330|Mentor Android studio practices and demos|Java;Android;UI Design|2|FRI-14:00-16:00|OPEN
+job013|mo001|1|1|1|1|1|MON-09:00-11:00|OPEN
