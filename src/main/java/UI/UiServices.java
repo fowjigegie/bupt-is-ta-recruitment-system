@@ -27,6 +27,8 @@ import com.bupt.tarecruitment.job.JobIdGenerator;
 import com.bupt.tarecruitment.job.JobPostingService;
 import com.bupt.tarecruitment.job.JobRepository;
 import com.bupt.tarecruitment.job.TextFileJobRepository;
+import com.bupt.tarecruitment.recommendation.MissingSkillsFeedbackService;
+import com.bupt.tarecruitment.recommendation.RecommendationService;
 
 import java.nio.file.Path;
 
@@ -47,6 +49,8 @@ public final class UiServices {
     private final ApplicationDecisionService applicationDecisionService;
     private final AdminWorkloadService adminWorkloadService;
     private final MessageService messageService;
+    private final RecommendationService recommendationService;
+    private final MissingSkillsFeedbackService missingSkillsFeedbackService;
 
     private UiServices(
         UserRepository userRepository,
@@ -64,7 +68,9 @@ public final class UiServices {
         JobApplicationService jobApplicationService,
         ApplicationDecisionService applicationDecisionService,
         AdminWorkloadService adminWorkloadService,
-        MessageService messageService
+        MessageService messageService,
+        RecommendationService recommendationService,
+        MissingSkillsFeedbackService missingSkillsFeedbackService
     ) {
         this.userRepository = userRepository;
         this.profileRepository = profileRepository;
@@ -82,6 +88,8 @@ public final class UiServices {
         this.applicationDecisionService = applicationDecisionService;
         this.adminWorkloadService = adminWorkloadService;
         this.messageService = messageService;
+        this.recommendationService = recommendationService;
+        this.missingSkillsFeedbackService = missingSkillsFeedbackService;
     }
 
     public static UiServices create(Path dataDirectory) {
@@ -136,6 +144,14 @@ public final class UiServices {
             userRepository
         );
         MessageService messageService = new MessageService(messageRepository);
+        RecommendationService recommendationService = new RecommendationService(
+            profileRepository,
+            jobRepository
+        );
+        MissingSkillsFeedbackService missingSkillsFeedbackService = new MissingSkillsFeedbackService(
+            profileRepository,
+            jobRepository
+        );
 
         return new UiServices(
             userRepository,
@@ -153,7 +169,9 @@ public final class UiServices {
             jobApplicationService,
             applicationDecisionService,
             adminWorkloadService,
-            messageService
+            messageService,
+            recommendationService,
+            missingSkillsFeedbackService
         );
     }
 
@@ -219,5 +237,13 @@ public final class UiServices {
 
     public MessageService messageService() {
         return messageService;
+    }
+
+    public RecommendationService recommendationService() {
+        return recommendationService;
+    }
+
+    public MissingSkillsFeedbackService missingSkillsFeedbackService() {
+        return missingSkillsFeedbackService;
     }
 }

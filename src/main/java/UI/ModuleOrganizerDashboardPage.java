@@ -7,7 +7,6 @@ import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
-import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
@@ -60,6 +59,7 @@ public class ModuleOrganizerDashboardPage extends Application {
                 .orElse(false))
             .filter(application -> application.status() == ApplicationStatus.SUBMITTED)
             .count();
+        long unreadMessages = context.services().messageService().countUnreadMessagesForUser(userId);
 
         VBox center = new VBox(18);
         center.setPadding(new Insets(22, 40, 24, 40));
@@ -103,11 +103,9 @@ public class ModuleOrganizerDashboardPage extends Application {
         Button chatButton = UiTheme.createPrimaryButton("Chat", 300, 72);
         applyMoDashboardGradientButtonStyle(chatButton);
         chatButton.setOnAction(event -> {
-            Alert info = new Alert(Alert.AlertType.INFORMATION);
-            info.setTitle("Chat");
-            info.setHeaderText(null);
-            info.setContentText("MO chat integration is not wired in this build. Applicants can message you from job detail; full MO inbox will follow team backlog.");
-            info.showAndWait();
+            context.selectJob(null);
+            context.selectChatPeer(null);
+            nav.goTo(PageId.MESSAGES);
         });
 
         HBox quickActions = new HBox(22);
@@ -117,7 +115,7 @@ public class ModuleOrganizerDashboardPage extends Application {
         quickActions.getChildren().addAll(
             wrapPrimaryButton(postButton),
             wrapPrimaryButtonWithBadge(pendingButton, String.valueOf(Math.min(pendingReviews, 99))),
-            wrapPrimaryButtonWithBadge(chatButton, "3")
+            wrapPrimaryButtonWithBadge(chatButton, Long.toString(Math.min(unreadMessages, 99)))
         );
 
         VBox jobManagementSection = buildJobManagementSection(nav, context, ownedJobs);
@@ -204,6 +202,10 @@ public class ModuleOrganizerDashboardPage extends Application {
     }
 
     private static StackPane wrapPrimaryButtonWithBadge(Button button, String badgeText) {
+        if ("0".equals(badgeText)) {
+            return wrapPrimaryButton(button);
+        }
+
         Label badge = new Label(badgeText);
         badge.setFont(Font.font("Arial", FontWeight.BOLD, 12));
         badge.setTextFill(Color.WHITE);
