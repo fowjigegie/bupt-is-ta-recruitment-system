@@ -6,6 +6,7 @@ import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
@@ -34,6 +35,10 @@ public class MoreJobsPage extends Application {
     }
 
     static Scene createScene(NavigationManager nav, UiAppContext context) {
+        final int pageSize = 3;
+        final int[] currentPage = {0};
+        final boolean[] sortNewestFirst = {true};
+
         VBox center = new VBox(18);
         center.setPadding(new Insets(28, 40, 28, 40));
 
@@ -58,7 +63,6 @@ public class MoreJobsPage extends Application {
 
         List<JobPosting> jobs = context.services().jobRepository().findAll().stream()
             .filter(job -> job.status() == JobStatus.OPEN)
-            .sorted(Comparator.comparing(JobPosting::jobId))
             .toList();
 
         Label placeholder = new Label("Open jobs: " + jobs.size());
@@ -68,19 +72,84 @@ public class MoreJobsPage extends Application {
         Region searchSpacer = new Region();
         HBox.setHgrow(searchSpacer, Priority.ALWAYS);
 
-        var timeButton = UiTheme.createSoftButton("Open only", 120, 44);
-        searchBar.getChildren().addAll(searchIcon, divider, placeholder, searchSpacer, timeButton);
+        Button sortButton = UiTheme.createSoftButton("Sort by publish time: newest", 260, 44);
+        sortButton.setStyle("-fx-background-color: #f8d7e9; -fx-background-radius: 22; -fx-text-fill: #2f3553; -fx-font-weight: bold; -fx-font-size: 14px;");
+        searchBar.getChildren().addAll(searchIcon, divider, placeholder, searchSpacer, sortButton);
 
         VBox jobsList = new VBox(16);
-        if (jobs.isEmpty()) {
-            jobsList.getChildren().add(UiTheme.createWhiteCard("No jobs", "There are currently no OPEN jobs in the repository."));
-        } else {
-            for (JobPosting job : jobs) {
+        HBox pageSelector = new HBox(6);
+        pageSelector.setAlignment(Pos.CENTER);
+        pageSelector.setPadding(new Insets(4, 6, 4, 6));
+        pageSelector.setBackground(new Background(new BackgroundFill(
+            Color.web("#e7c4e3"),
+            new CornerRadii(24),
+            Insets.EMPTY
+        )));
+
+        Runnable[] refreshJobsView = new Runnable[1];
+        refreshJobsView[0] = () -> {
+            List<JobPosting> sortedJobs = jobs.stream()
+                .sorted(
+                    Comparator.comparingInt(MoreJobsPage::extractJobSequenceNumber)
+                        .thenComparing(JobPosting::jobId)
+                        .reversed()
+                )
+                .toList();
+            if (!sortNewestFirst[0]) {
+                sortedJobs = sortedJobs.stream()
+                    .sorted(Comparator.comparingInt(MoreJobsPage::extractJobSequenceNumber).thenComparing(JobPosting::jobId))
+                    .toList();
+            }
+
+            jobsList.getChildren().clear();
+            if (sortedJobs.isEmpty()) {
+                jobsList.getChildren().add(UiTheme.createWhiteCard("No jobs", "There are currently no OPEN jobs in the repository."));
+                pageSelector.getChildren().clear();
+                return;
+            }
+
+            int totalPages = (sortedJobs.size() + pageSize - 1) / pageSize;
+            currentPage[0] = Math.max(0, Math.min(currentPage[0], totalPages - 1));
+            int fromIndex = currentPage[0] * pageSize;
+            int toIndex = Math.min(fromIndex + pageSize, sortedJobs.size());
+
+            for (JobPosting job : sortedJobs.subList(fromIndex, toIndex)) {
                 jobsList.getChildren().add(createJobCard(nav, context, job));
             }
-        }
 
-        HBox footer = new HBox(UiTheme.createBackButton(nav));
+            pageSelector.getChildren().clear();
+            for (int pageNumber = 1; pageNumber <= totalPages; pageNumber++) {
+                final int targetPage = pageNumber - 1;
+                Button pageButton = new Button(String.valueOf(pageNumber));
+                pageButton.setPrefWidth(54);
+                pageButton.setPrefHeight(48);
+                pageButton.setFont(Font.font("Arial", FontWeight.BOLD, 20));
+                pageButton.setStyle(targetPage == currentPage[0]
+                    ? "-fx-background-color: #c45786; -fx-background-radius: 22; -fx-text-fill: white;"
+                    : "-fx-background-color: transparent; -fx-text-fill: #566589; -fx-background-radius: 22;");
+                pageButton.setOnAction(event -> {
+                    currentPage[0] = targetPage;
+                    refreshJobsView[0].run();
+                });
+                pageSelector.getChildren().add(pageButton);
+            }
+        };
+
+        sortButton.setOnAction(event -> {
+            sortNewestFirst[0] = !sortNewestFirst[0];
+            sortButton.setText(sortNewestFirst[0] ? "Sort by publish time: newest" : "Sort by publish time: oldest");
+            sortButton.setStyle(sortNewestFirst[0]
+                ? "-fx-background-color: #f8d7e9; -fx-background-radius: 22; -fx-text-fill: #2f3553; -fx-font-weight: bold; -fx-font-size: 14px;"
+                : "-fx-background-color: #f3c7dd; -fx-background-radius: 22; -fx-text-fill: #2a2f4e; -fx-font-weight: bold; -fx-font-size: 14px;");
+            currentPage[0] = 0;
+            refreshJobsView[0].run();
+        });
+
+        refreshJobsView[0].run();
+
+        Region footerSpacer = new Region();
+        HBox.setHgrow(footerSpacer, Priority.ALWAYS);
+        HBox footer = new HBox(12, UiTheme.createBackButton(nav), footerSpacer, pageSelector);
         footer.setAlignment(Pos.CENTER_LEFT);
 
         center.getChildren().addAll(
@@ -156,5 +225,18 @@ public class MoreJobsPage extends Application {
 
     public static void main(String[] args) {
         launch(args);
+    }
+
+    private static int extractJobSequenceNumber(JobPosting job) {
+        String jobId = job.jobId();
+        String numeric = jobId.replaceAll("\\D+", "");
+        if (numeric.isEmpty()) {
+            return Integer.MIN_VALUE;
+        }
+        try {
+            return Integer.parseInt(numeric);
+        } catch (NumberFormatException ignored) {
+            return Integer.MIN_VALUE;
+        }
     }
 }

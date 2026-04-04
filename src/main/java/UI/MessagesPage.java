@@ -66,25 +66,50 @@ public class MessagesPage extends Application {
         ObjectProperty<ChatThread> selectedThread = new SimpleObjectProperty<>(null);
 
         VBox threadListBox = new VBox(10);
+        threadListBox.setPadding(new Insets(6, 2, 6, 2));
         ScrollPane threadScroll = new ScrollPane(threadListBox);
         threadScroll.setFitToWidth(true);
         threadScroll.setPrefViewportHeight(460);
-        threadScroll.setStyle("-fx-background-color:transparent;");
+        threadScroll.setStyle(
+            "-fx-background:#faf9fc;" +
+                "-fx-background-color:#faf9fc;" +
+                "-fx-border-color:transparent;" +
+                "-fx-background-radius:14;"
+        );
 
         Label conversationTitle = new Label("Select a conversation");
         conversationTitle.setFont(Font.font("Arial", FontWeight.BOLD, 18));
         conversationTitle.setTextFill(Color.web("#4664a8"));
+        conversationTitle.setPadding(new Insets(4, 10, 4, 10));
+        conversationTitle.setBackground(new Background(new BackgroundFill(
+            Color.web("#fff2bf"),
+            new CornerRadii(8),
+            Insets.EMPTY
+        )));
 
-        Label contextHintLabel = UiTheme.createMutedText("");
         VBox messageFlow = new VBox(10);
+        messageFlow.setPadding(new Insets(8, 10, 8, 10));
         ScrollPane messageScroll = new ScrollPane(messageFlow);
         messageScroll.setFitToWidth(true);
         messageScroll.setPrefViewportHeight(360);
-        messageScroll.setStyle("-fx-background-color:transparent;");
+        messageScroll.setStyle(
+            "-fx-background:#ffffff;" +
+                "-fx-background-color:#ffffff;" +
+                "-fx-border-color:#f0d9e9;" +
+                "-fx-border-radius:12;" +
+                "-fx-background-radius:12;"
+        );
 
         TextField messageInput = new TextField();
         messageInput.setPromptText("Type your message to the selected user...");
         messageInput.setPrefHeight(42);
+        messageInput.setStyle(
+            "-fx-background-color: #ffffff;" +
+                "-fx-background-radius: 12;" +
+                "-fx-border-color: #f0d9e9;" +
+                "-fx-border-radius: 12;" +
+                "-fx-padding: 0 12 0 12;"
+        );
 
         Label statusLabel = UiTheme.createMutedText("");
         statusLabel.setTextFill(Color.web("#b00020"));
@@ -94,11 +119,10 @@ public class MessagesPage extends Application {
 
         Runnable refreshThreads = () -> {
             List<ChatThread> threads = buildThreads(context, userId);
-            renderThreadList(context, threads, selectedThread, threadListBox, messageFlow, conversationTitle, contextHintLabel, messageScroll, statusLabel);
+            renderThreadList(context, threads, selectedThread, threadListBox, messageFlow, conversationTitle, messageScroll, statusLabel);
         };
 
-        refreshButton.setOnAction(event -> refreshThreads.run());
-        sendButton.setOnAction(event -> {
+        Runnable sendMessageAction = () -> {
             ChatThread active = selectedThread.get();
             if (active == null) {
                 statusLabel.setText("Please select a conversation first.");
@@ -124,12 +148,16 @@ public class MessagesPage extends Application {
                 statusLabel.setTextFill(Color.web("#2e7d32"));
                 refreshThreads.run();
                 selectedThread.set(active);
-                renderConversation(context, userId, active, messageFlow, conversationTitle, contextHintLabel, messageScroll);
+                renderConversation(context, userId, active, messageFlow, conversationTitle, messageScroll);
             } catch (IllegalArgumentException exception) {
                 statusLabel.setText(exception.getMessage());
                 statusLabel.setTextFill(Color.web("#b00020"));
             }
-        });
+        };
+
+        refreshButton.setOnAction(event -> refreshThreads.run());
+        sendButton.setOnAction(event -> sendMessageAction.run());
+        messageInput.setOnAction(event -> sendMessageAction.run());
 
         HBox composer = new HBox(10, messageInput, sendButton, refreshButton);
         HBox.setHgrow(messageInput, Priority.ALWAYS);
@@ -140,7 +168,7 @@ public class MessagesPage extends Application {
             threadScroll
         );
         leftPane.setPadding(new Insets(14));
-        leftPane.setBackground(new Background(new BackgroundFill(Color.WHITE, new CornerRadii(18), Insets.EMPTY)));
+        leftPane.setBackground(new Background(new BackgroundFill(Color.web("#fdfcff"), new CornerRadii(18), Insets.EMPTY)));
         leftPane.setBorder(new Border(new BorderStroke(
             Color.web("#f0d9e9"), BorderStrokeStyle.SOLID, new CornerRadii(18), new BorderWidths(1.2)
         )));
@@ -148,7 +176,6 @@ public class MessagesPage extends Application {
 
         VBox rightPane = new VBox(12,
             conversationTitle,
-            contextHintLabel,
             messageScroll,
             composer,
             statusLabel
@@ -196,12 +223,14 @@ public class MessagesPage extends Application {
             String peerUserId = message.senderUserId().equals(currentUserId)
                 ? message.receiverUserId()
                 : message.senderUserId();
-            String key = message.jobId() + "|" + peerUserId;
+            String key = threadKey(message.jobId(), peerUserId);
 
             String peerDisplay = resolveUserDisplay(context, peerUserId);
+            String courseName = resolveCourseName(context, message.jobId());
             int unread = (message.receiverUserId().equals(currentUserId) && !message.read()) ? 1 : 0;
             ChatThread candidate = new ChatThread(
                 message.jobId(),
+                courseName,
                 peerUserId,
                 peerDisplay,
                 message.content(),
@@ -217,6 +246,7 @@ public class MessagesPage extends Application {
                 ChatThread updated = existing.lastAt().isBefore(message.sentAt())
                     ? new ChatThread(
                         message.jobId(),
+                        courseName,
                         peerUserId,
                         peerDisplay,
                         message.content(),
@@ -225,6 +255,7 @@ public class MessagesPage extends Application {
                     )
                     : new ChatThread(
                         existing.jobId(),
+                        existing.courseName(),
                         existing.peerUserId(),
                         existing.peerDisplayName(),
                         existing.preview(),
@@ -240,11 +271,12 @@ public class MessagesPage extends Application {
         if (selectedJobId != null) {
             String peer = selectedPeer != null ? selectedPeer : deriveDefaultPeerByJob(context, selectedJobId, currentUserId);
             if (peer != null) {
-                String key = selectedJobId + "|" + peer;
+                String key = threadKey(selectedJobId, peer);
                 threadMap.putIfAbsent(
                     key,
                     new ChatThread(
                         selectedJobId,
+                        resolveCourseName(context, selectedJobId),
                         peer,
                         resolveUserDisplay(context, peer),
                         "(no messages yet)",
@@ -267,7 +299,6 @@ public class MessagesPage extends Application {
         VBox threadListBox,
         VBox messageFlow,
         Label conversationTitle,
-        Label contextHintLabel,
         ScrollPane messageScroll,
         Label statusLabel
     ) {
@@ -280,7 +311,6 @@ public class MessagesPage extends Application {
             ));
             selectedThread.set(null);
             conversationTitle.setText("Select a conversation");
-            contextHintLabel.setText("No active chat context.");
             messageFlow.getChildren().clear();
             return;
         }
@@ -290,7 +320,7 @@ public class MessagesPage extends Application {
             rowButton.setOnAction(event -> {
                 selectedThread.set(thread);
                 context.openChatContext(thread.jobId(), thread.peerUserId());
-                renderConversation(context, context.session().userId(), thread, messageFlow, conversationTitle, contextHintLabel, messageScroll);
+                renderConversation(context, context.session().userId(), thread, messageFlow, conversationTitle, messageScroll);
                 statusLabel.setText("");
             });
             threadListBox.getChildren().add(rowButton);
@@ -300,9 +330,36 @@ public class MessagesPage extends Application {
         boolean existsInList = false;
         if (current != null) {
             for (ChatThread thread : threads) {
-                if (thread.jobId().equals(current.jobId()) && thread.peerUserId().equals(current.peerUserId())) {
+                if (threadKey(thread.jobId(), thread.peerUserId())
+                    .equals(threadKey(current.jobId(), current.peerUserId()))) {
                     existsInList = true;
                     break;
+                }
+            }
+        }
+
+        if (!existsInList) {
+            String selectedJobId = context.selectedJobId();
+            String selectedPeerUserId = context.selectedChatPeerUserId();
+            if (selectedPeerUserId != null) {
+                for (ChatThread thread : threads) {
+                    if (thread.peerUserId().equals(selectedPeerUserId)
+                        && (selectedJobId == null || thread.jobId().equals(selectedJobId))) {
+                        current = (selectedJobId == null)
+                            ? thread
+                            : new ChatThread(
+                                selectedJobId,
+                                resolveCourseName(context, selectedJobId),
+                                thread.peerUserId(),
+                                thread.peerDisplayName(),
+                                thread.preview(),
+                                thread.unreadCount(),
+                                thread.lastAt()
+                            );
+                        existsInList = true;
+                        selectedThread.set(current);
+                        break;
+                    }
                 }
             }
         }
@@ -311,8 +368,26 @@ public class MessagesPage extends Application {
             current = threads.getFirst();
             selectedThread.set(current);
         }
+
+        String preferredJobId = context.selectedJobId();
+        String preferredPeerUserId = context.selectedChatPeerUserId();
+        if (preferredJobId != null
+            && preferredPeerUserId != null
+            && current.peerUserId().equals(preferredPeerUserId)) {
+            current = new ChatThread(
+                preferredJobId,
+                resolveCourseName(context, preferredJobId),
+                current.peerUserId(),
+                current.peerDisplayName(),
+                current.preview(),
+                current.unreadCount(),
+                current.lastAt()
+            );
+            selectedThread.set(current);
+        }
+
         context.openChatContext(current.jobId(), current.peerUserId());
-        renderConversation(context, context.session().userId(), current, messageFlow, conversationTitle, contextHintLabel, messageScroll);
+        renderConversation(context, context.session().userId(), current, messageFlow, conversationTitle, messageScroll);
     }
 
     private static void renderConversation(
@@ -321,18 +396,12 @@ public class MessagesPage extends Application {
         ChatThread thread,
         VBox messageFlow,
         Label conversationTitle,
-        Label contextHintLabel,
         ScrollPane messageScroll
     ) {
-        conversationTitle.setText("Conversation with " + thread.peerDisplayName());
-        contextHintLabel.setText("jobId=%s | peer=%s".formatted(thread.jobId(), thread.peerUserId()));
+        conversationTitle.setText("Conversation with %s | %s".formatted(thread.peerDisplayName(), thread.courseName()));
 
-        context.services().messageService().markConversationAsRead(thread.jobId(), currentUserId, thread.peerUserId());
-        List<InquiryMessage> messages = context.services().messageService().listConversation(
-            thread.jobId(),
-            currentUserId,
-            thread.peerUserId()
-        );
+        List<InquiryMessage> messages = listConversationByPeerAndJob(context, currentUserId, thread.peerUserId(), thread.jobId());
+        markConversationAsRead(context, currentUserId, thread.peerUserId(), thread.jobId());
 
         messageFlow.getChildren().clear();
         if (messages.isEmpty()) {
@@ -348,24 +417,53 @@ public class MessagesPage extends Application {
     private static Button createThreadButton(ChatThread thread) {
         String unreadSuffix = thread.unreadCount() > 0 ? "  (unread: %d)".formatted(thread.unreadCount()) : "";
         String preview = thread.preview() == null ? "" : thread.preview();
-        String text = "%s | %s%s%n%s".formatted(
-            thread.jobId(),
-            thread.peerDisplayName(),
-            unreadSuffix,
-            preview
-        );
+        String headline = "%s | %s%s".formatted(thread.peerDisplayName(), thread.courseName(), unreadSuffix);
 
-        Button button = new Button(text);
+        Label nameLabel = new Label(headline);
+        nameLabel.setFont(Font.font("Arial", FontWeight.BOLD, 16));
+        nameLabel.setTextFill(Color.web("#2f3553"));
+
+        Label previewLabel = new Label(preview);
+        previewLabel.setFont(Font.font("Arial", 12));
+        previewLabel.setTextFill(Color.web("#8a8f9d"));
+        previewLabel.setWrapText(true);
+        previewLabel.setMaxWidth(320);
+
+        VBox textBox = new VBox(4, nameLabel, previewLabel);
+        textBox.setAlignment(Pos.CENTER_LEFT);
+
+        Button button = new Button();
+        button.setGraphic(textBox);
         button.setAlignment(Pos.CENTER_LEFT);
         button.setMaxWidth(Double.MAX_VALUE);
-        button.setPrefHeight(66);
+        button.setPrefHeight(74);
         button.setStyle(
-            "-fx-background-color: #fff4fa;" +
+            "-fx-background-color: linear-gradient(to bottom right, #fff7fd, #fff1f8);" +
                 "-fx-text-fill: #374151;" +
-                "-fx-background-radius: 14;" +
-                "-fx-border-radius: 14;" +
-                "-fx-border-color: #f0d9e9;"
+                "-fx-background-radius: 16;" +
+                "-fx-border-radius: 16;" +
+                "-fx-border-color: #efd8e8;" +
+                "-fx-border-width: 1.2;" +
+                "-fx-padding: 10 14 10 14;"
         );
+        button.setOnMouseEntered(event -> button.setStyle(
+            "-fx-background-color: linear-gradient(to bottom right, #ffeefa, #ffe3f3);" +
+                "-fx-text-fill: #2f3553;" +
+                "-fx-background-radius: 16;" +
+                "-fx-border-radius: 16;" +
+                "-fx-border-color: #e7bcd4;" +
+                "-fx-border-width: 1.2;" +
+                "-fx-padding: 10 14 10 14;"
+        ));
+        button.setOnMouseExited(event -> button.setStyle(
+            "-fx-background-color: linear-gradient(to bottom right, #fff7fd, #fff1f8);" +
+                "-fx-text-fill: #374151;" +
+                "-fx-background-radius: 16;" +
+                "-fx-border-radius: 16;" +
+                "-fx-border-color: #efd8e8;" +
+                "-fx-border-width: 1.2;" +
+                "-fx-padding: 10 14 10 14;"
+        ));
         return button;
     }
 
@@ -403,8 +501,48 @@ public class MessagesPage extends Application {
             .orElse(null);
     }
 
+    private static String resolveCourseName(UiAppContext context, String jobId) {
+        String title = context.services().jobRepository().findByJobId(jobId)
+            .map(JobPosting::title)
+            .orElse(jobId);
+        if (title.toLowerCase().startsWith("ta for ")) {
+            return title.substring("ta for ".length());
+        }
+        return title;
+    }
+
+    private static List<InquiryMessage> listConversationByPeerAndJob(
+        UiAppContext context,
+        String userId,
+        String peerUserId,
+        String jobId
+    ) {
+        return context.services().messageRepository().findAll().stream()
+            .filter(message ->
+                message.jobId().equals(jobId)
+                    && ((message.senderUserId().equals(userId) && message.receiverUserId().equals(peerUserId))
+                    || (message.senderUserId().equals(peerUserId) && message.receiverUserId().equals(userId)))
+            )
+            .sorted(Comparator.comparing(InquiryMessage::sentAt).thenComparing(InquiryMessage::messageId))
+            .toList();
+    }
+
+    private static void markConversationAsRead(
+        UiAppContext context,
+        String userId,
+        String peerUserId,
+        String jobId
+    ) {
+        context.services().messageService().markConversationAsRead(jobId, userId, peerUserId);
+    }
+
+    private static String threadKey(String jobId, String peerUserId) {
+        return jobId + "|" + peerUserId;
+    }
+
     private record ChatThread(
         String jobId,
+        String courseName,
         String peerUserId,
         String peerDisplayName,
         String preview,

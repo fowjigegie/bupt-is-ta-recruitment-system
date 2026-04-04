@@ -11,6 +11,7 @@ import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
+import javafx.scene.control.ListCell;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
@@ -90,6 +91,52 @@ public class JobDetailPage extends Application {
         ComboBox<ApplicantCv> cvBox = new ComboBox<>();
         cvBox.setPrefWidth(380);
         cvBox.setPrefHeight(42);
+        cvBox.setStyle(
+            "-fx-background-color: white;" +
+                "-fx-background-radius: 22;" +
+                "-fx-border-color: #f1c7da;" +
+                "-fx-border-radius: 22;" +
+                "-fx-border-width: 1.5;" +
+                "-fx-padding: 2 10 2 10;" +
+                "-fx-font-size: 13.5px;" +
+                "-fx-font-weight: bold;" +
+                "-fx-text-fill: #566589;"
+        );
+        cvBox.setButtonCell(new ListCell<>() {
+            @Override
+            protected void updateItem(ApplicantCv cv, boolean empty) {
+                super.updateItem(cv, empty);
+                setText(empty || cv == null ? "" : (cv.cvId() + " - " + cv.title()));
+                setStyle("-fx-text-fill: #566589; -fx-font-weight: bold;");
+            }
+        });
+        cvBox.setCellFactory(listView -> new ListCell<>() {
+            {
+                selectedProperty().addListener((obs, oldVal, newVal) -> updateCellStyle());
+                hoverProperty().addListener((obs, oldVal, newVal) -> updateCellStyle());
+            }
+
+            @Override
+            protected void updateItem(ApplicantCv cv, boolean empty) {
+                super.updateItem(cv, empty);
+                setText(empty || cv == null ? "" : (cv.cvId() + " - " + cv.title()));
+                updateCellStyle();
+            }
+
+            private void updateCellStyle() {
+                if (isEmpty()) {
+                    setStyle("");
+                    return;
+                }
+                if (isSelected()) {
+                    setStyle("-fx-background-color: #7fdae9; -fx-text-fill: #243b6b; -fx-font-weight: bold; -fx-padding: 10 12 10 12;");
+                } else if (isHover()) {
+                    setStyle("-fx-background-color: #d9f4f9; -fx-text-fill: #2f3553; -fx-font-weight: bold; -fx-padding: 10 12 10 12;");
+                } else {
+                    setStyle("-fx-background-color: white; -fx-text-fill: #2f3553; -fx-padding: 10 12 10 12;");
+                }
+            }
+        });
         cvBox.setConverter(new StringConverter<>() {
             @Override
             public String toString(ApplicantCv applicantCv) {
