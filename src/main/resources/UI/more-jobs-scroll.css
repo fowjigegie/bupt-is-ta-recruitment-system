@@ -1,0 +1,29 @@
+/* More Jobs center scroll: match pink theme */
+.scroll-pane {
+    -fx-background-color: transparent;
+}
+.scroll-pane > .viewport {
+    -fx-background-color: transparent;
+}
+.scroll-pane .scroll-bar:vertical {
+    -fx-background-color: #f8eef5;
+    -fx-pref-width: 12;
+    -fx-padding: 4 4 4 2;
+}
+.scroll-pane .scroll-bar:vertical .track {
+    -fx-background-color: #f0e4ee;
+    -fx-background-radius: 6;
+}
+.scroll-pane .scroll-bar:vertical .thumb {
+    -fx-background-color: linear-gradient(to bottom, #e8b8d4, #d89ec4);
+    -fx-background-radius: 6;
+}
+.scroll-pane .scroll-bar:vertical .thumb:hover {
+    -fx-background-color: linear-gradient(to bottom, #dfa0c8, #c97fb0);
+}
+.scroll-pane .scroll-bar .increment-button,
+.scroll-pane .scroll-bar .decrement-button {
+    -fx-padding: 0;
+    -fx-pref-height: 0;
+    -fx-opacity: 0;
+}
