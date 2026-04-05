@@ -7,4 +7,6 @@ out/
 ~$*.xlsx
 ~$*.pdf
 # 永久忽略JavaFX依赖包，防止误提交
-lib/openjfx/
+lib/openjfx/javafx-sdk-26/
+javafx-sdk-26/
+src/main/data/

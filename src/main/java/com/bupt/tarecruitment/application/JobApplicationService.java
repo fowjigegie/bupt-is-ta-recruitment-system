@@ -19,6 +19,7 @@ public final class JobApplicationService {
     private final ApplicantProfileRepository profileRepository;
     private final ApplicantCvRepository cvRepository;
     private final UserAccessPolicy userAccessPolicy;
+    private final ScheduleConflictGuard scheduleConflictGuard;
 
     public JobApplicationService(
         JobRepository jobRepository,
@@ -69,6 +70,7 @@ public final class JobApplicationService {
         this.profileRepository = Objects.requireNonNull(profileRepository);
         this.cvRepository = Objects.requireNonNull(cvRepository);
         this.userAccessPolicy = Objects.requireNonNull(userAccessPolicy);
+        this.scheduleConflictGuard = new ScheduleConflictGuard(applicationRepository, jobRepository);
     }
 
     public JobApplication applyToJobWithCv(String applicantUserId, String jobId, String cvId) {
@@ -101,6 +103,8 @@ public final class JobApplicationService {
         if (!cv.ownerUserId().equals(applicantUserId)) {
             throw new IllegalArgumentException("The selected CV does not belong to applicantUserId: " + applicantUserId);
         }
+
+        scheduleConflictGuard.requireNoConflictWithAcceptedJobs(applicantUserId, jobId);
 
         JobApplication application = new JobApplication(
             applicationIdGenerator.nextApplicationId(),

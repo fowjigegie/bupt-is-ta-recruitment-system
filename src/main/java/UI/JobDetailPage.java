@@ -5,12 +5,14 @@ import com.bupt.tarecruitment.application.ApplicationStatus;
 import com.bupt.tarecruitment.application.JobApplication;
 import com.bupt.tarecruitment.job.JobPosting;
 import com.bupt.tarecruitment.job.JobStatus;
+import com.bupt.tarecruitment.recommendation.MissingSkillsFeedback;
 import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
+import javafx.scene.control.ListCell;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
@@ -22,6 +24,7 @@ import javafx.util.StringConverter;
 
 import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 
 public class JobDetailPage extends Application {
     @Override
@@ -76,7 +79,8 @@ public class JobDetailPage extends Application {
                     System.lineSeparator() +
                     System.lineSeparator() +
                     "Schedule: " + (job.scheduleSlots().isEmpty() ? "(none listed)" : String.join(", ", job.scheduleSlots()))
-            )
+            ),
+            createSkillGapFeedbackCard(context, job)
         );
 
         Label applyTitle = new Label("Apply with one of your CVs");
@@ -90,6 +94,52 @@ public class JobDetailPage extends Application {
         ComboBox<ApplicantCv> cvBox = new ComboBox<>();
         cvBox.setPrefWidth(380);
         cvBox.setPrefHeight(42);
+        cvBox.setStyle(
+            "-fx-background-color: white;" +
+                "-fx-background-radius: 22;" +
+                "-fx-border-color: #f1c7da;" +
+                "-fx-border-radius: 22;" +
+                "-fx-border-width: 1.5;" +
+                "-fx-padding: 2 10 2 10;" +
+                "-fx-font-size: 13.5px;" +
+                "-fx-font-weight: bold;" +
+                "-fx-text-fill: #566589;"
+        );
+        cvBox.setButtonCell(new ListCell<>() {
+            @Override
+            protected void updateItem(ApplicantCv cv, boolean empty) {
+                super.updateItem(cv, empty);
+                setText(empty || cv == null ? "" : (cv.cvId() + " - " + cv.title()));
+                setStyle("-fx-text-fill: #566589; -fx-font-weight: bold;");
+            }
+        });
+        cvBox.setCellFactory(listView -> new ListCell<>() {
+            {
+                selectedProperty().addListener((obs, oldVal, newVal) -> updateCellStyle());
+                hoverProperty().addListener((obs, oldVal, newVal) -> updateCellStyle());
+            }
+
+            @Override
+            protected void updateItem(ApplicantCv cv, boolean empty) {
+                super.updateItem(cv, empty);
+                setText(empty || cv == null ? "" : (cv.cvId() + " - " + cv.title()));
+                updateCellStyle();
+            }
+
+            private void updateCellStyle() {
+                if (isEmpty()) {
+                    setStyle("");
+                    return;
+                }
+                if (isSelected()) {
+                    setStyle("-fx-background-color: #7fdae9; -fx-text-fill: #243b6b; -fx-font-weight: bold; -fx-padding: 10 12 10 12;");
+                } else if (isHover()) {
+                    setStyle("-fx-background-color: #d9f4f9; -fx-text-fill: #2f3553; -fx-font-weight: bold; -fx-padding: 10 12 10 12;");
+                } else {
+                    setStyle("-fx-background-color: white; -fx-text-fill: #2f3553; -fx-padding: 10 12 10 12;");
+                }
+            }
+        });
         cvBox.setConverter(new StringConverter<>() {
             @Override
             public String toString(ApplicantCv applicantCv) {
@@ -163,6 +213,48 @@ public class JobDetailPage extends Application {
             statusLabel,
             footer
         );
+    }
+
+    private static VBox createSkillGapFeedbackCard(UiAppContext context, JobPosting job) {
+        if (!context.session().isAuthenticated()) {
+            return UiTheme.createWhiteCard(
+                "Missing skills feedback",
+                "Log in as an applicant and create your profile to compare your skills with this job."
+            );
+        }
+
+        Optional<MissingSkillsFeedback> feedback = context.services().missingSkillsFeedbackService()
+            .feedbackForApplicantAndJob(context.session().userId(), job.jobId());
+
+        if (feedback.isEmpty()) {
+            return UiTheme.createWhiteCard(
+                "Missing skills feedback",
+                "Create or update your profile in Resume Database to see which required skills you already match and which ones are still missing."
+            );
+        }
+
+        MissingSkillsFeedback skillFeedback = feedback.get();
+        if (skillFeedback.totalRequiredSkillCount() == 0) {
+            return UiTheme.createWhiteCard(
+                "Missing skills feedback",
+                "This job does not list required skills, so there is no skill gap to report."
+            );
+        }
+
+        StringBuilder body = new StringBuilder();
+        body.append("Coverage: ")
+            .append(skillFeedback.coveragePercent())
+            .append("% of listed required skills matched.")
+            .append(System.lineSeparator())
+            .append(System.lineSeparator())
+            .append("Matched skills: ")
+            .append(skillFeedback.matchedSkills().isEmpty() ? "(none yet)" : String.join(", ", skillFeedback.matchedSkills()))
+            .append(System.lineSeparator())
+            .append(System.lineSeparator())
+            .append("Missing skills to improve: ")
+            .append(skillFeedback.missingSkills().isEmpty() ? "(none)" : String.join(", ", skillFeedback.missingSkills()));
+
+        return UiTheme.createWhiteCard("Missing skills feedback", body.toString());
     }
 
     private static void applyToJob(

@@ -2,11 +2,17 @@ package UI;
 
 import com.bupt.tarecruitment.job.JobPosting;
 import com.bupt.tarecruitment.job.JobStatus;
+import com.bupt.tarecruitment.job.JobBrowseFilter;
+import com.bupt.tarecruitment.recommendation.MissingSkillsFeedback;
 import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
+import javafx.scene.control.Button;
+import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
+import javafx.scene.control.TextField;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.Border;
@@ -26,6 +32,7 @@ import javafx.stage.Stage;
 
 import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 
 public class MoreJobsPage extends Application {
     @Override
@@ -34,6 +41,8 @@ public class MoreJobsPage extends Application {
     }
 
     static Scene createScene(NavigationManager nav, UiAppContext context) {
+        final boolean[] sortNewestFirst = {true};
+
         VBox center = new VBox(18);
         center.setPadding(new Insets(28, 40, 28, 40));
 
@@ -56,37 +65,111 @@ public class MoreJobsPage extends Application {
         divider.setPrefHeight(34);
         divider.setBackground(new Background(new BackgroundFill(Color.WHITE, CornerRadii.EMPTY, Insets.EMPTY)));
 
-        List<JobPosting> jobs = context.services().jobRepository().findAll().stream()
-            .filter(job -> job.status() == JobStatus.OPEN)
-            .sorted(Comparator.comparing(JobPosting::jobId))
-            .toList();
+        List<JobPosting> jobs = context.services().jobRepository().findAll();
 
-        Label placeholder = new Label("Open jobs: " + jobs.size());
-        placeholder.setTextFill(Color.WHITE);
-        placeholder.setFont(Font.font("Arial", FontWeight.BOLD, 18));
+        Label resultLabel = new Label();
+        resultLabel.setTextFill(Color.WHITE);
+        resultLabel.setFont(Font.font("Arial", FontWeight.BOLD, 18));
 
         Region searchSpacer = new Region();
         HBox.setHgrow(searchSpacer, Priority.ALWAYS);
 
-        var timeButton = UiTheme.createSoftButton("Open only", 120, 44);
-        searchBar.getChildren().addAll(searchIcon, divider, placeholder, searchSpacer, timeButton);
+        Button sortButton = UiTheme.createSoftButton("Sort by job ID: newest", 230, 44);
+        sortButton.setStyle("-fx-background-color: #f8d7e9; -fx-background-radius: 22; -fx-text-fill: #2f3553; -fx-font-weight: bold; -fx-font-size: 14px;");
+        searchBar.getChildren().addAll(searchIcon, divider, resultLabel, searchSpacer, sortButton);
+
+        TextField keywordField = createFilterField("Search title, module, skill, organiser, or job ID");
+        HBox.setHgrow(keywordField, Priority.ALWAYS);
+
+        ComboBox<String> skillFilter = createFilterComboBox(210, "All skills");
+        skillFilter.getItems().addAll(JobBrowseFilter.collectUniqueSkills(jobs));
+        skillFilter.getSelectionModel().selectFirst();
+
+        ComboBox<String> organiserFilter = createFilterComboBox(200, "All organisers");
+        organiserFilter.getItems().addAll(JobBrowseFilter.collectUniqueOrganisers(jobs));
+        organiserFilter.getSelectionModel().selectFirst();
+
+        Button resetButton = UiTheme.createOutlineButton("Reset filters", 150, 44);
+
+        HBox filterRow = new HBox(12, keywordField, skillFilter, organiserFilter, resetButton);
+        filterRow.setAlignment(Pos.CENTER_LEFT);
 
         VBox jobsList = new VBox(16);
-        if (jobs.isEmpty()) {
-            jobsList.getChildren().add(UiTheme.createWhiteCard("No jobs", "There are currently no OPEN jobs in the repository."));
-        } else {
-            for (JobPosting job : jobs) {
+        ScrollPane jobsScroll = new ScrollPane(jobsList);
+        jobsScroll.setFitToWidth(true);
+        jobsScroll.setPrefViewportHeight(520);
+        jobsScroll.setStyle(
+            "-fx-background:#ffffff;" +
+                "-fx-background-color:#ffffff;" +
+                "-fx-border-color:transparent;" +
+                "-fx-background-radius:18;"
+        );
+        VBox.setVgrow(jobsScroll, Priority.ALWAYS);
+
+        Runnable[] refreshJobsView = new Runnable[1];
+        refreshJobsView[0] = () -> {
+            List<JobPosting> sortedJobs = JobBrowseFilter.filterAndSortOpenJobs(
+                jobs,
+                keywordField.getText(),
+                skillFilter.getValue(),
+                organiserFilter.getValue(),
+                sortNewestFirst[0]
+            );
+            long openJobs = jobs.stream().filter(job -> job.status() == JobStatus.OPEN).count();
+            resultLabel.setText("Showing " + sortedJobs.size() + " of " + openJobs + " OPEN jobs");
+
+            jobsList.getChildren().clear();
+            if (sortedJobs.isEmpty()) {
+                jobsList.getChildren().add(
+                    UiTheme.createWhiteCard(
+                        "No matching jobs",
+                        "Try changing the keyword, skill filter, or organiser filter."
+                    )
+                );
+                return;
+            }
+
+            for (JobPosting job : sortedJobs) {
                 jobsList.getChildren().add(createJobCard(nav, context, job));
             }
-        }
+        };
 
-        HBox footer = new HBox(UiTheme.createBackButton(nav));
+        resetButton.setOnAction(event -> {
+            keywordField.clear();
+            skillFilter.getSelectionModel().selectFirst();
+            organiserFilter.getSelectionModel().selectFirst();
+            refreshJobsView[0].run();
+        });
+
+        sortButton.setOnAction(event -> {
+            sortNewestFirst[0] = !sortNewestFirst[0];
+            sortButton.setText(sortNewestFirst[0] ? "Sort by job ID: newest" : "Sort by job ID: oldest");
+            sortButton.setStyle(sortNewestFirst[0]
+                ? "-fx-background-color: #f8d7e9; -fx-background-radius: 22; -fx-text-fill: #2f3553; -fx-font-weight: bold; -fx-font-size: 14px;"
+                : "-fx-background-color: #f3c7dd; -fx-background-radius: 22; -fx-text-fill: #2a2f4e; -fx-font-weight: bold; -fx-font-size: 14px;");
+            refreshJobsView[0].run();
+        });
+
+        keywordField.textProperty().addListener((obs, oldValue, newValue) -> {
+            refreshJobsView[0].run();
+        });
+        skillFilter.valueProperty().addListener((obs, oldValue, newValue) -> {
+            refreshJobsView[0].run();
+        });
+        organiserFilter.valueProperty().addListener((obs, oldValue, newValue) -> {
+            refreshJobsView[0].run();
+        });
+
+        refreshJobsView[0].run();
+
+        HBox footer = new HBox(12, UiTheme.createBackButton(nav));
         footer.setAlignment(Pos.CENTER_LEFT);
 
         center.getChildren().addAll(
             UiTheme.createPageHeading("More jobs"),
             searchBar,
-            jobsList,
+            filterRow,
+            jobsScroll,
             footer
         );
 
@@ -133,7 +216,13 @@ public class MoreJobsPage extends Application {
         Label skillsLabel = UiTheme.createMutedText(
             "Skills: " + (job.requiredSkills().isEmpty() ? "(none listed)" : String.join(", ", job.requiredSkills()))
         );
+
         textBox.getChildren().addAll(courseLabel, idLabel, moLabel, hoursAndScheduleLabel, skillsLabel);
+
+        Label gapLabel = createSkillGapPreview(context, job);
+        if (gapLabel != null) {
+            textBox.getChildren().add(gapLabel);
+        }
 
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
@@ -156,5 +245,60 @@ public class MoreJobsPage extends Application {
 
     public static void main(String[] args) {
         launch(args);
+    }
+
+    private static Label createSkillGapPreview(UiAppContext context, JobPosting job) {
+        if (context.session() == null || !context.session().isAuthenticated()) {
+            return null;
+        }
+
+        Optional<MissingSkillsFeedback> feedback = context.services().missingSkillsFeedbackService()
+            .feedbackForApplicantAndJob(context.session().userId(), job.jobId());
+        if (feedback.isEmpty()) {
+            return UiTheme.createMutedText("Skill feedback: create your profile to compare skills.");
+        }
+
+        MissingSkillsFeedback skillFeedback = feedback.get();
+        if (skillFeedback.totalRequiredSkillCount() == 0) {
+            return UiTheme.createMutedText("Skill feedback: this job has no listed skill gap.");
+        }
+
+        if (skillFeedback.fullyMatched()) {
+            return UiTheme.createMutedText("Skill feedback: all listed required skills are already covered.");
+        }
+
+        return UiTheme.createMutedText("Missing skills: " + String.join(", ", skillFeedback.missingSkills()));
+    }
+
+    private static TextField createFilterField(String promptText) {
+        TextField field = new TextField();
+        field.setPromptText(promptText);
+        field.setPrefHeight(44);
+        field.setStyle(
+            "-fx-background-color: white;" +
+                "-fx-background-radius: 20;" +
+                "-fx-border-color: #f4d9e6;" +
+                "-fx-border-radius: 20;" +
+                "-fx-border-width: 1.6;" +
+                "-fx-padding: 0 14 0 14;" +
+                "-fx-font-size: 14px;"
+        );
+        return field;
+    }
+
+    private static ComboBox<String> createFilterComboBox(double width, String firstOption) {
+        ComboBox<String> comboBox = new ComboBox<>();
+        comboBox.setPrefWidth(width);
+        comboBox.setPrefHeight(44);
+        comboBox.getItems().add(firstOption);
+        comboBox.setStyle(
+            "-fx-background-color: white;" +
+                "-fx-background-radius: 20;" +
+                "-fx-border-color: #f4d9e6;" +
+                "-fx-border-radius: 20;" +
+                "-fx-border-width: 1.6;" +
+                "-fx-font-size: 14px;"
+        );
+        return comboBox;
     }
 }

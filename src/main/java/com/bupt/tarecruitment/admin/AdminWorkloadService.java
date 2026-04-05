@@ -11,6 +11,7 @@ import com.bupt.tarecruitment.job.JobRepository;
 
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -75,7 +76,7 @@ public final class AdminWorkloadService {
             .mapToInt(AcceptedAssignment::weeklyHours)
             .sum();
 
-        List<WorkloadConflict> conflicts = detectConflicts(acceptedAssignments);
+        ScheduleAnalysis scheduleAnalysis = analyzeSchedules(acceptedAssignments);
         String applicantDisplayName = userRepository.findByUserId(applicantUserId)
             .map(UserAccount::displayName)
             .filter(displayName -> !displayName.isBlank())
@@ -86,9 +87,11 @@ public final class AdminWorkloadService {
             applicantDisplayName,
             totalWeeklyHours,
             acceptedAssignments,
-            conflicts,
+            scheduleAnalysis.conflicts(),
+            scheduleAnalysis.invalidScheduleEntries(),
             totalWeeklyHours > weeklyHourLimit,
-            !conflicts.isEmpty()
+            !scheduleAnalysis.conflicts().isEmpty(),
+            !scheduleAnalysis.invalidScheduleEntries().isEmpty()
         );
     }
 
@@ -105,35 +108,64 @@ public final class AdminWorkloadService {
         );
     }
 
-    private List<WorkloadConflict> detectConflicts(List<AcceptedAssignment> acceptedAssignments) {
+    private ScheduleAnalysis analyzeSchedules(List<AcceptedAssignment> acceptedAssignments) {
         Set<WorkloadConflict> conflicts = new LinkedHashSet<>();
+        Set<String> invalidScheduleEntries = new LinkedHashSet<>();
+        Map<String, List<ParsedScheduleSlot>> parsedSlotsByJob = new LinkedHashMap<>();
+
+        for (AcceptedAssignment assignment : acceptedAssignments) {
+            List<ParsedScheduleSlot> parsedSlots = new ArrayList<>();
+            for (String scheduleSlotRaw : assignment.scheduleSlots()) {
+                try {
+                    parsedSlots.add(new ParsedScheduleSlot(scheduleSlotRaw, ScheduleSlot.parse(scheduleSlotRaw)));
+                } catch (IllegalArgumentException exception) {
+                    invalidScheduleEntries.add(
+                        assignment.jobId()
+                            + " | "
+                            + assignment.title()
+                            + " | Invalid schedule slot: "
+                            + scheduleSlotRaw
+                    );
+                }
+            }
+            parsedSlotsByJob.put(assignment.jobId(), parsedSlots);
+        }
 
         for (int leftIndex = 0; leftIndex < acceptedAssignments.size(); leftIndex++) {
             AcceptedAssignment leftAssignment = acceptedAssignments.get(leftIndex);
             for (int rightIndex = leftIndex + 1; rightIndex < acceptedAssignments.size(); rightIndex++) {
                 AcceptedAssignment rightAssignment = acceptedAssignments.get(rightIndex);
-                conflicts.addAll(findConflictsBetween(leftAssignment, rightAssignment));
+                conflicts.addAll(findConflictsBetween(
+                    leftAssignment,
+                    parsedSlotsByJob.getOrDefault(leftAssignment.jobId(), List.of()),
+                    rightAssignment,
+                    parsedSlotsByJob.getOrDefault(rightAssignment.jobId(), List.of())
+                ));
             }
         }
 
-        return conflicts.stream()
+        List<WorkloadConflict> sortedConflicts = conflicts.stream()
             .sorted(Comparator
                 .comparing(WorkloadConflict::overlapSlot)
                 .thenComparing(WorkloadConflict::jobIdA)
                 .thenComparing(WorkloadConflict::jobIdB))
             .toList();
+
+        return new ScheduleAnalysis(sortedConflicts, invalidScheduleEntries.stream().sorted().toList());
     }
 
     private List<WorkloadConflict> findConflictsBetween(
         AcceptedAssignment leftAssignment,
-        AcceptedAssignment rightAssignment
+        List<ParsedScheduleSlot> leftSlots,
+        AcceptedAssignment rightAssignment,
+        List<ParsedScheduleSlot> rightSlots
     ) {
         List<WorkloadConflict> conflicts = new ArrayList<>();
 
-        for (String leftSlotRaw : leftAssignment.scheduleSlots()) {
-            ScheduleSlot leftSlot = ScheduleSlot.parse(leftSlotRaw);
-            for (String rightSlotRaw : rightAssignment.scheduleSlots()) {
-                ScheduleSlot rightSlot = ScheduleSlot.parse(rightSlotRaw);
+        for (ParsedScheduleSlot leftParsedSlot : leftSlots) {
+            for (ParsedScheduleSlot rightParsedSlot : rightSlots) {
+                ScheduleSlot leftSlot = leftParsedSlot.slot();
+                ScheduleSlot rightSlot = rightParsedSlot.slot();
                 if (!leftSlot.overlaps(rightSlot)) {
                     continue;
                 }
@@ -155,6 +187,23 @@ public final class AdminWorkloadService {
     private void validateWeeklyHourLimit(int weeklyHourLimit) {
         if (weeklyHourLimit <= 0) {
             throw new IllegalArgumentException("weeklyHourLimit must be greater than 0.");
+        }
+    }
+
+    private record ParsedScheduleSlot(String rawValue, ScheduleSlot slot) {
+        private ParsedScheduleSlot {
+            Objects.requireNonNull(rawValue);
+            Objects.requireNonNull(slot);
+        }
+    }
+
+    private record ScheduleAnalysis(
+        List<WorkloadConflict> conflicts,
+        List<String> invalidScheduleEntries
+    ) {
+        private ScheduleAnalysis {
+            Objects.requireNonNull(conflicts);
+            Objects.requireNonNull(invalidScheduleEntries);
         }
     }
 }

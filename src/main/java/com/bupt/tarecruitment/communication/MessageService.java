@@ -49,6 +49,15 @@ public final class MessageService {
         return message;
     }
 
+    public long countUnreadMessagesForUser(String viewerUserId) {
+        requireNonBlank(viewerUserId, "viewerUserId");
+
+        return repository.findAll().stream()
+            .filter(message -> message.receiverUserId().equals(viewerUserId.trim()))
+            .filter(message -> !message.read())
+            .count();
+    }
+
     public int markConversationAsRead(String jobId, String viewerUserId, String peerUserId) {
         requireNonBlank(jobId, "jobId");
         requireNonBlank(viewerUserId, "viewerUserId");

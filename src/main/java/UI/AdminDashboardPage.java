@@ -92,7 +92,7 @@ public class AdminDashboardPage extends Application {
 
         VBox workloadPanel = new VBox(16,
             UiTheme.createSectionTitle("TA workload control"),
-            UiTheme.createMutedText("Live view of ACCEPTED TA assignments, overload warnings, and schedule conflicts for admin review."),
+            UiTheme.createMutedText("Live view of ACCEPTED TA assignments, overload warnings, schedule conflicts, and invalid schedule data."),
             controlRow,
             statusLabel,
             workloadScroll
@@ -100,7 +100,7 @@ public class AdminDashboardPage extends Application {
 
         center.getChildren().addAll(
             UiTheme.createPageHeading("Admin dashboard"),
-            UiTheme.createMutedText("Use this page to monitor accepted TA allocations and spot overload or schedule conflicts."),
+            UiTheme.createMutedText("Use this page to monitor accepted TA allocations and spot overload, schedule conflict, or schedule-data risks."),
             stats,
             lowerCards,
             workloadPanel
@@ -148,11 +148,11 @@ public class AdminDashboardPage extends Application {
             }
 
             long flaggedCount = summaries.stream()
-                .filter(summary -> summary.hasConflict() || summary.overloaded())
+                .filter(summary -> summary.hasConflict() || summary.overloaded() || summary.hasInvalidScheduleData())
                 .count();
             statusLabel.setTextFill(Color.web("#4969ad"));
             statusLabel.setText(
-                "Loaded %d accepted TA summaries. %d currently flagged for overload or schedule conflict."
+                "Loaded %d accepted TA summaries. %d currently flagged for overload, schedule conflict, or invalid schedule data."
                     .formatted(summaries.size(), flaggedCount)
             );
 
@@ -201,7 +201,8 @@ public class AdminDashboardPage extends Application {
         HBox summaryRow = new HBox(18,
             createSummaryPill("Accepted jobs", Integer.toString(summary.acceptedAssignments().size())),
             createSummaryPill("Weekly hours", Integer.toString(summary.totalWeeklyHours())),
-            createSummaryPill("Schedule conflicts", Integer.toString(summary.conflicts().size()))
+            createSummaryPill("Schedule conflicts", Integer.toString(summary.conflicts().size())),
+            createSummaryPill("Invalid slots", Integer.toString(summary.invalidScheduleEntries().size()))
         );
         summaryRow.setAlignment(Pos.CENTER_LEFT);
 
@@ -221,7 +222,17 @@ public class AdminDashboardPage extends Application {
             }
         }
 
-        card.getChildren().addAll(header, summaryRow, assignmentsBox, conflictsBox);
+        VBox invalidSchedulesBox = new VBox(10);
+        invalidSchedulesBox.getChildren().add(createSubheading("Invalid schedule data"));
+        if (summary.invalidScheduleEntries().isEmpty()) {
+            invalidSchedulesBox.getChildren().add(UiTheme.createMutedText("No invalid schedule slot detected in accepted jobs."));
+        } else {
+            for (String invalidEntry : summary.invalidScheduleEntries()) {
+                invalidSchedulesBox.getChildren().add(createInvalidScheduleRow(invalidEntry));
+            }
+        }
+
+        card.getChildren().addAll(header, summaryRow, assignmentsBox, conflictsBox, invalidSchedulesBox);
         return card;
     }
 
@@ -277,6 +288,26 @@ public class AdminDashboardPage extends Application {
         return row;
     }
 
+    private static VBox createInvalidScheduleRow(String invalidEntry) {
+        VBox row = new VBox(6);
+        row.setPadding(new Insets(14));
+        row.setBackground(new Background(new BackgroundFill(Color.web("#fff7ed"), new CornerRadii(18), Insets.EMPTY)));
+        row.setBorder(new Border(new BorderStroke(
+            Color.web("#f39c12"),
+            BorderStrokeStyle.SOLID,
+            new CornerRadii(18),
+            new BorderWidths(1.5)
+        )));
+
+        Label issue = new Label(invalidEntry);
+        issue.setFont(Font.font("Arial", FontWeight.BOLD, 15));
+        issue.setTextFill(Color.web("#a65d03"));
+        issue.setWrapText(true);
+
+        row.getChildren().add(issue);
+        return row;
+    }
+
     private static Label createSummaryPill(String title, String value) {
         Label label = new Label(title + ": " + value);
         label.setFont(Font.font("Arial", FontWeight.BOLD, 15));
@@ -304,16 +335,22 @@ public class AdminDashboardPage extends Application {
     }
 
     private static int riskPriority(WorkloadSummary summary) {
-        if (summary.hasConflict()) {
+        if (summary.hasInvalidScheduleData()) {
             return 0;
         }
-        if (summary.overloaded()) {
+        if (summary.hasConflict()) {
             return 1;
         }
-        return 2;
+        if (summary.overloaded()) {
+            return 2;
+        }
+        return 3;
     }
 
     private static String riskText(WorkloadSummary summary) {
+        if (summary.hasInvalidScheduleData()) {
+            return "Schedule data issue";
+        }
         if (summary.hasConflict()) {
             return "Conflict detected";
         }
@@ -324,6 +361,9 @@ public class AdminDashboardPage extends Application {
     }
 
     private static Color riskColor(WorkloadSummary summary) {
+        if (summary.hasInvalidScheduleData()) {
+            return Color.web("#f39c12");
+        }
         if (summary.hasConflict()) {
             return Color.web("#e74c3c");
         }

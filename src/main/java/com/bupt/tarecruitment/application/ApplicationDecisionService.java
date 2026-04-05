@@ -19,6 +19,7 @@ public final class ApplicationDecisionService {
     private final ApplicationRepository applicationRepository;
     private final JobRepository jobRepository;
     private final UserAccessPolicy userAccessPolicy;
+    private final ScheduleConflictGuard scheduleConflictGuard;
 
     public ApplicationDecisionService(
         ApplicationRepository applicationRepository,
@@ -28,6 +29,7 @@ public final class ApplicationDecisionService {
         this.applicationRepository = Objects.requireNonNull(applicationRepository);
         this.jobRepository = Objects.requireNonNull(jobRepository);
         this.userAccessPolicy = new UserAccessPolicy(Objects.requireNonNull(userRepository));
+        this.scheduleConflictGuard = new ScheduleConflictGuard(applicationRepository, jobRepository);
     }
 
     public JobApplication updateStatus(
@@ -58,6 +60,14 @@ public final class ApplicationDecisionService {
 
         if (!ownedJob.organiserId().equals(organiserUserId)) {
             throw new IllegalArgumentException("You can only review applications for your own jobs.");
+        }
+
+        if (nextStatus == ApplicationStatus.ACCEPTED) {
+            scheduleConflictGuard.requireNoConflictWithAcceptedJobs(
+                existingApplication.applicantUserId(),
+                existingApplication.jobId(),
+                existingApplication.applicationId()
+            );
         }
 
         JobApplication updatedApplication = new JobApplication(
