@@ -1,0 +1,230 @@
+TITLE: Module Introduction.pdf
+PAGES: 14
+
+===== PAGE 1 =====
+School of Electronic Engineering and Computer Science
+EBU
+6408 
+Sensors and Radio Frequency Identification (RFID)
+Module Introduction
+Module Organizer: Dr Fatma Benkhelifa
+PhD, Lecturer (Assistant Professor), SIEEE, Editor of IEEE Communications Letters
+e-mail: f.benkhelifa@qmul.ac.uk
+website: Fatma Benkhelifa - EECS (qmul.ac.uk)
+
+===== PAGE 2 =====
+Module Organizer/Lecturer
+2
+Dr Fatma Benkhelifa
+f.benkhelifa@qmul.ac.uk
+Fatma Benkhelifa - QMUL Page
+o Inter-Disciplinary Research: leveraging mathematical models to encapsulate real-world dilemmas 
+in wireless communication, Internet of  Things (IoT), 5G and beyond (5GB) networks, etc. 
+o Research Program: aims to model, schedule, optimise, manage and analyse methodologies, 
+protocols and algorithms pertaining to IoT and 5GB domains. 
+o Tools: probabilistic models, Markov Decision models, convex/nonconvex optimisation, stochastic 
+geometry, and reinforcement learning methodologies.
+o Recruiting: Looking for CSC PhD students and visiting researchers.
+o Open to collaborations. 
+o Who Am I?
+➢ Lecturer in Telecommunications (T&R) at Queen Mary 
+University of  London. 
+➢ Honorary research fellow at Imperial College London. 
+➢ Associate editor at IEEE Communications Letters and at 
+Frontiers in Communications and Networks
+➢ Reviewer in many IEEE transaction journals and a 
+technical committee member (TPC) in prestigious 
+conferences including IEEE ICC and IEEE 
+GLOBECOM.
+
+===== PAGE 3 =====
+3
+
+
+===== PAGE 4 =====
+Textbooks
+Bill Glover and Himanshu 
+Bhatt, “RFID Essentials”, 
+O’Reilly Media Inc, 2006.
+Harvey Lehpamer, “RFID 
+Design Principles”, Artech 
+House, 2012.
+4
+QMUL Library link
+QMUL Library link
+QMUL Library link
+Klaus Finkenzeller, “RFID 
+Handbook”, Wiley, Third 
+Edition, 2010.
+PDF File
+
+===== PAGE 5 =====
+Module Description
+5
+• Provide broad knowledge of RFID architecture, identification, standard 
+protocol, design methods, and its practical concerns.
+• Equip the students with general knowledge of data transmission techniques, 
+methods of designing typical RFID systems, RFID tags, tag encoding 
+mechanisms, link budget, anti-collision algorithms, the EPCglobal 
+architecture, the RFID performance analysis and other related topics to 
+sensors and RFID technology.
+• This module lays a good foundation for further study as it discusses 
+innovative research ideas and exploration of RFID systems.
+
+===== PAGE 6 =====
+Module Aims
+6
+• Aim 1: Provide students with a comprehensive understanding of basic RFID 
+technological aspects including system components, wireless communication 
+principles, and applications. 
+• Aim 2: Equip students with analytical skills through analysis of 
+standardization/normalization and security of RFID systems.
+• Aim 3: Develop students’ ability to design RFID systems by exploring design and 
+testing methodologies and metrics. 
+• Aim 4: Develop students’ critical analysis and evaluation skills by exploring and 
+analyzing new RFID developments trends through research papers.
+• Aim 5: Develop students’ practical skills by designing real IoT projects using RFID 
+tags/reader and microcontrollers (e.g. Arduino) and developing programming codes 
+on RFID (e.g. Arduino IDE). 
+
+===== PAGE 7 =====
+Learning Outcomes
+7
+Academic Content: 
+By the end of this module, the students will be able to:
+• Explain the basic principles and working principles of sensors and wireless 
+identification technology.
+• Acquire comprehensive knowledge on data transmission techniques, RFID 
+system architecture, and wireless communication principles.
+• Analyse EPCglobal standard protocol and design methodologies of RFID 
+systems.
+• Interpret and evaluate the performance of sensors and RFID systems in 
+practice.
+• Evaluate the most innovative research ideas and practical concerns of RFID 
+systems.
+
+===== PAGE 8 =====
+Transferrable Skills
+8
+Disciplinary Skills: By the end of this module, the students will be able to:
+• Explore the use of technical literature and other information sources.
+• Carry out research in the field of sensors and RFID systems and apply the 
+findings effectively in engineering projects.
+• Transform theoretical knowledge into practical platform by designing the 
+hardware and software of a specific sensors and RFID related projects.
+Graduate Attributes:
+• Develop technical skills including creativity, evaluation, and troubleshooting.
+• Develop teamwork and oral and written communication skills.
+• Familiarize with professional environment and recognize its limitations. 
+
+===== PAGE 9 =====
+Module Content
+9
+Week 1
+Week 2
+Week 3
+Week 4
+LecturesParts Teaching Weeks
+I. RFID Basics
+II. 
+Transmission 
+Modes
+III. Protocol
+IV. System 
+Design
+V. Application 
+& Practice
+Lecture 1: RFID Introduction and Overview
+Lecture 2: RFID System Components
+Lecture 3: Wireless Communication principle
+Lecture 5: RFID Anti-Collision Protocols
+Lecture 4: Checksum, Coding and Modulation
+Lecture 6: EPCGlobal Standard
+Lecture 7: Key factors of system design
+Lecture 9: Testing and analysis (self-study)
+Lecture 8: Application pattern of RFID
+Test 1
+Test 2
+
+
+===== PAGE 10 =====
+Module Activities
+10
+Week 1
+• Starting 30 March
+• Lectures 1-2
+• Tutorial 1: last 45 mins
+Week 2
+• Starting 6 April
+• Lectures 3-4
+• Tutorial 2: last 45 mins
+• Class Test 1 (Date TBD)
+Week 3
+• Starting 11 May
+• Lectures 5-6
+• Tutorial 3: last 45 mins
+Week 4
+• Starting 18 May
+• Lectures 7-8
+• Tutorial 4: : last 45 mins
+• Mock Exam
+• Class Test 2 (Date TBD) 
+• Labs (Arduino):
+➢ Two lab sessions will take place in 
+between the teaching weeks. 
+➢ Work in groups (4/5 students) to 
+share the hardware
+➢ Assignment submission deadlines: 
+usually after lab session.
+➢ Mini-project due at the end of the 
+term.
+• Exact dates will be confirmed later on.
+QM+ Quizzes will take place during term 
+time for bonus marks
+
+===== PAGE 11 =====
+Evaluation Rules???
+11
+• Tests: two in-class tests using handwritten A4-sized double-faced sheet
+▪ Test 1 after the first two teaching weeks (5%)
+▪ Test 2 after the second two teaching weeks (10%) 
+• Practical coursework: Work in groups of 4/5 students sharing one Arduino 
+kit each. 
+➢ Lab 1: Introduction to Arduino programming. Submission: written 
+report on hardware design and programming code (Bonus Mark)
+▪ Lab 2: RFID project using Arduino kit. Submission: written report on 
+hardware design and programming code and 5-min video demonstration 
+(5%)
+▪ Mini-Project: Group-defined project on RFID using Arduino kits. 
+Submission: written report on hardware design and programming code 
+and 10-min video demonstration (10%). Presentations may take place 
+last session of  TW12
+• Exam: Final exam on all teaching weeks, using handwritten A4-sized double-
+faced sheet (70%)
+
+===== PAGE 12 =====
+Looking for Two Module Representatives
+12
+• Collect feedback from classmates about the lectures at the end of each 
+teaching week 
+• Assist lecturers to prepare the content of  revision lecture 
+• Provide reports and attend the SSLC meetings 
+• It will be an excellent addition to your CV. 
+• Volunteers (two) from each teaching group will be welcomed or 
+chosen during the first teaching week of the module. 
+
+===== PAGE 13 =====
+Finally…
+13
+Good Luck! 
+Enjoy the Lectures! 
+Do not be afraid to interrupt us to ask questions or ask for clarification. 
+We would 
+prefer that you do so rather than wait till it is too late. 
+
+===== PAGE 14 =====
+School of Electronic Engineering and Computer Science
+Thank You
+Dr Fatma Benkhelifa
+f.benkhelifa@qmul.ac.uk
+

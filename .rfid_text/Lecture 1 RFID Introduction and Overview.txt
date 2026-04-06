@@ -1,0 +1,913 @@
+TITLE: Lecture 1 RFID Introduction and Overview.pdf
+PAGES: 67
+
+===== PAGE 1 =====
+School of Electronic Engineering and Computer Science
+EBU6408 Sensors and Radio Frequency Identification (RFID)
+Lecture 1: RFID Introduction and 
+Overview 
+Dr Fatma Benkhelifa
+PhD, Lecturer (Assistant Professor), SIEEE, Editor of IEEE Communications Letters
+e-mail: f.benkhelifa@qmul.ac.uk
+website: Fatma Benkhelifa - EECS (qmul.ac.uk)
+
+===== PAGE 2 =====
+Textbooks
+Bill Glover and Himanshu
+Bhatt, “RFID Essentials”,
+O’Reilly Media Inc, 2006.
+Harvey Lehpamer, “RFID
+Design Principles”, Artech
+House, 2012.
+2
+QMUL Library link
+QMUL Library link
+QMUL Library link
+Klaus Finkenzeller, “RFID
+Handbook”, Wiley, Third
+Edition, 2010.
+PDF File
+
+===== PAGE 3 =====
+Module Aims
+o Aim 1: Provide students with a comprehensive understanding of basic RFID
+technological aspects including system components, wireless communication
+principles, and applications.
+o Aim 2: Equip students with analytical skills through analysis of
+standardization/normalization and security of RFID systems.
+o Aim 3: Develop students’ ability to design RFID systems by exploring design
+and testing methodologies and metrics.
+o Aim 4: Develop students’ critical analysis and evaluation skills by exploring
+and analyzing new RFID developments trends through research papers.
+o Aim 5: Develop students’ practical skills by designing real IoT projects using
+RFID tags/reader and microcontrollers (e.g. Arduino) and developing
+programming codes on RFID (e.g. Arduino IDE).
+3
+
+===== PAGE 4 =====
+Evaluation Rules???
+o Two class tests:
+▪ Test 1: Covering the material delivered in the first half o module (5%)
+▪ Test 2: covering the material delivered in the second half of module (10%) 
+▪ Allowed: : Handwriting double-faced A4-sized cheating sheet 
+o Coursework: Work in groups of 4/5 students. 
+❑ Lab 1: Introduction to Arduino (Bonus Mark)
+✓ Submission of written report on hardware design and programming code.
+❑ Lab 2: RFID projects using Arduino kits (5%)
+✓ Submission of written report on hardware design and programming code and 5-min video 
+demonstration
+❑ Mini-project: using practical knowledge from labs and chatbot support (10%)
+✓ Submission of written report on hardware design and programming code and 10-min video 
+demonstration
+o Final exam: covering all teaching weeks (70%)
+▪ Allowed: Handwriting double-faced A4-sized cheating sheet
+o A couple of QM+ online quizzes on teaching lectures (Bonus Mark)
+4
+
+===== PAGE 5 =====
+Module Activities
+5
+Week 1
+• Starting 30 March
+• Lectures 1-2
+• Tutorial 1: last 45 mins
+Week 2
+• Starting 6 April
+• Lectures 3-4
+• Tutorial 2: last 45 mins
+• Class Test 1 (Date TBD)
+Week 3
+• Starting 11 May
+• Lectures 5-6
+• Tutorial 3: last 45 mins
+Week 4
+• Starting 18 May
+• Lectures 7-8
+• Tutorial 4: : last 45 mins
+• Mock Exam
+• Class Test 2 (Date TBD) 
+• Labs (Arduino):
+➢ Two lab sessions will take place in
+between the teaching weeks.
+➢ Work in groups (4/5 students) to
+share the hardware
+➢ Assignment submission deadlines:
+usually after lab session.
+➢ Mini-project due at the end of the
+term.
+• Exact dates will be confirmed later on.
+QM+ Quizzes will take place during term 
+time for bonus marks
+
+===== PAGE 6 =====
+Module Content
+6
+Week 1
+Week 2
+Week 3
+Week 4
+LecturesParts Teaching Weeks
+I. RFID Basics
+II. 
+Transmission 
+Modes
+III. Protocol
+IV. System 
+Design
+V. Application 
+& Practice
+Lecture 1: RFID Introduction and Overview
+Lecture 2: RFID System Components
+Lecture 3: Wireless Communication principle
+Lecture 5: RFID Anti-Collision Protocols
+Lecture 4: Checksum, Coding and Modulation
+Lecture 6: EPCGlobal Standard
+Lecture 7: Key factors of system design
+Lecture 9: Testing and analysis (self-study)
+Lecture 8: Application pattern of RFID
+Test 1
+Test 2
+
+
+===== PAGE 7 =====
+Outline
+7
+❖ Definition and scope of RFID
+❖ Automatic identification technologies
+❖ Main features of RFID
+❖ Core technology of RFID
+❖ Brief History of RFID
+❖ Development trends of RFID
+❖ RFID and Internet of Things
+
+===== PAGE 8 =====
+DEFINITION OF RFID
+8
+
+===== PAGE 9 =====
+What is RFID?
+o Definition
+➢ RFID (Radio Frequency Identification) is a technology that uses radio waves to
+transfer energy and data between a reader and a movable item to identify,
+categorize, track, …
+➢ The item can be an object, a person, an animal, etc.
+o RFID is fast, reliable, and does not require physical sight or contact between
+reader/scanner and the tag.
+o RFID, dates back to the invention of RADAR, where, during the Second
+World War, fighter pilots cleverly maneuvered their planes to be remotely
+identified by friendly radar operators, who distinguished them from their foes
+(Identify Friend or Foe).
+9
+
+===== PAGE 10 =====
+What Makes an RFID System
+o RFID Tag (Transponder):
+➢ Microchip: Stores data (e.g., unique identifier).
+➢ Antenna: Allows for communication with the reader.
+➢ Passive vs. Active tags:
+❖ Passive Tags: No battery, rely on energy from the reader.
+❖ Active Tags: Contain a battery and can transmit signals over a longer range.
+o RFID Reader (Interrogator):
+➢ Roles: Transmit and receive signals between the reader and the tag.
+➢ Reader Types: Fixed, handheld, and mobile readers.
+o Antenna:
+➢ Role: Allows the exchange of data between the tag and reader.
+➢ Types: Directional, omni-directional, near-field, and far-field antennas.
+o Software (Middleware)
+➢ Role: Software used to process data between the RFID system and enterprise
+applications.
+10
+
+===== PAGE 11 =====
+11
+Physical 
+Layer
+IT Layer
+
+===== PAGE 12 =====
+How Does RFID Work?
+o Basic Workflow:
+1. Reader: The RFID reader sends a radio signal to the tag, which powers it and
+causes the tag to respond with its stored data.
+2. Tag: The tag, powered by the reader's signal (for passive tags), emits a unique ID
+or data when it comes into range.
+3. Communication: The data is sent back to the reader, which transmits it to the
+system for processing.
+o No Line of Sight Needed:
+➢ Unlike barcodes, RFID does not require a direct line of sight between the reader
+and the tag.
+o Multiple Tags:
+➢ Multiple RFID tags can be read simultaneously, making RFID more efficient for
+tracking large quantities of items.
+12
+
+===== PAGE 13 =====
+RFID Global Market
+13
+
+
+===== PAGE 14 =====
+AUTOMATIC 
+IDENTIFICATION SYSTEMS
+14
+
+===== PAGE 15 =====
+Automatic ID Systems
+Auto-
+ID
+Barcode 
+system
+Biometric 
+MM
+Fingerprint 
+procedure
+Voice 
+IdentificationSmart Cards 
+Optical 
+Character 
+Recognition 
+(OCR)
+RFID
+15
+
+
+===== PAGE 16 =====
+Human identification
+The earliest identification technology originated in 
+humans. Humans use their own perceptual system to 
+identify external physical objects effectively, 
+including visual, auditory, tactile, taste and so on.
+Automatic identification
+The essence of  the recognition technique is to 
+distinguish and identify the physical objects using 
+their identifiable features.
+The cost is too high
+Automatic Identification Technology
+16
+
+===== PAGE 17 =====
+Biometric Procedures
+o Biometrics is defined as the science of counting and (body) measurement
+procedures involving living beings.
+o In the context of identification systems, biometry is the general term for all
+procedures that identify people by comparing unmistakable and individual
+physical characteristics.
+o In practice, there are various biometric procedures:
+▪ Fingerprinting procedures
+▪ Voice identification
+▪ Face recognition
+▪ Retina identification
+▪ Heartbeat recognition technology
+17
+
+===== PAGE 18 =====
+High accuracy of  identification 
+Low error rate
+Each fingerprint has multiple feature points
+Each feature point has 5 to 7 features
+Ten fingers can produce at least 4900 
+independent features that can be measured
+Stability High speed
+Fingerprint match can be 
+completed in 1 to 2 seconds
+Security issues
+Fingerprints are easy to leave over 
+Fingerprint replication is getting 
+easier
+Miniaturization
+Intelligent
+Low price
+…
+Fingerprint identification uses the uniqueness and stability of  
+fingerprint to verify user identity by comparing the collected 
+fingerprints with the pre-sampled fingerprints.
+Fingerprint Identification
+18
+
+===== PAGE 19 =====
+Speech recognition uses the difference between each 
+person's tone and timbre to identify different people.
+Feature extraction
+module
+Statistical acoustics model
+Pronunciation
+dictionary Language model
+Decoder
+Speech Recognition
+19
+
+===== PAGE 20 =====
+o Technical Features
+Easy to use, and easily accepted by the user 
+Cheap sound equipment, and not involve user's privacy
+Due to the lack of  international standards, there are some 
+difficulties in promoting
+Speech Recognition (Cont’D)
+20
+
+===== PAGE 21 =====
+Face recognition is based on human face features.
+It performs identity authentication by analyzing the input face
+image.
+Face 
+acquisition
+Face positioning
+Face recognition preprocessing（Local
+Feature Analysis） Look up the 
+identity
+Identity
+confirmation
+Face Recognition
+21
+
+===== PAGE 22 =====
+o Technical Features
+Surroundings, hair ornaments, age can affect the recognition rate
+Fast recognition speed, not easy to be aware of  it
+Face Recognition (Cont’D)
+22
+
+===== PAGE 23 =====
+Retina recognition technology: distinguish each person by 
+analyzing the vascular pattern on the retina.
+Heartbeat recognition technology: identify the user identity 
+by collecting heartbeat signal pulse through a specific 
+instrument and then identify the inherent characteristics of  
+each person heartbeat.
+Other Biometric Procedures
+23
+
+===== PAGE 24 =====
+Bar Codes
+o The barcode is a binary code comprising a field of bars and gaps arranged in a 
+parallel configuration
+o History:
+▪ The first barcode was developed by Bernard Silver and Norman Joseph Woodland in 
+the late 1940s and early 1950s. 
+▪ The first commercial use of barcodes was by the RCA/ Kroger system installed in 
+Cincinnati on the behest of the National Association of Food Chains (NAFC).
+▪ It was not widely used until the Universal Product Code (UPC) was introduced in 
+America as early as 1973 and adopted by the US Supermarket Ad Hoc Committee.
+o The most popular barcode by some margin is the EAN code (European 
+Article Number), which was designed specifically to fulfil the requirements of 
+the grocery industry in 1976.
+o Today, the UPC represents a subset of the EAN code, and is therefore 
+compatible with it.
+24
+
+
+===== PAGE 25 =====
+1D Barcode Recognition
+25
+1D barcode is a combination of lines and blanks in accordance with certain coding
+rules to represent certain information.
+1D barcode only express information in the horizontal direction, and in the vertical
+direction does not express any information. It usually retains a certain height to
+facilitate the alignment of the reader.
+Limited storage capacity, need to combine with the database.
+The barcode size is relatively large, the space utilization is low.
+Fault tolerance is poor, cannot restore the information after the corruption.
+
+===== PAGE 26 =====
+2D Code Recognition 
+26
+2D code uses black and white graphics on the two-dimensional
+plane to record data, these geometric patterns express specific
+information through a certain regulation of distribution .
+Positioning point technology: 2D code usually has three positioning points for the
+reader to identify. Because of these positioning points, 2D code can be identified no
+matter what direction to read.
+Fault tolerance: the information can be correctly restored when it does not recognize
+all of the 2D code, or if the 2D code is defaced.
+Large storage capacity. Up to 32KB.
+High information density. Can store text, sound, pictures and other information.
+Powerful error correction capability. 2D code can still be identified in the case of
+50% defacement.
+Support for encryption. Multiple security features.
+
+===== PAGE 27 =====
+Card Technologies 
+o Magnetic cards: containing either a magnetic strip or a magnetic object in the 
+card, encoded with digital data
+o Smart cards: credit card-sized pieces of plastic containing a data storage 
+system. Two type: memory cards and microprocessor cards
+o Optical cards: use a technology similar to the one used for music CDs or CD-
+ROMs
+27
+
+
+===== PAGE 28 =====
+Data 
+Density 
+(Bytes)
+Reading 
+Speed
+Machine 
+Readabilit
+y
+People 
+Readabilit
+y
+System 
+Cost
+Distance 
+to Reader
+Biometry - Very low 
+> 5-10s Expensive Difficult Very high Direct 
+contact
+Speech 
+Recognitio
+n
+- Very low 
+> 5s Expensive Simple Very high 0-50cm
+Barcode 1-100 Low ~ 4s Good Limited Very low 0-50cm
+Smart 
+cards 16-64 k Low ~ 4s Good Impossible Low Direct 
+contact
+RFID 16-64 k Very fast 
+~ 0.5s Good Impossible Medium 0-5m, 
+microwave
+Summary of Automatic Identification Technologies
+28
+
+===== PAGE 29 =====
+RFID vs Barcode (Cont’D)
+29
+o Three advantages of using RFID compared to bar code scanning are:
+▪ More efficiency: you can scan multiple items at once
+▪ More durability: tags can handle exposure to weather conditions like sun and 
+rain
+▪ More security: you can encrypt RFID tags so only your reader can get the data
+
+===== PAGE 30 =====
+RFID vs NFC
+30
+Near-field communication (NFC) is a subset of the RFID technology family. The
+big difference is that NFC is used for two-way communication. Instead of the
+scanner receiving or sending data, both ends can receive and send information.
+
+===== PAGE 31 =====
+HISTORY OF RFID
+31
+
+
+===== PAGE 32 =====
+WWII Technology
+32
+RFID started as early as World War II, where airplanes used to be identified as
+“friend or foe” using this technology.
+The optical barcode, the nearest rival of RFID, came to commercial usage in the 1960s or
+1970s.
+From the late 1970s, due to increase in complexity and volume of business, requirement
+of a new technology came to the forefront and hence started the journey of RFID
+Radar discovered by, Sir Robert 
+Alexander Watson-Watt, in 1935
+
+===== PAGE 33 =====
+RFID in 70s
+o In 1948, Harry Stockman first showed “Communication by means of
+reflected power”. It promoted the idea that “…considerable research and
+development work has to be done before the remaining basic problems in
+reflected-power communication are solved, and before the field of useful
+applications is explored.”
+o In the 50s and 60s, the anti-theft detection and electronic surveillance systems
+popped up that all used RF technology.
+o RFID wasn’t officially patented until 1973, in a landmark claim by Mario W.
+Cardullo, who created an active RFID tagging system that utilized rewritable
+memory.
+o That same year, a passive RFID system was patented by Charles Walton,
+who could unlock doors without a key—still used today in many hotel rooms.
+o Until 1979, researches related to RFID remained within different laboratory
+research. For the first time, it had commercial usage in animal tracking in
+the United States. This was followed by motor vehicle toll collection in
+Norway in 1987, followed by RFID tracking of US rail cars in 1994.
+33
+
+===== PAGE 34 =====
+Setting Standards
+o In 1999, the Auto-ID center was founded by MIT scientists to standardize
+the RFID-encoded information format.
+o This group had previously created the Electronic Product Code (EPC) for
+RFID tags.
+o Absence of related technologies like database management and manufacturing
+process for small sized chips restricted the proper development of this
+technology in the initial phase.
+o Auto-ID group collaborated with Alien Technology to develop a fluidic
+flow process that utilized vibrations to assemble the chips → massive
+parallel assembly + lowering manufacturing costs
+o In 2003, EPCGlobal systems came to being and they started standardizing
+RFID from all possible directions.
+o This was the biggest boost up that this technology received, followed by the
+mandates and demands of the giants like Wal-Mart, US Department of
+Defense, Gillette, and so on.
+34
+
+===== PAGE 35 =====
+History of RFID (Summary)
+o Early Beginnings:
+➢ 1940s: RFID technology has roots in radar systems developed during WWII.
+➢ 1948: The concept of passive radio-frequency identification is introduced 
+by Harry Stockman, who wrote about the potential for using radio waves to 
+transmit information for identification purposes.
+o Development Milestones:
+➢ 1960s: The first RFID tag was created for use in toll collection.
+➢ 1970s: Early commercial use of RFID tags for asset tracking and livestock 
+identification.
+➢ 1990s: Introduction of EPC (Electronic Product Code) and the formalization of 
+RFID standards.
+➢ 2000s: Widespread adoption of RFID in supply chain management, retail, and 
+healthcare.
+o Modern-Day RFID:
+➢ The rapid development of low-cost, efficient RFID tags.
+➢ Growth of smart labels (integrated RFID chips with barcodes or sensors).
+35
+
+===== PAGE 36 =====
+MAIN FEATURES OF RFID 
+SYSTEMS
+36
+
+===== PAGE 37 =====
+RFID Systems
+37
+Provide an effective solution for the core problem of
+"realizing passive intelligence", "globally unique
+identification" and "low-cost interconnection" in Internet of
+Things applications.
+o Non-contact automatic fast identification
+o Accurate and efficient identification
+o Low cost and low power consumption
+o Certain computing and storage capabilities
+
+===== PAGE 38 =====
+Non-contact automatic and rapid identification
+The RFID tag returns data by backscattering the energy, with
+an effective communication range of 6-10 m.
+The RFID system uses an effective anti-collision mechanism
+to read tags, enabling rapid identification of a large number of
+tags.
+Permanently store a certain amount of  data
+RFID tag has a user storage area, which can store 1KB-10KB of
+user data.
+Main Features of RFID (Cont’D )
+38
+
+===== PAGE 39 =====
+Simple logical processing
+RFID has a very limited number of internal logic gates, so only a
+simple logical processing can be made.
+But the RFID system can use the basic logic processing ability of
+tags to achieve some effective protocols and algorithms to improve
+the system operating efficiency and security performance.
+Reflection signal strength is affected by the distance and 
+other factors significantly
+Since the RFID tag itself is a passive device, the feedback signal
+must be modulated by backscatter. Therefore, the strength of the
+RFID tag reflection signal is susceptible to the surrounding
+environment, including distance, reader power, signal interference,
+and tag deployment density.
+Main Features of RFID (Cont’D)
+39
+
+===== PAGE 40 =====
+Low cost, can be deployed at a large scale
+RFID tags tend to large-scale mass production using printed
+circuits, so manufacturing costs can be significantly reduced.
+At present, the cost of an RFID tag can be controlled at
+around 10 cents.
+Main Features of RFID (Cont’D)
+40
+
+===== PAGE 41 =====
+RFID CHALLENGES
+41
+
+===== PAGE 42 =====
+RFID 
+constraints
+Limited tag
+resources
+Computing ability
+Storage space
+Communication
+bandwidth
+Performance in a 
+real environment 
+is susceptible to 
+many factors
+Reader's transmitting
+power
+Energy absorption, path 
+loss, multipath effect
+Distribution and 
+deployment of  tags
+Signal interference
+RFID Challenges
+42
+
+===== PAGE 43 =====
+• Ensure the 
+credibility and 
+security of  the 
+interaction
+• Provide a gateway 
+from the physical 
+world access to the 
+information world
+• Achieve the 
+positioning of 
+the target
+Achieve low latency, 
+and efficient 
+identification
+Anti-
+collision
+transmission
+mechanism
+Positioning 
+and mobile 
+behavior 
+sensing
+Security
+certification
+and privacy
+protection
+Information
+storage, 
+retrieval and
+mining
+RFID Challenges (Cont’D)
+43
+
+===== PAGE 44 =====
+RFID Challenges (Cont’D)
+o Anti-collision mechanism
+▪ Conflict between tags, between readers, between reader and tags
+▪ Traditional wireless communication protocols (such as CSMA / CA) are
+not available
+▪ RFID environment: tag identification protocols must be simple and
+efficient
+▪ How to effectively avoid conflicts, improve transmission performance,
+and reduce the scan delay?
+o Efficient information storage, retrieval and mining
+▪ How to efficiently store, retrieve and mine ID, keyword information, and
+sensing data carried by RFID tags in a distributed environment？
+44
+
+===== PAGE 45 =====
+RFID Challenges (Cont’D)
+o Make full use of the attenuation laws of backscatter signal to assist in
+positioning and mobile behavior sensing
+▪ Accuracy Low precision: within a few meters; High precision: within a
+few centimeters
+▪ Real time
+▪ Stable Mean error, stability (confidence interval of error）
+o Security certification and privacy protection
+▪ Forged tags: how to validate?
+▪ Malicious reader: how to prevent illegal access and protect user privacy
+effectively？
+▪ Existing algorithms require more logical processing units, e.g., AES
+requires 20000-30000 logic gates
+▪ RFID tags have only 5000-10000 logic gates
+▪ How to implement authentication and privacy protection protocols in a
+resource-constrained RFID system in a lightweight way?
+45
+
+===== PAGE 46 =====
+CURRENT SITUATION OF 
+RFID
+46
+
+===== PAGE 47 =====
+RFID Today 
+o RFID is now widely used to track items in almost every sector, from
+biomedical labs to aerospace, engineering, and logistics. It has many
+advantages over conventional barcodes, including storing far more
+information and reading multiple tags simultaneously without having to
+remove items from storage.
+o Costs have been reduced even further with the use of carbon nanotubes to
+produce chips.
+o As RFID technology continues to evolve, it will eventually become cheaper
+and more user-friendly, keeping inventories and workflows up to date and
+well-managed.
+47
+
+===== PAGE 48 =====
+RFID in the United States, Europe, Japan, Korea and other countries
+and regions have been widely used in industrial, intelligent
+transportation, logistics management, retail and other fields.
+Abroad
+48
+
+===== PAGE 49 =====
+In April 2005, the National Science and Technology Ministry launched the 863
+Project "Radio Frequency Key Technology Research and Development"
+China’s RFID industry is developing rapidly, but there is still a gap compared
+with the advanced countries.
+• Less RFID software companies
+• RFID applications are mainly intermediate and low frequency
+• RFID standards are not fully implemented
+• The safety and stability of RFID needs to be improved
+Internal
+49
+
+===== PAGE 50 =====
+RFID Applications
+o Supply Chain Management:
+➢ Inventory tracking and logistics management.
+o Healthcare:
+➢ Tracking medical equipment, patient identification.
+o Retail:
+➢ Anti-theft, inventory management, and automated checkouts.
+o Access Control:
+➢ Secure entry systems using RFID badges or cards.
+50
+
+
+===== PAGE 51 =====
+Examples of RFID Tags and Readers in Retail
+51
+Advanced Apparels’ RFID stock 
+locator: https://vimeo.com/702587628
+Ralph Lauren’s RFID-based Fitting
+Room: 
+https://vimeo.com/healeycypher/oakfitroom
+Unilever’s Ice Cream Shop 
+China's First RFID Inventory Robot
+
+
+===== PAGE 52 =====
+DEVELOPMENT TRENDS IN 
+RFID
+52
+
+===== PAGE 53 =====
+Traditional wired transmission: 
+obviously no longer feasible
+Wireless charging: 
+not yet reached the practical use
+Backscatter: time of  endurance is prolonged 
+indefinitely, small node size
+Disadvantages: rely on the reader, one to many 
+centralized communication
+Battery-powered: increase the weight and volume, 
+the battery needs to be changed regularly
+Energy Acquisition Mode
+53
+
+===== PAGE 54 =====
+Energy acquisition mode: Design and implement innovative energy harvesting ways
+to support communication between systems, in order to fully expand the scope and
+deployment scale of RFID applications.
+Ambient backscatter: Create new types of network communication by leveraging
+radio signals (such as television and cellular network base station signals) that are
+prevalent in the environment.
+“ AmbientBackscatter: Wireless Communication Out of Thin Air”, ACM SIGCOMM
+2013, best paper award.
+Video link: https://www.bilibili.com/video/av542157634/
+Energy Acquisition Mode (Cont’D)
+54
+
+===== PAGE 55 =====
+Support point-to-point communication: Design and implement innovative
+channel awareness technologies that enable RFID devices to establish networks
+and implement point-to-point communications in a passive way to support
+multiple distributed applications.
+Support Point-to-Point Communications
+55
+
+===== PAGE 56 =====
+Combine with Sensors: Integrating existing micro-sensor devices, combined 
+with multimode sensors, provides a richer application model based on 
+backscatter technology.
+Combine with Sensors
+56
+
+===== PAGE 57 =====
+o In the Internet of things, RFID will embed intelligence in the physical
+object, so that simple physical objects can also “say”.
+o In the Internet of things, RFID allows a physical object to be uniquely
+identified in a way similar to the "IP address" of a computing node in
+the Internet.
+o In the Internet of things, RFID provides a low-cost communication
+way to achieve effective communication between nodes.
+o In the Internet of things, RFID makes the physical objects in a passive
+environment achieve "passive intelligence“, providing fundamental
+guarantee for the “thing-thing connection" .
+RFID and Internet of Things
+57
+
+===== PAGE 58 =====
+Other Future Trends in RFID
+o RFID and Blockchain:
+➢ RFID is being combined with blockchain technology to enhance security,
+transparency, and traceability in supply chains, especially in industries like
+pharmaceuticals and food safety.
+o Wearable RFID Technology:
+➢ The use of RFID technology in wearables (e.g., smart watches, health-monitoring
+devices) is expanding. This will help in personalized healthcare and asset tracking in
+real-time.
+o Advanced Anti-Collision Algorithms:
+➢ With the increasing adoption of RFID in complex environments (e.g., warehouses,
+logistics), more sophisticated anti-collision algorithms will be developed to handle
+large numbers of tags being read simultaneously with minimal interference.
+o UHF RFID for Consumer Applications:
+➢ Wider use of UHF RFID in consumer products for applications like smart retail,
+inventory management, and self-checkout systems, allowing for better customer
+experience and operational efficiency.
+o RFID in Smart Packaging:
+➢ The integration of RFID with smart packaging will allow brands to improve product
+tracking, authentication, and customer engagement.
+58
+
+===== PAGE 59 =====
+RFID WITH ARDUINO
+59
+
+===== PAGE 60 =====
+Practical Insights: RFID with Arduino
+o What is Arduino?: Arduino is an open-source electronics platform based on 
+easy-to-use hardware and software.
+o RFID and Arduino: Arduino can be used to interface with RFID tags and 
+readers, enabling practical applications such as access control, asset tracking, 
+and inventory management.
+o Basic Components:
+1. Arduino Board: For processing and controlling the project.
+2. RFID Reader: Such as the MFRC522 module, commonly used in Arduino 
+projects.
+3. RFID Tags: Passive or active RFID tags.
+4. Jumper Wires: To connect the RFID reader to the Arduino board.
+60
+
+===== PAGE 61 =====
+Setting Up RFID with Arduino
+o Required Components:
+➢ Arduino Uno or similar board.
+➢ RFID Module (e.g., MFRC522).
+➢ RFID tags/cards.
+➢ Jumper wires and breadboard (optional).
+➢ LED for visual feedback (optional).
+o Connections:
+➢ Connect the RFID module to the Arduino using specific pins for SPI 
+communication (SDA, SCK, MOSI, MISO, IRQ, and RST).
+➢ Optionally, connect an LED to indicate successful tag scanning.
+61
+
+===== PAGE 62 =====
+RFID Arduino Code Example
+62
+
+
+===== PAGE 63 =====
+Practical Applications of RFID with Arduino
+1. Access Control System:
+Use RFID to open doors based on authorized RFID tag access.
+2. Inventory Management:
+Track and manage assets using RFID tags and Arduino.
+3. Time Tracking:
+Employees use RFID tags to clock in and out of work.
+4. Library Book Check-out System:
+Automatically check out books by scanning RFID tags attached to the 
+books.
+63
+
+===== PAGE 64 =====
+Challenges and Considerations in Using RFID 
+with Arduino
+o Distance Limitations: RFID tag reading distance can be limited, especially 
+with passive tags.
+o Interference: Materials like metal and liquids can interfere with the RFID 
+signal.
+o Power Consumption: Active RFID tags need a power source, whereas passive 
+tags do not.
+o Data Security: Proper security measures must be considered when dealing 
+with sensitive data.
+64
+
+===== PAGE 65 =====
+Enhancing RFID Projects with Sensors and 
+Arduino
+o Integrating Sensors: Adding environmental sensors (e.g., temperature, 
+humidity) to RFID projects for more intelligent data collection.
+o Use Case Example:
+➢ Combine a temperature sensor with an RFID reader to monitor perishable goods.
+➢ Use a motion sensor in combination with an RFID reader for security purposes.
+65
+
+===== PAGE 66 =====
+Summary
+In today’s session, we’ve learnt about:
+o What does mean RFID?
+o Different types of automatic identification technology
+o Main features of RFID
+o Core technology of RFID
+o Brief History of RFID
+o Development trends of RFID
+o RFID and Internet of Things
+66
+
+===== PAGE 67 =====
+School of Electronic Engineering and Computer Science
+Thank You
+Dr Fatma Benkhelifa
+

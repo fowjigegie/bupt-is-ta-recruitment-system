@@ -1,0 +1,882 @@
+TITLE: Lecture 2 RFID Components - Part 2.pdf
+PAGES: 46
+
+===== PAGE 1 =====
+School of Electronic Engineering and Computer Science
+EBU6408 Sensors and Radio Frequency Identification (RFID)
+Lecture 2: RFID Components
+Part 2: Tags
+Dr Fatma Benkhelifa
+PhD, Lecturer (Assistant Professor), SIEEE, Editor of IEEE Communications Letters
+e-mail: f.benkhelifa@qmul.ac.uk
+website: Fatma Benkhelifa - EECS (qmul.ac.uk)
+
+
+===== PAGE 2 =====
+Textbooks
+Bill Glover and Himanshu 
+Bhatt, “RFID Essentials”, 
+O’Reilly Media Inc, 2006.
+Harvey Lehpamer, “RFID 
+Design Principles”, Artech 
+House, 2012.
+2
+QMUL Library link
+QMUL Library link
+QMUL Library link
+Klaus Finkenzeller, “RFID 
+Handbook”, Wiley, Third 
+Edition, 2010.
+PDF File
+
+===== PAGE 3 =====
+Evaluation Rules???
+o Two class tests:
+▪ Test 1: Covering the material delivered in the first half o module (5%)
+▪ Test 2: covering the material delivered in the second half of module (10%) 
+▪ Allowed: : Handwriting double-faced A4-sized cheating sheet 
+o Coursework: Work in groups of 4/5 students. 
+❑ Lab 1: Introduction to Arduino (Bonus Mark)
+✓ Submission of written report on hardware design and programming code.
+❑ Lab 2: RFID projects using Arduino kits (5%)
+✓ Submission of written report on hardware design and programming code and 5-min video 
+demonstration
+❑ Mini-project: using practical knowledge from labs and chatbot support (10%)
+✓ Submission of written report on hardware design and programming code and 10-min video 
+demonstration
+o Final exam: covering all teaching weeks (70%)
+▪ Allowed: Handwriting double-faced A4-sized cheating sheet
+o A couple of QM+ online quizzes on teaching lectures (Bonus Mark)
+3
+
+===== PAGE 4 =====
+Module Activities
+4
+Week 1
+• Starting 30 March
+• Lectures 1-2
+• Tutorial 1: last 45 mins
+Week 2
+• Starting 6 April
+• Lectures 3-4
+• Tutorial 2: last 45 mins
+• Class Test 1 (Date TBD)
+Week 3
+• Starting 11 May
+• Lectures 5-6
+• Tutorial 3: last 45 mins
+Week 4
+• Starting 18 May
+• Lectures 7-8
+• Tutorial 4: : last 45 mins
+• Mock Exam
+• Class Test 2 (Date TBD) 
+• Labs (Arduino):
+➢ Two lab sessions will take place in 
+between the teaching weeks. 
+➢ Work in groups (4/5 students) to 
+share the hardware
+➢ Assignment submission deadlines: 
+usually after lab session.
+➢ Mini-project due at the end of the 
+term.
+• Exact dates will be confirmed later on.
+QM+ Quizzes will take place during term 
+time for bonus marks
+
+===== PAGE 5 =====
+Module Content
+5
+Week 1
+Week 2
+Week 3
+Week 4
+LecturesParts Teaching Weeks
+I. RFID Basics
+II. 
+Transmission 
+Modes
+III. Protocol
+IV. System 
+Design
+V. Application 
+& Practice
+Lecture 1: RFID Introduction and Overview
+Lecture 2: RFID System Components
+Lecture 3: Wireless Communication principle
+Lecture 5: RFID Anti-Collision Protocols
+Lecture 4: Checksum, Coding and Modulation
+Lecture 6: EPCGlobal Standard
+Lecture 7: Key factors of system design
+Lecture 9: Testing and analysis (self-study)
+Lecture 8: Application pattern of RFID
+Test 1
+Test 2
+
+
+===== PAGE 6 =====
+Outline
+❖ Reader
+❖ RFID Tag
+❖ Software System Components
+6
+RFID system
+Hardware components Software components
+Reader RF Tags
+Signal process 
+and control
+RF
+Module
+Antenna Chip
+
+===== PAGE 7 =====
+Operating Principle of RFID Systems
+o RFID typically consists of
+▪ A computer
+▪ A database
+▪ RFID software
+▪ A reader, which receives signals from the RFID and identifies and processes the 
+information contained in one of more tags
+▪ RFID middleware
+▪ an antenna, used to transmit signals between the reader and the RFID tag.
+▪ An RFID tag (transponders), which contains the data of the element to identify 
+o The different for analysed designations of the tags and readers may vary, 
+depending on applications, contexts, and their hardware and software resources. 
+o The readers are themselves connected to servers for data processing at 
+middleware and application levels is, archiving and traceability
+7
+
+
+===== PAGE 8 =====
+RFID TAGS
+8
+
+===== PAGE 9 =====
+Tags
+o RFID reader transmits radio signals at 
+a preset frequency and interval 
+(usually hundreds of times every 
+second). 
+o Any radio frequency tags that are in 
+the reader range will pick up its 
+transmission because each has a built-
+in antenna that is capable of listening 
+to radio signals at a preset frequency.
+o The tags use energy from the reader’s 
+signal to reflect this signal back. 
+o Tags may modulate the signal to send 
+information, such as an ID number, 
+back to the reader
+9
+
+===== PAGE 10 =====
+RF tags are significant hardware component 
+in RFID system, which will be introduced 
+from 8 aspects:
+Tag Function Tag Antenna
+Tag Classification Tag Chip
+Tag Operational
+Specifications
+Tag Wake-up
+Circuit
+Tag Components Tag 
+Manufacture
+RFID Tags
+10
+
+===== PAGE 11 =====
+Tags store goods-related 
+information, e.g. identifier, 
+production date, manufacturer, 
+etc.
+Data Storage
+Tags can absorb energy from 
+electromagnetic field generated by 
+the reader, and generate electricity 
+for themselves.
+The main function of RF tags is to store a certain amount 
+of data, and send it to the reader in a contactless manner. 
+Generally speaking, tags’ functions are concluded as:
+Tags can be identified from a 
+certain distance to the reader.
+Energy Harvesting
+Contactless R&W Security Encryption
+Collision Concessions
+…
+Tag Function
+11
+
+===== PAGE 12 =====
+Selecting Tags
+◆ Many considerations are involved in selecting tags. They include the 
+following:
+1. Required read range: Active tags provide a longer read range than passive 
+tags. For retail applications, the read ranges offered by passive tags are 
+usually sufficient.
+2. Material and packaging: Different materials have differing RF 
+characteristics. For example, liquids may impede the flow of radio waves. 
+Metal containers also pose interference challenges to the readers.
+3. Form factors: RFID tags come in different sizes. The form factor for the 
+tags used for individual products will depend on the packaging used for 
+these products.
+4. Standards compliance: It is important to consider whether most of the 
+readers that are generally available will understand the RF tag you select. 
+EPCglobal and the International Standards Organization (ISO) provide 
+standards for communications between RFID tags and readers.
+5. Cost: The cost of a single RFID tag plays an important role in its selection 
+because most applications use many tags.
+12
+
+===== PAGE 13 =====
+• Easy to carry, no 
+influence on the 
+appearance
+• Animal and plant 
+management
+• Directly attached to 
+the items, used in 
+industrial production 
+and logistics 
+management
+• Potable, good 
+antenna 
+protection, 
+waterproof
+Card-like 
+Tag
+Label-
+like Tag
+Accessories-
+like Tag
+Implantabl
+e Tag
+Classification by Package Form
+13
+
+===== PAGE 14 =====
+• 30kHz-300kHz
+• Usually passive
+• Inductively coupled
+• Strong penetration
+LF Tags
+• 300kHz-30MHz
+• Usually passive
+• Inductively coupled
+• Fast transmission rate, large storage
+HF Tags
+• 0.3GHz-3GHz
+• Passive or active
+• Electromagnetic backscatter coupled
+• Long distance, high speed, mobile scenario, good 
+multiple-tag r&w performance
+UHF Tags
+Classification by Work Frequency
+14
+
+===== PAGE 15 =====
+Read & Write Tags
+• Readable, writable
+• Complex structure
+• High cost
+• No database 
+related
+Read-only Tags
+• Only readable, 
+unique serial 
+number
+• Low price
+• Simple structure
+Classification by Read/Write Capability
+15
+
+===== PAGE 16 =====
+Semi-passive Tags
+• The battery is integrated on the 
+board, but as an auxiliary backup
+Passive 
+Tags
+• Rely on the carrier signal sent from  
+reflection reader to gain energy
+Active Tags • Rely on its own 
+battery
+Classification by Power Source
+19
+
+===== PAGE 17 =====
+Passive Tags
+o No power supply: electrical current transmitted by the RFID reader 
+inductively powers the device, which allows it to transmit its information 
+back.
+o Limited transmission capability: typically, no more than an ID number. 
+o Limited range of broadcast: requiring the reader be significantly closer than 
+an active one would. 
+o Ideal for places preventing battery replacement.
+❖ Applications: include inventory, product shipping and tracking, hospitals and 
+other medical purposes, and antitheft, can be used implanted into the human 
+body or placed under the skin. 
+20
+
+===== PAGE 18 =====
+Passive Tags (Cont’D)
+o Tags consist of a silicon device (chip) and antenna circuit. 
+▪ Purpose of antenna circuit: induces an energizing signal and sends a 
+modulated RF signal.
+▪ Read range: largely depends upon the antenna circuit and size. 
+o The antenna circuit is made of a LC resonant circuit or E-field 
+dipole antenna, depending on the carrier frequency. 
+▪ The LC resonant circuit is used for frequencies of less than 100 
+MHz. At these frequencies, the communication between the reader 
+and tag is achieved with magnetic coupling between the two 
+antennas. An antenna utilizing inductive coupling is often called a 
+magnetic dipole antenna. 
+o The antenna circuits must be designed in such a way to 
+maximize the magnetic coupling between them:
+▪ The LC circuit must be tuned to the carrier frequency of the reader.
+▪ The Q of the tuned circuit must be maximized. 
+▪ The antenna size must be maximized within physical limit of 
+application requirement. 
+21
+
+===== PAGE 19 =====
+Passive Tags (Cont’D)
+o Backscattering of the carrier frequency for sending data from tag to reader. 
+▪ The amplitude of backscattering signal is modulated with the tag’s data.
+▪ Modulation data: ASK (NRZ or Manchester), FSK, or PSK. 
+o During backscatter modulation, the incoming RF carrier signal to the tag is 
+loaded and unloaded, causing amplitude modulation of the carrier, 
+corresponding to the tag data bits. 
+o The RF voltage induced in the tag’s antenna is amplitude modulated by the 
+modulation signal (data) of the tag device. 
+o Amplitude modulation can be achieved by using a modulation transistor 
+across the LC resonant circuit or partially across resonant circuit. 
+o Changes in the voltage amplitude of the tag’s antenna can affect the voltage 
+of the reader antenna. 
+o By monitoring the changes in the reader antenna voltage (due to the tag’s 
+modulation data), the data in the tag can be reconstructed. 
+o The RF voltage link between the reader and tag antennas are often compared to 
+weakly coupled transformer coils; as the secondary winding, tag coil, is 
+momentarily shunted, the primary winding, reader coil, experiences a momentary 
+voltage change.
+22
+
+===== PAGE 20 =====
+Active Tags
+o Active tags, also called transponders:
+▪ Performs a specialized task: contain a transmitter that is always on 
+and designed for communications up to 30m from the RFID reader.
+▪ Powered by on-board power source: usually a battery about the 
+size of a coin. It does not require inductions to provide current, as is 
+true of the passive tags. 
+▪ Designed with a variety of specialized electronics: including 
+microprocessors, different types of sensors, or I/O devices. 
+Depending on the target function of the tag, this information can be 
+processed and stored for immediate or later retrieval by a reader. 
+▪ Larger and more expensive: than passive RFID tags. The 
+additional space taken up by a battery 
+▪ Hold more data about the product: commonly used for high-
+value asset tracking. A feature that most active tags have, and most 
+passive tags do not is the ability to store data received from a 
+transceiver. 
+▪ Ideal in environments with electromagnetic interference: since 
+they can broadcast a stronger signal in situations that require a 
+greater distance between the tag and the transmitter.  
+Front Side
+Reverse Side
+23
+
+===== PAGE 21 =====
+Active and Passive Tags Comparison
+o Active and passive RFID technologies are fundamentally distinct technologies 
+with substantially different capabilities. 
+o For supply chain asset management applications: the most effective and 
+complete solution combines the advantages of each technology in 
+complementary ways. 
+1. Passive RFID: is most appropriate where the movement of tagged assets is 
+highly consistent and controlled, and little or no security or sensing 
+capability or data storage is required. 
+✓ They contain significantly more sophistication, data management, and security 
+concerns. 
+✓ Cost typically well below $1.
+✓ Small  as 0.4 mm square and thinner than a sheet of paper.  
+2. Active RFID: is best suited where business processes are dynamic or 
+unconstrained, movement of tagged assets is variable, and more 
+sophisticated security, sensing, and/or data storage capabilities are required. 
+✓ Generally, cost from $10 to $50, depending on the amount of memory, the battery 
+life required, any on-board sensors, and the ruggedness. 
+✓ Small as a coin, which means that they are around 50 times the size of passive ones.
+26
+
+===== PAGE 22 =====
+Tag Comparison
+27
+
+===== PAGE 23 =====
+Similar to the reader, in practice, several factors are 
+considered in tags’ operational specification. Here are a 
+few to be noticed:
+Storage 
+Capacity
+Reliability
+Tag Operational Specification
+Frequency Band Size and Form
+Read Range EIRP
+Surrounding Antenna 
+Polarization  
+Direction
+Applications 
+with Mobility
+Cost
+Reliability Power Source
+28
+
+===== PAGE 24 =====
+Antenna
+Chip
+Decides the size of tag.
+Receive RF signal from the 
+reader;
+Send chip data to the reader;
+Provide energy for passive tags
+Demodulate and decode signal 
+received by the antenna, 
+encode and modulate the 
+signal to send from the tag, 
+and perform anti-collision 
+algorithm and store data.
+Coil antenna
+Chip
+Chip
+Dipole antenna
+Tag Components
+29
+
+===== PAGE 25 =====
+An antenna is a conductive structure specifically designed to couple or 
+radiate electromagnetic energy. 
+Generally, the smaller the tag size, the less the antenna radiation 
+impedance, the shorter the tag work range, the lower the work efficiency.
+Antenna performance includes direction property, antenna efficiency, 
+antenna gain, etc.
+According to work principle, tag antenna has 3 types:
+Coil
+antenna
+Microstrip
+patch antenna
+Dipole
+antenna
+Antenna Coil
+Capacitance (a)Half-wave 
+dipole antenna
+(b) Double line folded dipole antenna
+(c)Triple line folded 
+dipole antenna
+(d)Double dipole antenna
+Tag Antenna Types (Cont’D)
+32
+
+===== PAGE 26 =====
+Simple process, low cost, widely used 
+in LF, HF close-range RFID system.
+Work by inductively coupled, whose 
+principle similar to transformer. The 
+reader antenna is equivalent to 
+transformer primary coil, tag antenna 
+as secondary coil, generating voltage 
+at a varying magnetic field.
+Charged by parallel capacitors, 
+generate power for tag chip.
+Antenna Coil
+Capacitance
+Coil Antenna
+33
+
+===== PAGE 27 =====
+A microstrip patch antenna is 
+usually attached to the surface of  a 
+conductor sheet, with a metal foil 
+ground plane on the other side.
+Light weight, small size, low cost, 
+easy to mass production.
+Suitable for scenario of  which the 
+communication direction doesn’t 
+change.
+Microstrip Patch Antenna
+34
+
+===== PAGE 28 =====
+A dipole antenna consists of two 
+straight wires with the same length 
+and thickness put in a straight line.
+Suitable for UHF tags.
+Typical antennas: half-wave /  
+double line folded / triple line 
+folded / double dipole antenna.
+A dipole antenna is 
+omnidirectional antenna.
+(a)Half-wave 
+dipole antenna
+(b)Double line folded
+dipole antenna
+(c)Triple line folded
+dipole antenna
+(d)Double 
+dipole antenna
+Dipole Antenna
+35
+
+===== PAGE 29 =====
+o Components: simulation front end, 
+control unit and storage unit.
+1. Simulation front end: the rectified 
+antenna input signal provides a 
+stable voltage, the antenna input is 
+detected to obtain a digital signal, 
+modulate control unit signal for 
+antenna to send, provide clock for 
+control unit.
+2. Control unit: data decode, check, 
+encode, encryption, decryption, 
+anti-collision, read/write control.
+3. Storage unit: tag data carrier
+Simulation
+Unit
+Control
+Unit
+Storage
+Unit
+Tag Chip
+37
+
+===== PAGE 30 =====
+Wake mechanism circuit 
+design
+Rectifier→1V voltage output 
+→Transistor connection
+Rectifier→5mV voltage output
+→Compare with reference voltage
+→Transistor connection
+Antenna
+RF
+signal
+Antenna Match
+Network
+Charge Pump
+Resonant
+Circuit
+Battery
+Supply
+Voltage
+Tag Wake Circuit
+Turn-on circuit for the active UHF tag
+38
+
+===== PAGE 31 =====
+Main methods of  tag manufacture :
+Coil winding, chemical etching, printing
+Manufacture process:
+Antenna produce and chip assembly
+Antenna
+Production 
+Process
+Chip
+Assembly
+Flip chip technology
+Fast solid state conductive adhesive dispensing 
+technology
+Copper foil/
+Aluminum foil
+PET
+Substrate
+Lamination Printing
+Resist ink Etching Antenna
+Antenna
+substrate
+Printing
+Conductive ink Curing ink Antenna
+Antenna
+substrate
+Printing
+Conductive inkCuring ink AntennaPlating
+Thickening
+Etching antenna
+manufacture process
+Printing antenna
+manufacture process
+Planting antenna
+manufacture process
+Tag Manufacturing Process
+39
+
+===== PAGE 32 =====
+Two methods of  antenna production process:
+o Chemical etching: is an established technology used for the 
+realization of  printed electronic circuit boards. 
+o Conductive ink printing: is the process based on 
+flexographic equipment, in which the antennas can be printed 
+on a polymer roll in a single step with no need for masking. 
+Copper foil/
+Aluminum foil
+PET
+Substrate
+Lamination Printing
+Resist ink Etching Antenna
+Antenna
+substrate
+Printing
+Conductive ink Curing ink Antenna
+Antenna
+substrate
+Printing
+Conductive inkCuring ink AntennaPlating
+Thickening
+Etching antenna
+manufacture process
+Printing antenna
+manufacture process
+Planting antenna
+manufacture process
+Antenna Production Process
+40
+
+===== PAGE 33 =====
+Chip Assembly
+o Major challenge in assembling: small size of the chip itself, the need for 
+low temperature attachment and the required throughput capacity. 
+1. Standard flip-chip technology: attaches the chip to the antenna roll using 
+standard flip-chip technology and dispensing fast curing conductive 
+adhesive at high speed using pick-and-place (PnP) equipment.
+✓ quite simple, capable of attaching about 10,000 components per hour, equivalent to 
+about 70 million tags per year. 
+2. Strap attach: attaches the chip to a polymeric carrier film in roll form at high 
+density and high velocity using roll-to-roll equipment. 
+▪ This polymeric carrier has previously been prepared with small caves on the surface to 
+receive the chip, which corresponds to large conductive pads. 
+▪ Once this step is completed, it is possible to couple the roll containing the straps with 
+the roll containing the antennas and accomplish the final assembly by using dispensed 
+adhesive. 
+▪ Due to the different density and location of the chip on the strap carrier, each strap 
+needs to be singulated before attachment. 
+o Advantage of strap attach: possibility to assemble chips at a very high velocity. 
+o Disadvantage: is that the process consists of two-step phases and that the 
+singulation of the strap causes a reduction in the speed of the process. 
+41
+
+===== PAGE 34 =====
+Example of Tags
+42
+Example of 
+active tags: RF 
+code Mantis tag
+Example of passive tag 
+– Intermec Butterfly 
+RFID tag
+
+===== PAGE 35 =====
+Multiple Tag Operation (Cont’D)
+o When containers or freight are moved on a 
+conveyor or similar equipment in a tag 
+reader system, the reader/writer must read 
+and write data to and from moving tags. 
+o For successful access, the following 
+conditions must be satisfied: 
+𝑇𝑐 =  𝐴𝑐𝑛
+𝐷𝑡
+𝐷𝑟
+𝐴𝑐𝑛 [count] = average number of tag-
+reader/writer operations
+o This formula shows that when the data 
+transfer volume of the tag (𝐷𝑡 in bps) 
+increases, and the data transfer rate (𝐷𝑟 in 
+bps) decreases, the tag-reader/writer 
+operation time (𝑇𝑐 in seconds) increases, 
+and operation may fail. 
+44
+
+===== PAGE 36 =====
+Multiple Tag Operation (Cont’D)
+o When the reader/writer operating area decreases, 
+the distance the tag moves (𝐿 in m) decreases, 
+and the tag movement velocity (Vtag in 
+m/second) increases, the amount of time the 
+tag is in the operating area (𝑇𝑟 in seconds) 
+decreases, and the operation may fail.
+𝑇𝑟 = 𝐿
+𝑉𝑡𝑎𝑔
+o The total amount of time spent in the operating 
+area must be more than the total time taken by 
+the reader/writer and the detection of all tags. 
+𝑇𝑟 ≥ 𝑇𝑐 + 𝑇𝑑
+o If only one type of tag can be used when 
+reading/writing RFID tags attached to freight on 
+a conveyor belt, the reader/writer antenna must 
+have a large operating area to cope with the 
+conveyor belt’s speed.
+45
+
+===== PAGE 37 =====
+Multiple Tag Operation (Cont’D)
+o In a multiple-tag operation, the reader/writer 
+must detect the presence of these multiple 
+tags and read/write each of them 
+consecutively.
+o This operating method is generally referred 
+to as the anticollision protocol and is 
+different from the single-tag operation 
+protocol. 
+o The operating time of multitag operation is 
+several times longer than for single-tag 
+operation. 
+o The time increases in proportion to the 
+number of tags
+o For 𝑁𝑡𝑎𝑔 in the operating area,, the amount 
+of time for which the tags are in the 
+operating area (𝑇𝑟) is
+𝑇𝑟 ≥ 𝑇𝑐 + 𝑇𝑡𝑎𝑔 𝑁𝑡𝑎𝑔
+46
+
+===== PAGE 38 =====
+Multiple Tag Operation (Cont’D)
+o In most cases, the tags are moving. The reader/writer will generally have to 
+read/write RFID tags attached to containers or freight being transported 
+on a conveyor belt or trolleys. 
+o When 𝑇𝑐 is the operating time for a single tag, and 𝑇𝑑 is the time required to 
+check for the existence of N multitags in an anticollision protocol, the 
+maximum time required for the reader to read/ write all 𝑁tags (𝑇𝑁) is 
+approximated by: 
+𝑇𝑁  = 𝑇𝑐  + 𝑇𝑑 𝑁𝑡𝑎𝑔
+o Exp: Tag information volume= 16 bytes; Data transfer rate (Dr)= 7.8 kbps; 
+𝑇𝑐 =  0.057 𝑠𝑒𝑐𝑜𝑛𝑑; 𝑇𝑑 =  0.055 𝑠𝑒𝑐𝑜𝑛𝑑; N = 10;
+𝑇𝑁  =  (0.057 +  0.055) ×  10 =  1.12 𝑠𝑒𝑐𝑜𝑛𝑑𝑠
+o Roughly 1.1 seconds are needed for the reader/writer to finish 
+reading/writing all 10 tags. 
+o If tag information volume is 100 bytes, 𝑇𝑁 becomes roughly 7 seconds. 
+o For the reader/writer to read/write all the tags, 
+𝑇𝑟 ≥ 𝑇𝑁
+47
+
+===== PAGE 39 =====
+Overlapping Tags
+o In inductive frequency band RFID, the 
+resonance characteristic of the tag antenna coil 
+is used for reader/writer operation. 
+o The tag’s resonant frequency, 𝑓0, is calculated 
+by: 
+𝑓0  = 1
+2𝜋 𝐿𝐶
+ 
+L [H] = inductance of tag antenna coil; 
+C [F] = capacitance of tag’s tuning capacitor. 
+o If tags overlap, the inductance of their antenna 
+coils is obstructed, and L increases. 
+o In this case, the resonant frequency expressed 
+by formula becomes lower (f1 < f0). 
+o As a result, the electromagnetic waves (current 
+i) generated by the tag’s coil become smaller, 
+and the operating area decreases. 
+48
+
+===== PAGE 40 =====
+RFID POWER SOURCES
+49
+
+===== PAGE 41 =====
+RFID Power Sources
+o RFID  tags  need  power  to  sense,  compute,  and  communicate,  which  is  
+further classified  into  three  categories: 
+▪ Storage: batteries,  capacitors.
+▪ Energy harvesting mechanisms: vibrations/movement, photovoltaic, 
+thermal gradient, and so on.
+▪ Energy transfer: inductive coupling, capacitive coupling, backscatter. 
+o Because many of these devices are expected to operate with minimum 
+of human  intervention,  optimizing  power  consumption  is  a  very  
+important  research area. 
+o RFID tags may derive the energy to operate either from an on-tag 
+battery or by scavenging power from the electromagnetic radiation 
+emitted by tag readers. 
+o Storage  refers to the way devices store power for their operation done 
+either by using batteries or by using capacitors. 
+o Batteries are used when a longer life is required and capacitors are used 
+in applications that require energy bursts for very short durations
+50
+
+===== PAGE 42 =====
+Power Harvesting Systems
+o Power harvesting  (sometimes termed energy scavenging ) is the process of 
+acquiring energy from the surrounding environment (ambient energy) and 
+converting it into usable electrical energy; 
+➢ Exp: the self-winding watch cleverly extracting mechanical energy from the 
+wearer’s arm movements. 
+o The energy transfer is the way by which passive RF devices are powered. 
+1. Inductive coupling: is the transfer of energy between two electronic circuits 
+due to the mutual inductance between the two circuits. 
+2. Capacitive coupling: is the transfer of energy between two circuits due to the 
+mutual capacitance between the two circuits. 
+3. Passive backscattering: is a way of reflecting back the energy from one circuit 
+to another.
+o Passive tag is powered through inductive coupling or far-field energy 
+harvesting.
+51
+
+===== PAGE 43 =====
+Active Power Sources
+o Battery-assisted backscatter tags  have their own power source to preenergize the 
+silicon chip. Lithium  batteries  offer  a  set  of  performance  and  safety  
+characteristics optimal for RFID tag applications. Two  types  of  batteries  that  
+are  most common are:
+1. Primary lithium/manganese  dioxide  (Li-MnO2 ): relatively safe compared to 
+LiSOCL2, does not develop any gas or pressure during battery operation, cannot 
+operate at voltages greater than 3V. 
+▪ At least two Li-MnO2 cells must be connected in series to ensure a proper margin of 
+safety for system reliability.
+▪ This requirement adds weight and cost while potentially decreasing reliability due to 
+increased part count.
+❖ Suited for applications that have relatively high continuous or pulse current requirements. 
+2. Lithium-thionyl  chloride  (Li-SOCL2 ): It has the highest open-circuit voltage of 
+3.6V. 
+▪ For most applications, only one cell of Li-SOCL 2  is required to maintain sufficient 
+operating voltage. 
+❖ Suited for applications that have relatively high continuous or pulse current requirements. 
+52
+
+===== PAGE 44 =====
+Other Power Sources
+o Power generation from the user may alleviate such design restrictions and 
+may enable new products such as batteryless on-body sensors. 
+o Power may be recovered passively  from  body  heat,  arm  motion,  typing,  
+and  walking  or  actively  through user actions such as winding or pedaling. 
+o Nuclear power: revealed as possible source of power for wireless  sensor  and  
+RFID  networks. 
+o It produces huge amount  of  energy: the energy density measured in 
+mWh/mg is 0.3 for a lithiumion battery, 3 for a methanol-based fuel cell, 850 
+for a tritium-based nuclear battery, and 57.000 for a polonium-210 nuclear 
+battery. 
+o The current efficiency of a nuclear battery is around 4%, and current research 
+projects (e.g., as part of the new  DARPA program called Radio-Isotope 
+Micropower Sources) aim at 20%. 
+53
+
+===== PAGE 45 =====
+Other Power Sources
+o A novel power supply for implantable biosensors is near infrared light (NIR)  
+transmission which recharges a lithium secondary battery wirelessly through 
+the skin. 
+o The Sun is a good source of NIR light, and its use requires no other external 
+device to deliver energy to the recharging system. 
+o A photovoltaic cell array and the rectifier using Schottky diodes implanted 
+beneath the skin can receive NIR light through the skin and charge the 
+battery that is directly powering an implanted biosensor(s). 
+o In 2008, a U.K.-based consortium of companies has successfully designed and 
+clinically  tested  an  in-body  microgenerator  that  converts  energy  from  
+the  heartbeat  into  power  for  implanted  medical  devices.  
+o The  microgenerator  could  help power  implanted  medical  devices  by  
+augmenting  the  existing  battery  for  devices such as cardiac pacemakers and 
+implanted defibrillators. 
+o In preclinical testing, the microgenerator successfully produced one-third of 
+the energy required to power a conventional cardiac pacemaker.
+54
+
+===== PAGE 46 =====
+School of Electronic Engineering and Computer Science
+Thank You
+Dr Fatma Benkhelifa
+
