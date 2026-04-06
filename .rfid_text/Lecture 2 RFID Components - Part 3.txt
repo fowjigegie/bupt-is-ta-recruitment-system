@@ -1,0 +1,366 @@
+TITLE: Lecture 2 RFID Components - Part 3.pdf
+PAGES: 28
+
+===== PAGE 1 =====
+School of Electronic Engineering and Computer Science
+EBU6408 Sensors and Radio Frequency Identification (RFID)
+Lecture 2: RFID Components
+Part 3: Software Components
+Dr Fatma Benkhelifa
+PhD, Lecturer (Assistant Professor), SIEEE, Editor of IEEE Communications Letters
+e-mail: f.benkhelifa@qmul.ac.uk
+website: Fatma Benkhelifa - EECS (qmul.ac.uk)
+
+
+===== PAGE 2 =====
+Textbooks
+Bill Glover and Himanshu 
+Bhatt, “RFID Essentials”, 
+O’Reilly Media Inc, 2006.
+Harvey Lehpamer, “RFID 
+Design Principles”, Artech 
+House, 2012.
+2
+QMUL Library link
+QMUL Library link
+QMUL Library link
+Klaus Finkenzeller, “RFID 
+Handbook”, Wiley, Third 
+Edition, 2010.
+PDF File
+
+===== PAGE 3 =====
+Evaluation Rules???
+o Two class tests:
+▪ Test 1: Covering the material delivered in the first half o module (5%)
+▪ Test 2: covering the material delivered in the second half of module (10%) 
+▪ Allowed: : Handwriting double-faced A4-sized cheating sheet 
+o Coursework: Work in groups of 4/5 students. 
+❑ Lab 1: Introduction to Arduino (Bonus Mark)
+✓ Submission of written report on hardware design and programming code.
+❑ Lab 2: RFID projects using Arduino kits (5%)
+✓ Submission of written report on hardware design and programming code and 5-min video 
+demonstration
+❑ Mini-project: using practical knowledge from labs and chatbot support (10%)
+✓ Submission of written report on hardware design and programming code and 10-min video 
+demonstration
+o Final exam: covering all teaching weeks (70%)
+▪ Allowed: Handwriting double-faced A4-sized cheating sheet
+o A couple of QM+ online quizzes on teaching lectures (Bonus Mark)
+3
+
+===== PAGE 4 =====
+Module Activities
+4
+Week 1
+• Starting 30 March
+• Lectures 1-2
+• Tutorial 1: last 45 mins
+Week 2
+• Starting 6 April
+• Lectures 3-4
+• Tutorial 2: last 45 mins
+• Class Test 1 (Date TBD)
+Week 3
+• Starting 11 May
+• Lectures 5-6
+• Tutorial 3: last 45 mins
+Week 4
+• Starting 18 May
+• Lectures 7-8
+• Tutorial 4: : last 45 mins
+• Mock Exam
+• Class Test 2 (Date TBD) 
+• Labs (Arduino):
+➢ Two lab sessions will take place in 
+between the teaching weeks. 
+➢ Work in groups (4/5 students) to 
+share the hardware
+➢ Assignment submission deadlines: 
+usually after lab session.
+➢ Mini-project due at the end of the 
+term.
+• Exact dates will be confirmed later on.
+QM+ Quizzes will take place during term 
+time for bonus marks
+
+===== PAGE 5 =====
+Module Content
+5
+Week 1
+Week 2
+Week 3
+Week 4
+LecturesParts Teaching Weeks
+I. RFID Basics
+II. 
+Transmission 
+Modes
+III. Protocol
+IV. System 
+Design
+V. Application 
+& Practice
+Lecture 1: RFID Introduction and Overview
+Lecture 2: RFID System Components
+Lecture 3: Wireless Communication principle
+Lecture 5: RFID Anti-Collision Protocols
+Lecture 4: Checksum, Coding and Modulation
+Lecture 6: EPCGlobal Standard
+Lecture 7: Key factors of system design
+Lecture 9: Testing and analysis (self-study)
+Lecture 8: Application pattern of RFID
+Test 1
+Test 2
+
+
+===== PAGE 6 =====
+Recap
+In last session, we learnt about:
+❖ What is an RFID
+❖ Types of automatic identification technology
+❖ Main features of RFID
+❖ Core technology of RFID
+❖ Brief History of RFID
+❖ Development trends of RFID
+❖ RFID and Internet of Things
+6
+
+===== PAGE 7 =====
+Outline
+❖ Reader
+❖ RFID Tag
+❖ Software System Components
+7
+RFID system
+Hardware components Software components
+Reader RF Tags
+Signal process 
+and control
+RF
+Module
+Antenna Chip
+
+===== PAGE 8 =====
+Operating Principle of RFID Systems
+o RFID typically consists of
+▪ A computer
+▪ A database
+▪ RFID software
+▪ A reader, which receives signals from the RFID and identifies and processes the 
+information contained in one of more tags
+▪ RFID middleware
+▪ an antenna, used to transmit signals between the reader and the RFID tag.
+▪ An RFID tag (transponders), which contains the data of the element to identify 
+o The different for analysed designations of the tags and readers may vary, 
+depending on applications, contexts, and their hardware and software resources. 
+o The readers are themselves connected to servers for data processing at 
+middleware and application levels is, archiving and traceability
+8
+
+
+===== PAGE 9 =====
+RFID MIDDLEWARE
+Section
+9
+
+===== PAGE 10 =====
+RFID Middleware
+◆ One of  the primary benefits of  using RFID middleware is that it standardizes 
+ways of  dealing with the flood of  information these tiny tags produce. 
+10
+
+
+===== PAGE 11 =====
+Motivations for Using RFID Middleware
+o Three primary motivations for using RFID middleware: 
+1. Providing connectivity with readers (via the reader adapter), 
+2. Processing raw RFID observations for consumption by applications (via the 
+event manager), 
+3. Providing an application-level interface to manage readers and capture filtered 
+RFID events.
+11
+Using RFID middlewareExposing applications directly to RFID readers
+
+===== PAGE 12 =====
+SOFTWARE SYSTEM 
+COMPONENT (SELF-STUDY)
+12
+
+===== PAGE 13 =====
+The software components are the soul of  RFID 
+system.
+To make readers have a direct experience of  
+developing RFID, the commercial reader 
+software interface will be introduced.
+Overview
+Workflow
+Alien RFID Java 
+middleware
+Reader use 
+examples
+Software System Component
+13
+
+===== PAGE 14 =====
+This part will introduce the software components of  RFID system, 
+especially middleware components.
+Take UHF commercial reader of  Alien Technology for example.
+Content:
+The reader’s initialization configuration of   the  installation process, 
+tag mask set, the realization of  independent work, the realization of  
+interactive work, the storage structure and the wake-up methods.
+Overview
+14
+
+===== PAGE 15 =====
+RFID系统的软件组成是RFID系统的
+“灵魂”。
+为了使读者对开发RFID系统有直接
+的体会，本章结合商用阅读器的软
+件接口进行介绍。
+Work Process
+15
+
+===== PAGE 16 =====
+Organizational structure
+Include 5 package: reader, tags, discovery, 
+notify, util
+Reader’s connection
+AlienClass1Reader class create object to 
+control, with COM or network:
+Alien RFID Java middleware
+16
+
+===== PAGE 17 =====
+Open or close connection
+Send operational command to reader
+Through reader object’s doReaderCommand
+reader.open();
+reader.isOpen();
+reader.close();
+Tag [] tagList = reader.getTagList();
+Alien RFID Java middleware
+17
+
+===== PAGE 18 =====
+Tag info class
+Search available reader
+Serial service listener class:
+SerialDiscoveryListenerService
+Network service listener class:
+NetworkDiscoveryListenerService
+Through getTagList function of reader object
+Tag[] tagList = reader.getTagList();
+public String getTagID();//return tag ID
+public int getRSSI();//return signal strength
+Alien RFID Java middleware
+18
+
+===== PAGE 19 =====
+Work mode of  interactive and independent
+Interactive mode: Readers see each command from host as a 
+single task, execute by order and return result immediately.
+Alien RFID Java middleware
+19
+
+===== PAGE 20 =====
+Tag Storage Structure
+Typical tag storage structure of  EPC  Class1  
+Generation2
+Tag Mask
+Set mask
+e.g. only visit tags start with ID=“80000040”
+Set mask = 32, 0, 80 00 00 40
+Alien RFID Java middleware
+20
+
+===== PAGE 21 =====
+Connect reader by serial port
+Through AlienReaderClass1Reader class
+e.g. connect through COM1
+Reader Operation Full Example
+21
+Import Required Packages for 
+Reader and Tag Handling
+Create a reader instance and set the 
+connection port (COM1)
+Open the reader connection to 
+establish communication
+
+===== PAGE 22 =====
+Connect reader by serial port
+Reader Operation Full Example
+22
+Retrieve the tag list from the reader
+Check if any tags tags were found
+If tags exist,, iterate through them 
+and print details such as:
+Tag ID
+Discovery time (when it was first 
+detected)
+Last seen time
+Antenna number
+Total read count
+Closing reader connection
+
+===== PAGE 23 =====
+Connect reader by serial port
+Reader Operation Full Example
+23
+Try-Catch block for exception handling
+Handle and display errors if one 
+occurs
+Create a new AlienClass1ReaderTest instance, 
+which established a connection to the RFID 
+reader
+
+===== PAGE 24 =====
+Reader independent work mode
+According to MessageListener messageReceived
+Reader Operation Full Example
+24
+Import necessary enterprise RFID libraries to 
+handle the reader communication, tag 
+processing, and event notifications
+Define the message listener class
+Set up the message listener service on port 
+4000, reader to process tag read events
+Connect to RFID reader: create a new 
+AlienClass1Reader instance and configure it 
+via serial port (COM1).
+Configure how the reader reports tag 
+information
+The reader sends tag updates every second 
+and exit independent mode after 10 seconds
+
+===== PAGE 25 =====
+Reader independent work mode
+Reader Operation Full Example
+25
+Enable independent work mode
+
+===== PAGE 26 =====
+Reader independent work mode
+Reader Operation Full Example
+26
+Print tag information
+Create test class object
+
+===== PAGE 27 =====
+RFID system
+Hardware components Software components
+Reader RF Tags
+Signal process 
+and control
+RF
+Module
+Antenna Chip
+RFID System Component Principle Sum Up
+27
+
+===== PAGE 28 =====
+School of Electronic Engineering and Computer Science
+Thank You
+Dr Fatma Benkhelifa
+

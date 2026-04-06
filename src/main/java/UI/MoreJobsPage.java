@@ -78,8 +78,21 @@ public class MoreJobsPage extends Application {
         sortButton.setStyle("-fx-background-color: #f8d7e9; -fx-background-radius: 22; -fx-text-fill: #2f3553; -fx-font-weight: bold; -fx-font-size: 14px;");
         searchBar.getChildren().addAll(searchIcon, divider, resultLabel, searchSpacer, sortButton);
 
-        TextField keywordField = createFilterField("Search title, module, skill, organiser, or job ID");
+        TextField keywordField = createFilterField("Search title, module, skill, organiser, MO name, or job ID");
         HBox.setHgrow(keywordField, Priority.ALWAYS);
+
+        ComboBox<String> moduleFilter = createFilterComboBox(190, "All modules");
+        moduleFilter.getItems().addAll(JobBrowseFilter.collectUniqueModules(jobs));
+        moduleFilter.getSelectionModel().selectFirst();
+
+        ComboBox<String> activityFilter = createFilterComboBox(190, "All activity types");
+        activityFilter.getItems().addAll(
+            "Lab session",
+            "Tutorial",
+            "Assignment / marking",
+            "Project / development"
+        );
+        activityFilter.getSelectionModel().selectFirst();
 
         ComboBox<String> skillFilter = createFilterComboBox(210, "All skills");
         skillFilter.getItems().addAll(JobBrowseFilter.collectUniqueSkills(jobs));
@@ -89,10 +102,34 @@ public class MoreJobsPage extends Application {
         organiserFilter.getItems().addAll(JobBrowseFilter.collectUniqueOrganisers(jobs));
         organiserFilter.getSelectionModel().selectFirst();
 
+        ComboBox<String> timeSlotFilter = createFilterComboBox(170, "Any time");
+        timeSlotFilter.getItems().addAll(
+            "MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN",
+            "Morning", "Afternoon", "Evening"
+        );
+        timeSlotFilter.getSelectionModel().selectFirst();
+
         Button resetButton = UiTheme.createOutlineButton("Reset filters", 150, 44);
 
-        HBox filterRow = new HBox(12, keywordField, skillFilter, organiserFilter, resetButton);
+        HBox searchRow = new HBox(12, keywordField, resetButton);
+        searchRow.setAlignment(Pos.CENTER_LEFT);
+
+        HBox filterRow = new HBox(12, moduleFilter, activityFilter, skillFilter, organiserFilter, timeSlotFilter);
         filterRow.setAlignment(Pos.CENTER_LEFT);
+
+        VBox filterPanel = new VBox(12, searchRow, filterRow);
+        filterPanel.setPadding(new Insets(14, 16, 14, 16));
+        filterPanel.setBackground(new Background(new BackgroundFill(
+            Color.web("#fffafd"),
+            new CornerRadii(18),
+            Insets.EMPTY
+        )));
+        filterPanel.setBorder(new Border(new BorderStroke(
+            Color.web("#f0d9e9"),
+            BorderStrokeStyle.SOLID,
+            new CornerRadii(18),
+            new BorderWidths(1.2)
+        )));
 
         VBox jobsList = new VBox(16);
         ScrollPane jobsScroll = new ScrollPane(jobsList);
@@ -113,7 +150,13 @@ public class MoreJobsPage extends Application {
                 keywordField.getText(),
                 skillFilter.getValue(),
                 organiserFilter.getValue(),
-                sortNewestFirst[0]
+                moduleFilter.getValue(),
+                activityFilter.getValue(),
+                timeSlotFilter.getValue(),
+                sortNewestFirst[0],
+                organiserId -> context.services().userRepository().findByUserId(organiserId)
+                    .map(account -> account.displayName())
+                    .orElse("")
             );
             long openJobs = jobs.stream().filter(job -> job.status() == JobStatus.OPEN).count();
             resultLabel.setText("Showing " + sortedJobs.size() + " of " + openJobs + " OPEN jobs");
@@ -123,7 +166,7 @@ public class MoreJobsPage extends Application {
                 jobsList.getChildren().add(
                     UiTheme.createWhiteCard(
                         "No matching jobs",
-                        "Try changing the keyword, skill filter, or organiser filter."
+                        "Try changing the keyword, module, activity, skill, organiser, or time filters."
                     )
                 );
                 return;
@@ -136,8 +179,11 @@ public class MoreJobsPage extends Application {
 
         resetButton.setOnAction(event -> {
             keywordField.clear();
+            moduleFilter.getSelectionModel().selectFirst();
+            activityFilter.getSelectionModel().selectFirst();
             skillFilter.getSelectionModel().selectFirst();
             organiserFilter.getSelectionModel().selectFirst();
+            timeSlotFilter.getSelectionModel().selectFirst();
             refreshJobsView[0].run();
         });
 
@@ -153,10 +199,19 @@ public class MoreJobsPage extends Application {
         keywordField.textProperty().addListener((obs, oldValue, newValue) -> {
             refreshJobsView[0].run();
         });
+        moduleFilter.valueProperty().addListener((obs, oldValue, newValue) -> {
+            refreshJobsView[0].run();
+        });
+        activityFilter.valueProperty().addListener((obs, oldValue, newValue) -> {
+            refreshJobsView[0].run();
+        });
         skillFilter.valueProperty().addListener((obs, oldValue, newValue) -> {
             refreshJobsView[0].run();
         });
         organiserFilter.valueProperty().addListener((obs, oldValue, newValue) -> {
+            refreshJobsView[0].run();
+        });
+        timeSlotFilter.valueProperty().addListener((obs, oldValue, newValue) -> {
             refreshJobsView[0].run();
         });
 
@@ -168,7 +223,7 @@ public class MoreJobsPage extends Application {
         center.getChildren().addAll(
             UiTheme.createPageHeading("More jobs"),
             searchBar,
-            filterRow,
+            filterPanel,
             jobsScroll,
             footer
         );

@@ -1,0 +1,665 @@
+TITLE: Lecture 2 RFID Components - Part 1.pdf
+PAGES: 41
+
+===== PAGE 1 =====
+School of Electronic Engineering and Computer Science
+EBU6408 Sensors and Radio Frequency Identification (RFID)
+Lecture 2: 
+RFID Components
+Part 1: Readers
+Dr Fatma Benkhelifa
+PhD, Lecturer (Assistant Professor), SIEEE, Editor of IEEE Communications Letters
+e-mail: f.benkhelifa@qmul.ac.uk
+website: Fatma Benkhelifa - EECS (qmul.ac.uk)
+
+
+===== PAGE 2 =====
+Textbooks
+Bill Glover and Himanshu
+Bhatt, “RFID Essentials”,
+O’Reilly Media Inc, 2006.
+Harvey Lehpamer, “RFID
+Design Principles”, Artech
+House, 2012.
+2
+QMUL Library link
+QMUL Library link
+QMUL Library link
+Klaus Finkenzeller, “RFID 
+Handbook”, Wiley, Third 
+Edition, 2010.
+PDF File
+
+===== PAGE 3 =====
+Evaluation Rules???
+o Two class tests:
+▪ Test 1: Covering the material delivered in the first half o module (5%)
+▪ Test 2: covering the material delivered in the second half of module (10%) 
+▪ Allowed: : Handwriting double-faced A4-sized cheating sheet 
+o Coursework: Work in groups of 4/5 students. 
+❑ Lab 1: Introduction to Arduino (Bonus Mark)
+✓ Submission of written report on hardware design and programming code.
+❑ Lab 2: RFID projects using Arduino kits (5%)
+✓ Submission of written report on hardware design and programming code and 5-min video 
+demonstration
+❑ Mini-project: using practical knowledge from labs and chatbot support (10%)
+✓ Submission of written report on hardware design and programming code and 10-min video 
+demonstration
+o Final exam: covering all teaching weeks (70%)
+▪ Allowed: Handwriting double-faced A4-sized cheating sheet
+o A couple of QM+ online quizzes on teaching lectures (Bonus Mark)
+3
+
+===== PAGE 4 =====
+Module Activities
+4
+Week 1
+• Starting 30 March
+• Lectures 1-2
+• Tutorial 1: last 45 mins
+Week 2
+• Starting 6 April
+• Lectures 3-4
+• Tutorial 2: last 45 mins
+• Class Test 1 (Date TBD)
+Week 3
+• Starting 11 May
+• Lectures 5-6
+• Tutorial 3: last 45 mins
+Week 4
+• Starting 18 May
+• Lectures 7-8
+• Tutorial 4: : last 45 mins
+• Mock Exam
+• Class Test 2 (Date TBD) 
+• Labs (Arduino):
+➢ Two lab sessions will take place in 
+between the teaching weeks. 
+➢ Work in groups (4/5 students) to 
+share the hardware
+➢ Assignment submission deadlines: 
+usually after lab session.
+➢ Mini-project due at the end of the 
+term.
+• Exact dates will be confirmed later on.
+QM+ Quizzes will take place during term 
+time for bonus marks
+
+===== PAGE 5 =====
+Module Content
+5
+Week 1
+Week 2
+Week 3
+Week 4
+LecturesParts Teaching Weeks
+I. RFID Basics
+II. 
+Transmission 
+Modes
+III. Protocol
+IV. System 
+Design
+V. Application 
+& Practice
+Lecture 1: RFID Introduction and Overview
+Lecture 2: RFID System Components
+Lecture 3: Wireless Communication principle
+Lecture 5: RFID Anti-Collision Protocols
+Lecture 4: Checksum, Coding and Modulation
+Lecture 6: EPCGlobal Standard
+Lecture 7: Key factors of system design
+Lecture 9: Testing and analysis (self-study)
+Lecture 8: Application pattern of RFID
+Test 1
+Test 2
+
+
+===== PAGE 6 =====
+Recap
+In last session, we learnt about:
+❖ What is an RFID
+❖ Types of automatic identification technology
+❖ Main features of RFID
+❖ Core technology of RFID
+❖ Brief History of RFID
+❖ Development trends of RFID
+❖ RFID and Internet of Things
+6
+
+===== PAGE 7 =====
+Outline
+❖ Reader
+❖ RFID Tag
+❖ Software System Components
+7
+RFID system
+Hardware components Software components
+Reader RF Tags
+Signal process 
+and control
+RF
+Module
+Antenna Chip
+
+===== PAGE 8 =====
+RFID SYSTEM COMPONENTS
+Section 
+8
+
+===== PAGE 9 =====
+What Makes Up an RFID System?
+o RFID systems are comprised of several key components:
+➢ RFID Reader: The device that communicates with the RFID tag, sends 
+interrogation signals, and receives data.
+➢ RFID Tags: Devices that store and transmit information to the reader. Tags can 
+be active, passive, or semi-passive.
+➢ Antenna: Both the reader and the tag contain antennas for signal transmission and 
+reception.
+➢ Middleware: Software used to process data between the RFID system and 
+enterprise applications.
+o Each component plays a unique role in enabling RFID functionality and 
+communication.
+9
+
+===== PAGE 10 =====
+Operating Principle of RFID Systems
+o RFID typically consists of
+▪ A computer
+▪ A database
+▪ RFID software
+▪ A reader, which receives signals from the RFID and identifies and processes the 
+information contained in one of more tags
+▪ RFID middleware
+▪ an antenna, used to transmit signals between the reader and the RFID tag.
+▪ An RFID tag (transponders), which contains the data of the element to identify 
+o The different for analysed designations of the tags and readers may vary, 
+depending on applications, contexts, and their hardware and software resources. 
+o The readers are themselves connected to servers for data processing at 
+middleware and application levels is, archiving and traceability
+10
+
+
+===== PAGE 11 =====
+Typical RFID Components in Retail Store
+11
+
+
+===== PAGE 12 =====
+RFID READER
+12
+
+===== PAGE 13 =====
+Readers
+◆ RFID readers, also called interrogators, are 
+used to recognize the presence of nearby 
+RFID tags. 
+◆ An RFID reader transmits RF energy 
+through one or more antennas.
+◆ An antenna in a nearby tag picks up this 
+energy, and the tag then converts it into 
+electrical energy via induction. 
+◆ This electrical energy is sufficient to power 
+the semiconductor chip attached to the tag 
+antenna, which stores the tag’s identity. 
+◆ The tag then sends the identity back to the 
+reader by raising and lowering the resistance 
+of the antenna in a kind of Morse code. 
+13
+
+===== PAGE 14 =====
+Reader, a significant part of  hardware 
+components in RFID system, will be introduced 
+via the following six parts:
+Reader’s Function
+Reader’s 
+Classification
+Reader’s Operation 
+Specifications
+Reader’s
+Components
+Signal Processing 
+and Control Module
+Radio Frequency
+Module
+RFID Reader
+14
+
+===== PAGE 15 =====
+Reader’s Function
+15
+A reader provides energy for 
+RFID tags’ work.
+Energy Supply Communication
+Communication between reader and tag;
+Communication between reader and 
+application layer (middleware)
+Security Assurance
+Security assurance in 
+communication, such as 
+encryption and decryption
+o As the bridge connecting the application layer (middleware) 
+and RFID tags, the reader plays a significant role. 
+o Generally, in RFID system the functions provided by a 
+reader are usually summarized as follows:
+Ad-hoc networking ability
+Multiple antenna management
+Interface of  middle components
+Connecting peripherals
+…
+
+===== PAGE 16 =====
+RFID system’s working principle is related to the frequency of  
+RF signals it used.
+The higher the work frequency, the further the identification 
+range, the higher the data transferring speed, the faster the signal 
+attenuation, the more sensitive to obstacles.
+LF and HF readers, work at distance 
+<1m, typical work frequencies: 
+125kHz, 135kHz, 6.78MHz, 
+13.56MHz and 27.125MHz
+UHF (Ultra High Frequency) and SHF 
+(Super High Frequency) readers, work at 
+distance >1m, typical work frequencies: 
+433MHz, 860MHz~960MHz, 2.45GHz
+and 5.8GHz
+Reader Classifications: By Operating Frequency
+16
+
+
+===== PAGE 17 =====
+RF Frequency Table
+17
+
+
+===== PAGE 18 =====
+Reader Classifications: By Operating Frequency ( Cont’D)
+◆ UHF passive Readers
+18
+Parallax world tag
+Avery Dennison AD-236u7 
+(performs across the 860 to 960 
+MHz frequency)
+
+===== PAGE 19 =====
+In practice, taking reader’s cost and portability into consideration, the 
+appearance of  a reader varies a lot, thus divided into the following 3 
+types:
+Fixed Portable Industrial
+Wired charging
+Highly integrated
+Fast set up
+Small volume
+Battery charging
+Easy to move
+Industrial related
+Capable of  integrating 
+other sensors
+Reader Classifications: By Appearance
+19
+
+===== PAGE 20 =====
+To make reader’s performance meets the requirements 
+of  the application, certain operational specifications 
+should be followed while using the reader.
+o R&W range (read out and write in range) is one of  the key 
+performance metrics that affect the scope of  reader 
+applications. 
+o Influencing factors:
+▪ The way that antenna is coupled
+▪ The output power of  the reader’s RF signal
+▪ The frequency of  RF carrier signal
+Reader’s Operational Specifications
+20
+
+===== PAGE 21 =====
+o Antenna direction
+o When the polarization direction of  the reader 
+antenna and tag antenna match, the recognition 
+range becomes maximum. In practice, mismatch is 
+unavoidable, where measures as followed can be 
+applied:
+▪ Change the direction of  the reader antenna
+▪ Use multiple redundant antennas
+▪ Increase the power of  the reader antenna
+▪ Increase sampling rate of  the reader antenna
+▪ Use a ring polarized reader antenna
+o Operation environment condition (metal interference, 
+electronic noise, multi-tag, multi-reader, etc.)
+o Movement speed of  tags
+Reader’s Operational Specifications (Cont’D)
+21
+
+===== PAGE 22 =====
+Among all operational specifications, here are several 
+aspects that should be paying much more attention:
+Work Frequency
+Anti-collision
+Flexibility of
+RFID Protocols
+Country (District) 
+Radio Management 
+Specification
+Network 
+Communication 
+Protocol
+Multiple 
+Antenna 
+Support
+Middleware 
+Interface
+Reader’s Operational Specifications (Cont’D)
+22
+
+===== PAGE 23 =====
+o Work frequency
+▪ Work frequency ↑, data transfer speed ↑, work range ↑.
+▪ LF system using 125kHz: no more than 400b/s
+▪ Systems with data transfer speed over 100Kb/s need 
+UHF/microwave
+o Anti-collision performance
+▪ The system’s effective data transfer rate in scenario with multiple 
+RF tags reading and writing
+o Flexibility of RFID protocols
+▪ Communication protocol: universal protocol (ISO18000-6C, 
+EPCglobal Class1 Generation2, etc.) or exclusive protocol
+o Country (district) radio management specification
+▪ USA UHF RFID bandwidth range: 902MHz-930MHz
+▪ China UHF RFID bandwidth range:840MHz-845MHz, 920MHz-
+925MHz
+▪ Maximum transmit power requirements
+Reader’s Operational Specifications (Cont’D)
+23
+
+===== PAGE 24 =====
+o Communication protocols
+▪ Communication interface between reader and computer 
+network system (TCP/IP , 802.11, Ethernet, RS485, etc.)
+o Multiple antenna support ability
+▪ Whether to support multiple antennas for one reader
+o Middleware interface
+▪ Stable performance, easy to use
+o Connect external sensor nodes and control circuits
+▪ Combine RFID and sensor networks
+▪ Use PLC (programmable logic controller) to perform entry 
+management for warehouses
+Reader’s Operational Specifications (Cont’D)
+24
+
+===== PAGE 25 =====
+RFID Reader Block Diagram
+25
+Known as baseband control module, 
+includes: 1) Microprocessor to perform 
+computing tasks, 2) Digital signal 
+processing chip to encode and decode 
+digital signal
+Known as high frequency interface module, 
+includes separate channels: 1) Transmitter 
+signal channel and  2) Receiver signal channel
+
+
+===== PAGE 26 =====
+Signal Processing and Control Module
+26
+Communicate with upper computer, 
+and execute command from it
+Control communication process 
+with tags
+Encode and decode signal
+Perform anti-collision algorithm
+Encrypt and decrypt the data 
+transferred between reader and tag
+Identity certification between 
+reader and tag
+
+
+===== PAGE 27 =====
+RF Module
+27
+2 Types
+o Inductively Coupled RF Modules: Ideal for short-range applications, using 
+magnetic fields for communication.
+o Electromagnetic Backscatter Coupled RF Module: Suitable for longer 
+ranges, leveraging reflected signals for data transfer.
+
+===== PAGE 28 =====
+RF Interface
+o The reader’s RF interface performs the following functions: 
+➢ generation of high-frequency transmission power to activate the transponder and 
+supply it with power; 
+➢ modulation of the transmission signal to send data to the transponder; 
+➢ reception and demodulation of RF signals transmitted by a transponder. 
+o The RF interface contains two separate signal paths to correspond with the two 
+directions of data flow from and to the transponder.
+➢ Data transmitted to the transponder travels through the transmitter arm.
+➢ Conversely, data received from the transponder is processed in the receiver arm. 
+28
+
+===== PAGE 29 =====
+Near-distance LF, HF RFID systems 
+work via inductive couple between 
+reader and RF tag. 
+Tags in this working way are usually 
+passive, while gaining energy through 
+inductive couple.
+While sending data to RF tags, a reader 
+can apply various digital modulation 
+technologies.
+While sending data to a reader, RF tags 
+usually use load modulation technology,
+transferring voltage variation in antenna 
+coil of  RF tag to the reader antenna.
+Magnetic induction line
+Electronic tag
+antenna coil
+Reader
+antenna coil
+Send 
+Data
+Receive
+Data
+Oscillator Modulator Amplifier
+Amplifier FilterDemodulator
+Antenna
+Interface
+Inductively Coupled RF Modules
+29
+
+===== PAGE 30 =====
+Inductive Coupling
+30
+◆ This system typically operates at Low Frequency (LF: 125–134 kHz) or High 
+Frequency (HF: 13.56 MHz).
+◆ The reader's alternating current generates a magnetic field, which induces a current 
+in the transponder’s coil.
+• Limitations: Works only in close proximity (typically a few centimeters to a meter), 
+depending on the frequency and coil size.
+
+===== PAGE 31 =====
+Real Examples
+31
+Contactless Payment
+Public Transport and Smart Cards Hotel Key Cards 
+& Access Control
+Animal Microchip Implants
+Library and Book Tracking
+Car RFID-Based 
+Ignition Systems
+
+===== PAGE 32 =====
+o Long-distance UHF RFID system 
+use electromagnetic backscatter 
+coupled principle between reader 
+and RF tags, similar to radar.
+o In the system, to continuously 
+provide energy for RF tags, the 
+reader must continuously send RF 
+signals.
+o The signals sent by reader and 
+returned by tag have the same 
+frequency but different strength.
+o UHF RF modules can be divided 
+into: source module, send 
+module and receive module.
+Electromagnetic Backscatter Coupled RF Module 
+32
+
+===== PAGE 33 =====
+Source Module
+Source module provides Local 
+Oscillator for Send Module and 
+Receive Module.
+Amplified carrier signals are 
+separated into two directions by 
+splitters: to Send/Receive Module.
+Electromagnetic Backscatter Coupled RF Module
+VCO: voltage-controlled oscillator
+33
+
+===== PAGE 34 =====
+Send Module
+Send Module consists of mixer, 
+local oscillator (LO) amplifier, 
+preamplifier, power amplifier and 
+impedance transformation network.
+Linear amplifier
+Signal
+amplifier
+ Mixer
+Carrier and 
+baseband signal 
+mixed modulation
+Power amplifier
+Impedance
+transformation
+network
+Impedance
+matching
+Low-pass filter and 
+harmonic suppressor
+ Circulator
+Electromagnetic Backscatter Coupled RF Module 
+34
+
+===== PAGE 35 =====
+Receive module consists of a linear 
+amplifier, two splitters and two 
+mixers.
+RF tag return 
+weak signal.
+Antenna
+Circulator 
+(3-port microwave 
+device)
+Bandpass filter
+Splitters
+Mixer
+I baseband
+signal output
+Mixer
+Q baseband
+signal output
+Receive Module
+Electromagnetic Backscatter Coupled RF Module 
+35
+
+===== PAGE 36 =====
+Generate high frequency send 
+energy, activate RF tags and provide 
+energy (passive RF tags)
+Modulate signal to send, 
+transferring data to RF tags.
+Receive and demodulate RF signal 
+from RF tags.
+Main Functions of  RF Module
+Electromagnetic Backscatter Coupled RF Module 
+36
+
+===== PAGE 37 =====
+Real Examples
+o Electronic Toll Collection (ETC) Systems
+➢ Example: EZ-Pass (USA), FASTag (India), Telepass (Italy)
+o Supply Chain & Inventory Tracking
+➢ Example: Walmart, Amazon, Zara, and logistics companies using UHF 
+RFID
+o Retail Self-Checkout Systems
+➢ Example: Decathlon stores using UHF RFID for checkout
+o Baggage Handling at Airports
+➢ Example: Delta Airlines, Hong Kong International Airport, Dubai 
+International Airport
+o Race Timing in Marathons & Sports Events
+➢ Example: RFID timing chips in marathons like the Boston Marathon
+o Vehicle Access & Parking Management
+➢ Example: RFID-based gated parking in offices and malls
+o Livestock & Agriculture Management
+➢ Example: RFID ear tags used in cattle tracking (e.g., USDA-approved 
+UHF tags) 
+o Military & Defense Asset Tracking
+➢ Example: U.S. Department of Defense’s RFID-based logistics (SAVI 
+RFID tags)
+37
+
+
+===== PAGE 38 =====
+Reader Antenna
+o The reader antenna establishes a connection between the reader electronics 
+and the electromagnetic wave in the space. 
+▪ HF range: the reader antenna is a coil (like the tag antenna) designed to produce as 
+strong a coupling as possible with the tag antenna. 
+▪ UHF range: reader antennas (like tag antennas) come in a variety of designs. 
+Highly directional, high-gain antennas are used for large read distances. 
+o One advantage of highly directional antennas is that the reader power often 
+has to be emitted only to the spaces in which the tags that are to be read are 
+located. 
+o Generally, the higher the gain, the larger the mechanical design of the antenna 
+will be. It follows, therefore, that highly directional antennas are not used for 
+handheld readers. 
+▪ Antennas typically used for handheld readers include patch antennas, half- wave 
+dipoles, and helix antennas. 
+▪ Larger antenna structures can be used for stationary readers; in the UHF range, 
+they usually take the form of arrays. 
+38
+
+===== PAGE 39 =====
+Reader Antenna (Cont’D)
+o All other things being equal, a high-gain antenna will transmit and receive 
+weaker signals farther than a low-gain antenna. 
+▪ Omnidirectional antennas: such as dipole antennas, will have lower gain than 
+directional antennas because they distribute their power over a wider area. 
+▪ Parabolic antennas: usually have the highest gain of any type of antenna but not 
+really useable in typical RFID applications, except maybe for microwave RFID 
+readers where a long-range and narrow radiation pattern is required. 
+▪ A half-wave dipole antenna: will have a gain of near unity or nearly equal the 
+isotropic antenna. 
+o Reader antennas may have different requirements depending on whether they 
+are fixed, portable, or mobile readers. 
+39
+
+===== PAGE 40 =====
+Selection of Antenna for Handhelds
+o Portable devices: selection of antennas is dominated by size and weight 
+constraints. 
+▪ Read range and polarization are generally less significant than in the case of fixed 
+readers. 
+▪ Efficient use of RF power to maximize battery life is critical. 
+▪ Highly directive antennas are useful to reduce power consumption, but are 
+generally physically large.  
+▪ The fact that handheld reader antennas are small and light constrains the antenna 
+gain. 
+o The gain-size trade-off is important because handheld and portable applications 
+benefit from high antenna gain. 
+▪ Antennas that are less than about 1/4 of a wavelength in all dimensions cannot 
+achieve more than about 4 dBi of gain. 
+▪ Slightly larger antennas allow up to about 6 dBi of gain, but make the reader large. 
+o A narrow antenna beam will improve the ability of the user to locate the tag 
+being read by changing the reader orientation and noting the results. 
+o The narrow beam of a high-gain antenna is often beneficial for a handheld 
+reader, since the user can readily move the beam to cover the area of interest. 
+40
+
+===== PAGE 41 =====
+School of Electronic Engineering and Computer Science
+Thank You
+Dr Fatma Benkhelifa
+
