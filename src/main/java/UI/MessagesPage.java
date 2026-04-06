@@ -305,9 +305,12 @@ public class MessagesPage extends Application {
         threadListBox.getChildren().clear();
 
         if (threads.isEmpty()) {
+            String emptyBody = context.session().role() == UserRole.MO
+                ? "Applicants can start a chat from Job Detail. Each job-specific conversation will appear here."
+                : "Open chat from a job card or Job Detail page to start a conversation with the MO.";
             threadListBox.getChildren().add(UiTheme.createWhiteCard(
                 "No conversations",
-                "Open chat from a job card/detail page to start a conversation."
+                emptyBody
             ));
             selectedThread.set(null);
             conversationTitle.setText("Select a conversation");

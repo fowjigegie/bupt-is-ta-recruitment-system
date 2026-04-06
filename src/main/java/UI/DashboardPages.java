@@ -64,18 +64,26 @@ public class DashboardPages extends Application {
             createBlueDiamond()
         );
 
-        Button invitationButton = UiTheme.createPrimaryButton("Interview\nInvitation", 220, 110);
+        Button invitationButton = UiTheme.createPrimaryButton("Application\nStatus", 220, 110);
         invitationButton.setOnAction(event -> nav.goTo(PageId.INTERVIEW_INVITATION));
 
         Button chatButton = UiTheme.createPrimaryButton("Chat", 220, 110);
-        chatButton.setOnAction(event -> nav.goTo(PageId.MESSAGES));
+        chatButton.setOnAction(event -> {
+            context.services().messageService()
+                .findMostRecentConversationForUser(context.session().userId())
+                .ifPresentOrElse(
+                    conversation -> context.openChatContext(conversation.jobId(), conversation.peerUserId()),
+                    context::clearSelections
+                );
+            nav.goTo(PageId.MESSAGES);
+        });
 
         HBox featureButtons = new HBox(30, invitationButton, createChatBadge(chatButton, unreadMessages));
         featureButtons.setAlignment(Pos.CENTER_LEFT);
 
         HBox statRow = new HBox(20,
             UiTheme.createStatCard("Open jobs", Long.toString(openJobs), "Browse jobs or jump directly into the detailed view."),
-            UiTheme.createStatCard("Unread messages", Long.toString(unreadMessages), "Messages now route to a dedicated page instead of printing logs."),
+            UiTheme.createStatCard("Unread messages", Long.toString(unreadMessages), "Unread badges now update from real job-based conversations."),
             UiTheme.createStatCard("My applications", Long.toString(myApplications), "Withdrawn applications are not counted here.")
         );
 
@@ -167,10 +175,10 @@ public class DashboardPages extends Application {
         courseLabel.setTextFill(Color.web("#4664a8"));
         courseLabel.setPrefWidth(520);
 
-        Label teacherLabel = new Label("MO: " + job.organiserId());
+        Label teacherLabel = new Label("MO: " + context.formatUserLabel(job.organiserId()));
         teacherLabel.setFont(Font.font("Arial", 20));
         teacherLabel.setTextFill(Color.web("#4664a8"));
-        teacherLabel.setPrefWidth(220);
+        teacherLabel.setPrefWidth(320);
 
         Label reasonLabel = UiTheme.createMutedText(String.join(" | ", recommendation.reasons()));
         reasonLabel.setWrapText(true);
@@ -191,13 +199,13 @@ public class DashboardPages extends Application {
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
-        Button chatButton = UiTheme.createSoftButton("Chat with Teacher", 190, 46);
+        Button chatButton = UiTheme.createSoftButton("Chat with MO", 190, 46);
         chatButton.setOnAction(event -> {
             context.openChatContext(job.jobId(), job.organiserId());
             nav.goTo(PageId.MESSAGES);
         });
 
-        Button browseButton = UiTheme.createOutlineButton("More jobs", 140, 46);
+        Button browseButton = UiTheme.createOutlineButton("View details", 140, 46);
         browseButton.setOnAction(event -> {
             context.selectJob(job.jobId());
             nav.goTo(PageId.JOB_DETAIL);

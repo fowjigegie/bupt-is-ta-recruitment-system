@@ -66,6 +66,13 @@ public final class US08SmokeTest {
             InquiryMessage newMessage = messageService.sendMessage("job101", "mo101", "ta101", "Follow-up");
             assertEquals("job101", newMessage.jobId(), "Message should keep job context.");
             assertEquals(1L, messageService.countUnreadMessagesForUser("ta101"), "Newly sent message should increment ta101 unread count.");
+            assertEquals(
+                "job101|mo101",
+                messageService.findMostRecentConversationForUser("ta101")
+                    .map(reference -> reference.jobId() + "|" + reference.peerUserId())
+                    .orElseThrow(() -> new IllegalStateException("Expected recent conversation for ta101.")),
+                "Most recent conversation should preserve job and peer context."
+            );
 
             System.out.println("US08 smoke test passed.");
             System.out.println("Temp data directory: " + tempDataDirectory);

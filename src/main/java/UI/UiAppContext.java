@@ -51,6 +51,20 @@ public final class UiAppContext {
         return services;
     }
 
+    public String displayNameForUser(String userId) {
+        return services.userRepository().findByUserId(userId)
+            .map(UserAccount::displayName)
+            .orElse(userId);
+    }
+
+    public String formatUserLabel(String userId) {
+        String displayName = displayNameForUser(userId);
+        if (displayName.equals(userId)) {
+            return userId;
+        }
+        return displayName + " (" + userId + ")";
+    }
+
     public void signIn(UserAccount account) {
         sessionState.setCurrentUser(account);
     }

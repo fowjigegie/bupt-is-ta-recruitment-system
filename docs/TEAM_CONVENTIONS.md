@@ -20,6 +20,7 @@ If a change affects shared fields, statuses, IDs, storage format, login flow, or
 - Current starter uses plain Java 21.
 - The project does not depend on Maven, a database, or heavy frameworks.
 - Data is stored in UTF-8 text files under `data/`.
+- The current integrated demo UI is JavaFX-based and lives under `src/main/java/UI/`.
 - This matches the coursework requirement of either a stand-alone Java application or a lightweight Servlet/JSP application using simple text-file storage.
 - The current scaffold is a stand-alone Java starter with separated business modules so the team can keep it as stand-alone or later add a Servlet/JSP UI layer without rewriting the core business modules.
 
@@ -35,6 +36,7 @@ If a change affects shared fields, statuses, IDs, storage format, login flow, or
 |   |-- run.ps1
 |   `-- test.ps1
 `-- src/
+    |-- main/java/UI/
     |-- main/java/com/bupt/tarecruitment/
     `-- test/java/com/bupt/tarecruitment/
 ```
@@ -63,6 +65,7 @@ The codebase stays organised by business module, even if ownership is discussed 
 
 Current module folders:
 
+- `UI/`
 - `auth/`
 - `applicant/`
 - `job/`
@@ -193,6 +196,7 @@ Rule:
 - `SHORTLISTED`
 - `ACCEPTED`
 - `REJECTED`
+- `WITHDRAWN`
 
 ### Time-slot format
 
@@ -234,11 +238,13 @@ Storage rules:
 
 - Use UTF-8
 - One record per line
-- Avoid line breaks inside fields until escaping rules are added
+- Avoid raw line breaks inside fields unless escaping/encoding is explicitly handled by the repository
 - If a field contains multiple values, use `;`
 - If a field contract changes, update both this file and the sample data in the same PR
 - `fileName` in `cvs.txt` stores a relative path, not an absolute local-machine path
 - sample CV file path example: `cvs/ta001/cv001.txt`
+- current `applications.txt` stores `reviewerNote` with a repository-managed `b64:` prefix so notes can safely contain separators or line breaks on disk
+- current `messages.txt` persists read state as `READ` / `UNREAD`
 
 ## 10. Cross-story contracts for Sprint 1
 
@@ -300,19 +306,22 @@ Minimum logical contract:
 - updating a CV overwrites that CV's own text file
 - Sprint 1 CV input can be pasted text or a local `.txt` file import
 - read-only CV review by `applicationId` can be reused later by organiser-side stories
+- deleting a CV is not part of the current shared contract
 
 Minimum logical contract:
 
-- `createCv(ownerUserId, title, cvContentOrFileName)`
+- `createCv(ownerUserId, title, cvContent)`
 - `listCvsByUserId(ownerUserId)`
-- `attachCvToApplication(applicationId, cvId)`
-- `getAssignedCvId(applicationId)`
+- `getCvById(cvId)`
+- `loadCvContentByCvId(cvId)`
+- `updateCvContent(cvId, cvContent)`
 
 ### `US-03` must provide
 
 - browse page shows only jobs with status `OPEN`
 - each displayed job must expose `jobId`, title, module or activity, required skills, weekly hours, and schedule slots
 - `US-04` relies on `jobId` and visible job status from this story
+- current JavaFX browse flow also supports search/filter by keyword, module, activity type, skill, organiser, and time slot
 
 Minimum logical contract:
 
@@ -324,11 +333,13 @@ Minimum logical contract:
 - a new job must be saved using the agreed `jobs.txt` field order
 - the organiser is recorded by `organiserId`
 - a job created by this story is visible to `US-03` if status is `OPEN`
+- schedule slots are validated against the shared `DAY-HH:MM-HH:MM` format before save
 
 Minimum logical contract:
 
-- `createJob(jobData)`
-- `updateJobStatus(jobId, status)`
+- `publish(organiserId, title, moduleOrActivity, description, requiredSkills, weeklyHours, scheduleSlots)`
+- `publish(updatedJobPostingWithSameJobId)`
+- existing job status must remain persistable as `OPEN` or `CLOSED`
 
 ### `US-04` must provide
 
@@ -337,12 +348,82 @@ Minimum logical contract:
 - only jobs with status `OPEN` can be applied to
 - application status starts as `SUBMITTED`
 - each application stores a selected `cvId`, so different jobs can use different CVs from the same applicant
+- current mainline allows a previously withdrawn applicant to apply again to the same job as a new application
+- applicant can withdraw their own application, which changes status to `WITHDRAWN`
+- new applications must also be checked against already accepted assignments for schedule conflict prevention
 
 Minimum logical contract:
 
-- `applyToJob(applicantUserId, jobId)`
-- `listApplicationsByApplicant(userId)`
-- `hasApplied(applicantUserId, jobId)`
+- `applyToJobWithCv(applicantUserId, jobId, cvId)`
+- `withdrawApplication(applicantUserId, applicationId)`
+- applicant-side listing currently reads `findByApplicantUserId(applicantUserId)` from the shared application repository
+
+## 10A. Current shared contracts already active in main
+
+These are not only future-story ideas anymore. They are already part of the current mainline behavior and should be treated as shared contracts.
+
+### `US-06 View Application Status`
+
+- applicant-side status view lists all applications for that applicant, newest first
+- display labels currently map statuses to:
+  - `Submitted`
+  - `Shortlisted`
+  - `Accepted`
+  - `Rejected`
+  - `Withdrawn`
+
+### `US-08 Contact Module Organiser`
+
+- messages are job-scoped
+- the current UI groups conversations by `(jobId, peerUserId)`
+- unread state is stored in `messages.txt` and surfaced in the dashboard badges
+
+### `US-09 Job Recommendation Based on Skills`
+
+- recommendation is currently rule-based, not ML-based
+- score comes from:
+  - required-skill matches
+  - desired-position text alignment
+  - lightweight programme relevance
+
+### `US-10 Missing Skills Feedback`
+
+- missing-skills feedback compares applicant profile skills against a job's required skills
+- current shared result includes:
+  - matched skills
+  - missing skills
+  - total required skills
+  - coverage percentage
+
+### `US-12 Edit or Close a Job`
+
+- organiser can edit their own job details
+- organiser can switch job status between `OPEN` and `CLOSED`
+
+### `US-13 Review and Process Applications`
+
+- organiser-side review currently allows only these target statuses:
+  - `SHORTLISTED`
+  - `ACCEPTED`
+  - `REJECTED`
+- withdrawn applications cannot be reviewed
+- reviewer note is part of the shared application record
+
+### `US-14 Check TA Workload`
+
+- workload summary counts only `ACCEPTED` applications as active TA assignments
+- current admin workload summary includes:
+  - accepted jobs
+  - weekly total hours
+  - concrete schedule slots
+  - overload / overlap warnings
+
+### `US-15 Prevent Schedule Conflict`
+
+- schedule conflict prevention is already enforced in the main flow
+- conflicts are checked:
+  - when an applicant submits a new application
+  - when an organiser changes an application to `ACCEPTED`
 
 ## 11. Temporary mock rule for parallel development
 

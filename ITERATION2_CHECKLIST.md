@@ -9,7 +9,7 @@ Scope of this review:
 
 ## Current overall status
 
-Iteration 2 is partially complete.
+Iteration 2 is basically complete.
 
 Stories that look basically implemented:
 - `US-06 View Application Status`
@@ -25,28 +25,30 @@ Stories that look basically implemented:
 ## Story-by-story view
 
 ### `US-06 View Application Status`
-Status: mostly done
+Status: done enough for demo
 
 What exists:
 - applicant status page in `UI/InterviewInvitationPage.java`
 - shows real application records and status values
+- smoke test in `src/test/java/com/bupt/tarecruitment/US06SmokeTest.java`
 
 Notes:
-- good enough for demo
+- status mapping and applicant-side listing are now covered by smoke testing
 
 ### `US-07 Search and Filter Jobs`
 Status: mostly done
 
 What exists:
-- `UI/MoreJobsPage.java` supports pagination
+- `UI/MoreJobsPage.java` supports a scrollable job list
 - `UI/MoreJobsPage.java` supports sorting
 - `UI/MoreJobsPage.java` supports keyword search
-- `UI/MoreJobsPage.java` supports skill and organiser filters
+- `UI/MoreJobsPage.java` supports module, activity, skill, organiser, and time-slot filters
 - `com/bupt/tarecruitment/job/JobBrowseFilter.java` contains reusable filtering logic
+- keyword search can also match MO display names
 
 Notes:
 - search/filter core flow now exists
-- deeper filter dimensions such as weekly hours or schedule can still be added later if needed
+- current sorting still uses the numeric part of `jobId`, not a true publish timestamp
 
 ### `US-08 Contact Module Organiser`
 Status: mostly done
@@ -85,18 +87,19 @@ Notes:
 - applicant can now see matched skills, missing skills, and coverage percentage for a job
 
 ### `US-12 Edit or Close a Job`
-Status: mostly done
+Status: done enough for demo
 
 What exists:
 - job management page in `UI/JobManagementPage.java`
 - edit existing job through `UI/PostVacanciesPage.java`
 - open/close status switching
+- smoke test in `src/test/java/com/bupt/tarecruitment/US12SmokeTest.java`
 
 Notes:
-- looks usable in main flow
+- edit and close flows are now covered by smoke testing
 
 ### `US-13 Review and Process Applications`
-Status: mostly done
+Status: done enough for demo
 
 What exists:
 - application review page in `UI/ApplicationReviewPage.java`
@@ -105,9 +108,10 @@ What exists:
   - `ACCEPTED`
   - `REJECTED`
 - reviewer note is supported
+- smoke test in `src/test/java/com/bupt/tarecruitment/US13SmokeTest.java`
 
 Notes:
-- this part is in relatively good shape
+- review flow is covered at the service level; UI layout can still be improved later if needed
 
 ### `US-14 Check TA Workload`
 Status: done enough for demo
@@ -135,22 +139,13 @@ Notes:
 
 These are not necessarily blockers, but they are visible:
 
-1. Applicant dashboard unread message count is hard-coded.
-   File: `UI/DashboardPages.java`
-
-1. Applicant dashboard chat entry does not always carry a job/MO context.
-   File: `UI/DashboardPages.java`
-
-2. `More Jobs` says `Sort by publish time`, but current sorting is actually based on the numeric part of `jobId`.
+1. `More Jobs` sorting is based on the numeric part of `jobId`, not a real publish timestamp.
    File: `UI/MoreJobsPage.java`
 
 ## Recommended finish order
 
 ### Priority 1
-- replace hard-coded unread message count with real data
-- improve dashboard chat entry context
-- rename or fix the `publish time` sorting behavior
+- rename or strengthen the current `jobId`-based sort behavior
 
 ### Priority 2
-- add more smoke tests for Iteration 2 stories that still have no dedicated tests
 - polish wording and consistency across JavaFX pages

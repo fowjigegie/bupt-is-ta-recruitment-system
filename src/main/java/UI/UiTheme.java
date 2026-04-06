@@ -267,10 +267,10 @@ final class UiTheme {
             nav,
             selectedPage,
             List.of(
-                new NavEntry("Dash Board", PageId.APPLICANT_DASHBOARD),
+                new NavEntry("Dashboard", PageId.APPLICANT_DASHBOARD),
                 new NavEntry("More Jobs", PageId.MORE_JOBS),
                 new NavEntry("Resume\nDatabase", PageId.RESUME_DATABASE),
-                new NavEntry("application\nstatus", PageId.INTERVIEW_INVITATION)
+                new NavEntry("Application\nStatus", PageId.INTERVIEW_INVITATION)
             )
         );
     }
@@ -280,10 +280,10 @@ final class UiTheme {
             nav,
             selectedPage,
             List.of(
-                new NavEntry("Dash Board", PageId.MO_DASHBOARD),
+                new NavEntry("Dashboard", PageId.MO_DASHBOARD),
                 new NavEntry("Post\nVacancies", PageId.POST_VACANCIES),
                 new NavEntry("Job\nManagement", PageId.JOB_MANAGEMENT),
-                new NavEntry("Application\nreview", PageId.APPLICATION_REVIEW)
+                new NavEntry("Application\nReview", PageId.APPLICATION_REVIEW)
             )
         );
     }
