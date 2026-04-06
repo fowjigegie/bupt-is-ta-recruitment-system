@@ -221,7 +221,7 @@ public class MoreJobsPage extends Application {
         footer.setAlignment(Pos.CENTER_LEFT);
 
         center.getChildren().addAll(
-            UiTheme.createPageHeading("More jobs"),
+            UiTheme.createPageHeading("More Jobs"),
             searchBar,
             filterPanel,
             jobsScroll,
@@ -259,9 +259,10 @@ public class MoreJobsPage extends Application {
         idLabel.setFont(Font.font("Arial", FontWeight.BOLD, 16));
         idLabel.setTextFill(Color.web("#ff66b3"));
 
-        Label moLabel = new Label("MO : " + job.organiserId() + " | " + job.moduleOrActivity());
+        Label moLabel = new Label("MO : " + context.formatUserLabel(job.organiserId()) + " | " + job.moduleOrActivity());
         moLabel.setFont(Font.font("Arial", 17));
         moLabel.setTextFill(Color.web("#8b7fa0"));
+        moLabel.setWrapText(true);
 
         Label hoursAndScheduleLabel = UiTheme.createMutedText(
             "Weekly Hours: " + job.weeklyHours() + "h/week | Schedule: " +

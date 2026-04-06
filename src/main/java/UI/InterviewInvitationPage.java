@@ -9,6 +9,7 @@ import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.Border;
@@ -60,10 +61,18 @@ public class InterviewInvitationPage extends Application {
 
         center.getChildren().add(new HBox(UiTheme.createBackButton(nav)));
 
+        ScrollPane scrollPane = new ScrollPane(center);
+        scrollPane.setFitToWidth(true);
+        scrollPane.setStyle(
+            "-fx-background:#ffffff;" +
+                "-fx-background-color:transparent;" +
+                "-fx-border-color:transparent;"
+        );
+
         BorderPane root = UiTheme.createPage(
-            "Interview Invitation",
+            "Application Status",
             UiTheme.createApplicantSidebar(nav, PageId.INTERVIEW_INVITATION),
-            center,
+            scrollPane,
             nav,
             context
         );
@@ -73,7 +82,7 @@ public class InterviewInvitationPage extends Application {
     private static VBox createStatusCard(NavigationManager nav, UiAppContext context, JobApplication application) {
         JobPosting job = context.services().jobRepository().findByJobId(application.jobId()).orElse(null);
         String title = job == null ? application.jobId() : job.title();
-        String organiser = job == null ? "(unknown organiser)" : job.organiserId();
+        String organiser = job == null ? "(unknown organiser)" : context.formatUserLabel(job.organiserId());
         String schedule = job == null || job.scheduleSlots().isEmpty()
             ? "(schedule not listed)"
             : String.join(", ", job.scheduleSlots());

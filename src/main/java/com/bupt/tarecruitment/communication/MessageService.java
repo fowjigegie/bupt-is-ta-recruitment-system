@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 public final class MessageService {
     private final MessageRepository repository;
@@ -81,6 +82,19 @@ public final class MessageService {
             }
         }
         return updatedCount;
+    }
+
+    public Optional<ConversationReference> findMostRecentConversationForUser(String viewerUserId) {
+        requireNonBlank(viewerUserId, "viewerUserId");
+
+        return repository.findAll().stream()
+            .filter(message -> message.senderUserId().equals(viewerUserId.trim()) || message.receiverUserId().equals(viewerUserId.trim()))
+            .sorted(Comparator.comparing(InquiryMessage::sentAt).thenComparing(InquiryMessage::messageId).reversed())
+            .findFirst()
+            .map(message -> new ConversationReference(
+                message.jobId(),
+                message.senderUserId().equals(viewerUserId.trim()) ? message.receiverUserId() : message.senderUserId()
+            ));
     }
 
     private String nextMessageId() {

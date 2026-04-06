@@ -185,7 +185,7 @@ public final class NavigationManager {
             case RESUME_DATABASE -> "BUPT-TA Resume Database";
             case JOB_DETAIL -> "BUPT-TA Job Detail";
             case MESSAGES -> "BUPT-TA Messages";
-            case INTERVIEW_INVITATION -> "BUPT-TA Interview Invitation";
+            case INTERVIEW_INVITATION -> "BUPT-TA Application Status";
             case MO_DASHBOARD -> "BUPT-TA MO Dashboard";
             case POST_VACANCIES -> "BUPT-TA Post Vacancies";
             case JOB_MANAGEMENT -> "BUPT-TA Job Management";

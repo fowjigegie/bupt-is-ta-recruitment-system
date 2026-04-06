@@ -348,12 +348,12 @@ public class ResumeDatabasePage extends Application {
             statusLabel
         ));
 
-        var chatButton = UiTheme.createOutlineButton("Click here to chat", 180, 46);
+        var chatButton = UiTheme.createOutlineButton("Open messages", 180, 46);
         chatButton.setOnAction(event -> nav.goTo(PageId.MESSAGES));
 
         rightPanel.getChildren().addAll(
             avatarPane,
-            UiTheme.createMutedText("Profile and CV data are now backed by the real services."),
+            UiTheme.createMutedText("Save your profile first, then import, create, or update CVs here."),
             progressBar,
             UiTheme.createTag("Profile + CV", 220),
             profileStateLabel,

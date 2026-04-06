@@ -103,8 +103,12 @@ public class ModuleOrganizerDashboardPage extends Application {
         Button chatButton = UiTheme.createPrimaryButton("Chat", 300, 72);
         applyMoDashboardGradientButtonStyle(chatButton);
         chatButton.setOnAction(event -> {
-            context.selectJob(null);
-            context.selectChatPeer(null);
+            context.services().messageService()
+                .findMostRecentConversationForUser(userId)
+                .ifPresentOrElse(
+                    conversation -> context.openChatContext(conversation.jobId(), conversation.peerUserId()),
+                    context::clearSelections
+                );
             nav.goTo(PageId.MESSAGES);
         });
 
@@ -121,7 +125,7 @@ public class ModuleOrganizerDashboardPage extends Application {
         VBox jobManagementSection = buildJobManagementSection(nav, context, ownedJobs);
         VBox.setVgrow(jobManagementSection, Priority.ALWAYS);
 
-        Label footerHint = new Label("No further information ...");
+        Label footerHint = new Label("Use Job Management to edit postings, Application Review to process applicants, and Chat to reply to enquiries.");
         footerHint.setFont(Font.font("Arial", 14));
         footerHint.setTextFill(MO_SIDEBAR_BLUE);
         footerHint.setMaxWidth(Double.MAX_VALUE);

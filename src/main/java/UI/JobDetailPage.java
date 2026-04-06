@@ -13,6 +13,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
@@ -49,10 +50,18 @@ public class JobDetailPage extends Application {
             main.getChildren().addAll(createJobDetailContent(nav, context, selectedJob));
         }
 
+        ScrollPane scrollPane = new ScrollPane(main);
+        scrollPane.setFitToWidth(true);
+        scrollPane.setStyle(
+            "-fx-background:#ffffff;" +
+                "-fx-background-color:transparent;" +
+                "-fx-border-color:transparent;"
+        );
+
         BorderPane root = UiTheme.createPage(
             "Job Detail",
             UiTheme.createApplicantSidebar(nav, PageId.MORE_JOBS),
-            main,
+            scrollPane,
             nav,
             context
         );
@@ -61,7 +70,7 @@ public class JobDetailPage extends Application {
 
     private static List<javafx.scene.Node> createJobDetailContent(NavigationManager nav, UiAppContext context, JobPosting job) {
         var courseTag = UiTheme.createTag("Course Title : " + job.title(), 500);
-        var teacherTag = UiTheme.createTag("Taught By : " + job.organiserId(), 280);
+        var teacherTag = UiTheme.createTag("Organised By : " + context.formatUserLabel(job.organiserId()), 400);
         var classTag = UiTheme.createTag("Module / Activity : " + job.moduleOrActivity(), 420);
         var hoursTag = UiTheme.createTag("Weekly Hours : " + job.weeklyHours(), 260);
         var statusTag = UiTheme.createTag("Status : " + job.status().name(), 220);
