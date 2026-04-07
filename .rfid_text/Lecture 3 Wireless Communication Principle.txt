@@ -1,0 +1,822 @@
+TITLE: Lecture 3 Wireless Communication Principle.pdf
+PAGES: 58
+
+===== PAGE 1 =====
+School of Electronic Engineering and Computer Science
+EBU6408 Sensors and Radio Frequency Identification (RFID)
+Lecture 3: Wireless 
+Communication Principle
+Dr Fatma Benkhelifa
+PhD, Lecturer (Assistant Professor), Editor of IEEE Communications Letters
+e-mail: f.benkhelifa@qmul.ac.uk
+website: Fatma Benkhelifa - EECS (qmul.ac.uk)
+
+===== PAGE 2 =====
+Textbooks
+Bill Glover and Himanshu
+Bhatt, “RFID Essentials”,
+O’Reilly Media Inc, 2006.
+Harvey Lehpamer, “RFID
+Design Principles”, Artech
+House, 2012.
+2
+QMUL Library link
+QMUL Library link
+QMUL Library link
+Klaus Finkenzeller, “RFID
+Handbook”, Wiley, Third
+Edition, 2010.
+PDF File
+
+===== PAGE 3 =====
+Evaluation Rules???
+o Two class tests:
+▪ Test 1: Covering the material delivered in the first half o module (5%)
+▪ Test 2: covering the material delivered in the second half of module (10%) 
+▪ Allowed: : Handwriting double-faced A4-sized cheating sheet 
+o Coursework: Work in groups of 4/5 students. 
+❑ Lab 1: Introduction to Arduino (Bonus Mark)
+✓ Submission of written report on hardware design and programming code.
+❑ Lab 2: RFID projects using Arduino kits (5%)
+✓ Submission of written report on hardware design and programming code and 5-min video 
+demonstration
+❑ Mini-project: using practical knowledge from labs and chatbot support (10%)
+✓ Submission of written report on hardware design and programming code and 10-min video 
+demonstration
+o Final exam: covering all teaching weeks (70%)
+▪ Allowed: Handwriting double-faced A4-sized cheating sheet
+o A couple of QM+ online quizzes on teaching lectures (Bonus Mark)
+3
+
+===== PAGE 4 =====
+Module Activities
+4
+Week 1
+• Starting 30 March
+• Lectures 1-2
+• Tutorial 1: last 45 mins
+Week 2
+• Starting 6 April
+• Lectures 3-4
+• Tutorial 2: last 45 mins
+• Class Test 1 (Date TBD)
+Week 3
+• Starting 11 May
+• Lectures 5-6
+• Tutorial 3: last 45 mins
+Week 4
+• Starting 18 May
+• Lectures 7-8
+• Tutorial 4: : last 45 mins
+• Mock Exam
+• Class Test 2 (Date TBD) 
+• Labs (Arduino):
+➢ Two lab sessions will take place in
+between the teaching weeks.
+➢ Work in groups (4/5 students) to
+share the hardware
+➢ Assignment submission deadlines:
+usually after lab session.
+➢ Mini-project due at the end of the
+term.
+• Exact dates will be confirmed later on.
+QM+ Quizzes will take place during term 
+time for bonus marks
+
+===== PAGE 5 =====
+Module Content
+5
+Week 1
+Week 2
+Week 3
+Week 4
+LecturesParts Teaching Weeks
+I. RFID Basics
+II. 
+Transmission 
+Modes
+III. Protocol
+IV. System 
+Design
+V. Application 
+& Practice
+Lecture 1: RFID Introduction and Overview
+Lecture 2: RFID System Components
+Lecture 3: Wireless Communication principle
+Lecture 5: RFID Anti-Collision Protocols
+Lecture 4: Checksum, Coding and Modulation
+Lecture 6: EPCGlobal Standard
+Lecture 7: Key factors of system design
+Lecture 9: Testing and analysis (self-study)
+Lecture 8: Application pattern of RFID
+Test 1
+Test 2
+
+
+===== PAGE 6 =====
+Outline
+o Review of Theory of Electromagnetism and Maxwell’s Equations
+o RF Spectrum and Electromagnetic Signal Transmission
+o Signal Voltage and Energy
+o Modulation and Multiplexing of Reader Signal
+o Backscatter Mechanism and Tag Encoding
+o Link Budget
+o Effects of Antenna Gain and Polarization on Transmission Range
+o Signal Transmission in Realistic Environments
+6
+
+===== PAGE 7 =====
+RFID system
+Hardware components Software components
+Reader RF Tags
+Signal process 
+and control
+RF
+Module
+Antenna Chip
+Recap
+7
+
+===== PAGE 8 =====
+Wireless channel interference?
+Flat of
+Electric
+Field
+Flat of
+Magnetic
+Field
+Electric Field
+Magnetic Field
+Electromagnetic
+Wave Transmission
+Direction
+RF Spectrum and Electromagnetic Signal Transmission
+o Electromagnetic waves are energy and momentum transmitted as waves
+caused by same-phase oscillation between mutual perpendicular electric field
+and magnetic field.
+8
+
+===== PAGE 9 =====
+Electromagnetic Waves
+o Propagation vector or Poynting vector: is the power flow density of the EM
+wave, vector P = E × H in the direction of propagation, and measured in
+watts per square meter.
+o Electromagnetic field: can be described in terms of the electric and/or magnetic
+field strength at that location.
+o Like any wave-related phenomenon, electromagnetic energy can be
+characterized by a wavelength and/or frequency.
+▪ Frequency f: is defined as a number of cycles, or periods, per unit of time and is
+measured in hertz (Hz).
+▪ The wavelength λ: is the distance by which the phase of the sinusoidal wave
+changes by 2π radians, so we can say: kλ = 2π, w = kc, and f = w/2π.
+▪ Angular frequency w: is a rotational unit of angular frequency 2πf with units in
+radians per second (rad/s).
+𝜆 = 2𝜋
+𝑘 = 2𝜋c
+𝜔 = 𝑐
+𝑓
+9
+
+===== PAGE 10 =====
+Modulate various 
+wireless signals to 
+carrier signals with 
+different frequencies 
+to transmit.
+RF Waves Infrared Visible
+Light UV X-ray Gamma
+rays
+Cosmic
+rays
+RF Spectrum
+LF MF HF VHF UHF SHF
+特高频
+Electromagnetic Spectrum
+10
+
+===== PAGE 11 =====
+RF Spectrum and Electromagnetic Signal Transmission 
+(Cont’D)
+o LF: 30kHz~300kHz, usually passive tags, communication range < 1m, not be
+disturbed by any material except for metal, typical work frequency:
+125kHz~134kHz
+o HF: 3MHz~30MHz，usually passive tags, communication range < 1m,
+typical work frequency: 13.56MHz
+o UHF: 300MHz~3GHz, passive or active tags, communication range > 1m,
+cannot go through many materials, especially for water, dust, fog and other
+suspended particulate materials, typical work frequency: 433MHz ，
+860MHz~960MHz
+o SHF： passive or active tags, communication range > 10m at most, typical
+work frequency: 2.45GHz，5.8GHz（microwave signal）
+11
+
+===== PAGE 12 =====
+RF Spectrum and Electromagnetic Signal 
+Transmission (Cont’D)
+o Different carrier frequency decides different work principles：
+▪ LF & HF RFID tags: often inductively coupled, short communication range,
+magnetic field energy decays as the speed of cubed distance
+▪ UHF & SHF RFID tags: often electromagnetic backscatter coupled, long
+communication range, energy decays as the speed of squared distance
+12
+
+===== PAGE 13 =====
+SIGNAL VOLTAGE AND 
+ENERGY
+13
+
+===== PAGE 14 =====
+Signal Voltage and Energy
+o The changing electric filed can be described by the function of voltage or
+current.
+o The magnitude of the energy is expressed by the power.
+o The electric field varying according to the sinusoidal law, can be calculated as
+one cycle of current energy by calculus and divided by time, so as to obtain the
+average power.
+14
+
+===== PAGE 15 =====
+Signal Voltage and Energy (Cont’D)
+o The relative change is more worthy of attention in the signal processing
+problem.
+o Use decibels (dB) instead of watts (W).
+o Decibels are relative.
+o The reference power is needed when describing the specific power.
+o Commonly used is 1mW. Here the dB size is dBm.
+15
+
+===== PAGE 16 =====
+Modulation and Multiplexing of Reader Signal
+o Continuous Wave, CW:
+o A simple periodic sinusoidal signal whose frequency, phase, amplitude don’t
+change.
+o It can’t carry information, thus needs modulation: m(t) contains baseband
+information, cosine is carrier.
+16
+
+===== PAGE 17 =====
+Modulation and Multiplexing of Reader Signal (Cont’D)
+o When m(t) is also cosine signal, according to trigonometric function:
+o This sinusoidal modulation divides the signal into two signals, called
+sidebands. One’s frequency is higher than the carrier (first part of the
+formula), while the other’s is lower than the carrier (second part of the
+formula).
+17
+
+===== PAGE 18 =====
+Any problem in OOK ?
+Signal
+TimeVoltage
+Info
+Time
+Modulation and Multiplexing of Reader Signal (Cont’D)
+o Generally, it is digital modulation that is usually performed on RFID reader signal.
+(Digitally Modulated)
+o On-Off Keying (OOK): high power for 1, low power for 0.
+o An actual binary string will be converted into a section of electromagnetic waves
+with high or low power.
+18
+
+===== PAGE 19 =====
+Solution？
+Modulation and Multiplexing of Reader Signal (Cont’D)
+o For passive RFID tags, the low energy of data bit 0 can’t activate the tag, not to
+mention normal work.
+o Encode binary data bits before modulation.
+o Pulse Interval Encoding(PIE):
+▪ “1”：output a long time of high power followed by a short time of low power
+▪ “0”：output a short time of high power followed by a short time of low power
+19
+
+===== PAGE 20 =====
+Modulation and Multiplexing of Reader Signal 
+(Cont’D)
+o Still need to consider the interference problem！
+o FDMA (Frequency Division Multiple Access)：need different applications to
+use different carrier frequencies to transmit information, and receivers only
+demodulate signals with specific frequencies
+o ALR-9900 reader: work frequency is 902.75MHz~927.25MHz, divide into 50
+channels, with each channel using 500kHz frequency scope
+o In realistic applications, still need to pay attention to the deployment of
+readers, and the interference of other signals in the surrounding space.
+20
+
+===== PAGE 21 =====
+Backscatter Mechanism and Tag Encoding
+o Any object that receives certain electromagnetic waves will transmit the same
+series of electromagnetic waves.
+o The electromagnetic waves modulated by the receiver can return to the
+antenna of the transmitter, and produce a recognizable signal, which is called
+backscatter signal.
+21
+
+===== PAGE 22 =====
+Backscatter Mechanism and Tag Encoding 
+(Cont’D)
+◆ The reflected signal vector received by the receiver at a certain time is the
+vector superposition of various signals in space.
+◆ As shown below, the superposition leads to uncertainty. If backscatter
+mechanism is to be used, certain encoding mechanism is to be designed to
+make receiver able to recognize these signals according to the variety, instead
+of worrying about the phase or amplitude of the signal.
+22
+
+===== PAGE 23 =====
+FM0 encoding
+Backscatter Mechanism and Tag Encoding 
+(Cont’D)
+o Currently, tag encoding methods are based on a specific time
+interval to count tag changes or based on the tag state change
+frequency.
+o Belonging to frequency shift keying(FSK) variants.
+▪ “1”could be 50 turns of tag state change in 1ms
+▪ “0”could be 100 turns of tag state change in 1ms
+23
+
+===== PAGE 24 =====
+Backscatter Mechanism and Tag Encoding 
+(Cont’D)
+o In realistic receivers, there are usually existing noises and some interference
+signals together with the expected signal.
+o For different modulating and encoding methods, there is always a constraint
+value for the Signal to Noise Ratio (SNR, i.e., S/N)
+o FM0: 10dB or larger SNR
+o Readers in the PIE way have similar SNR constraints
+24
+
+===== PAGE 25 =====
+Reader’s transmit energy
+Path loss
+Tag activate energy
+Link Budget
+o Tags get energy from backscatter
+mechanism (upper-right).
+o The process from tags to the reader
+(lower-right).
+o The energy transfer and loss process
+will be analyzed.
+o Link budget: forward link budget
+and backward link budget.
+25
+
+===== PAGE 26 =====
+Realistic
+Application
+• Maximum transmit 
+energy shouldn’t be 
+over 1W
+Frequency
+• Most RFID devices 
+work at ISM 
+(Industrial Scientific
+Medical) frequency 
+band
+Power
+• The power of  the 
+reader is usually 
+restricted to a certain 
+safe range
+Reader’s Transmit Power
+26
+
+===== PAGE 27 =====
+Path Loss
+o Path Loss: In transmission process, the
+difference between actual energy sent from
+transmitter and that received by receiver.
+o Assume that the antenna transmission is
+isotropic, that is, the antenna radiates
+energy uniformly in all directions, as
+shown on the right.
+o The actual energy received by the tag is
+proportional to the antenna’s energy
+density across the tag.
+o This area is called the Effective Aperture
+(Ae) of the tag antenna: the actual area of
+the electromagnetic wave through the tag
+antenna.
+27
+
+===== PAGE 28 =====
+Path Loss (Cont’D)
+o For antennas with effective aperture 𝐴𝑒,
+while receiving plane wave with energy
+density 𝜌, the energy received is :
+𝑃`𝑅𝑋=𝜌𝐴𝑒
+o In the instance of an isotropic antenna,
+the energy density at 𝑟 is the ratio of
+transmit energy 𝑃𝑇𝑋 and sphere.
+o The received energy 𝑃𝑅𝑋 at the tag is:
+𝑃𝑅𝑋 = 𝑃𝑇𝑋
+𝐴𝑒
+4𝜋𝑟2
+𝐴𝑒 = 𝜆2
+4𝜋 ≈ 86𝑐𝑚2
+𝜆 is the wavelength of 915MHz signal.
+28
+
+===== PAGE 29 =====
+Path Loss (Cont’D)
+o 1m: the actual received energy of the tag is 0.7mW (-1.6dBm), and the path
+loss is about 32dB
+o Path loss from 1m to 10m: 10 log(10/1)2=20dB
+o 10m: total path loss is about 52dB
+o 3m: total path loss is about 41dB (32+9.5)
+29
+
+===== PAGE 30 =====
+Tag Active Energy: Forward Link
+o At tag reading phase, the tag needs
+an energy of 10~30𝝁W to activate
+the circuit.
+o But current energy utilization is
+merely 30%. Hence, the tag needs to
+obtain 30~100 𝝁 W. Because the
+maximum energy a reader can
+provide is 1W (30dBm), here the
+threshold of the chip is set to
+100 𝜇 W (-10dBm), thus the max
+path loss is 40dB.
+o The right figure draws a straight line
+with the start at (1m, -1.5dBm) and
+the slope -20dB/10m to represent
+the forward link attenuation
+mode.
+30
+
+===== PAGE 31 =====
+Limitation effect of the forward link 
+energy!
+Tag Active Energy : Backward Link
+o Backward link loss needs to consider the
+tag’s transmit energy and the minimum
+energy required to read tag data for the
+receiver.
+o Tag’s receive energy is -10dBm, but actual
+reflection energy is about 1/3 (with -5dB
+attenuation).
+o Since the required energy for a reader to
+recognize differs for different tags,
+assume a reasonable threshold: -75dBm.
+o The energy loss graph of the backward
+link can be plotted against the forward
+link energy graph.
+o Reader’s receiver obtains energy -55dBm,
+20dB more than the required energy.
+31
+
+===== PAGE 32 =====
+Tag Activate Energy (Cont’D)
+◆ The energy received from the reflection link is inversely proportional to the
+distance from the fourth power:
+𝑃𝑅𝑋,𝑏𝑎𝑐𝑘: 1
+𝑟4
+32
+
+===== PAGE 33 =====
+Basic Antenna Parameters
+o A transmitting antenna is a device used to transform an RF signal, traveling
+on a conductor, into an electromagnetic wave in free space.
+o A receiving antenna performs an inverse function.
+o Antennas demonstrate a property known as reciprocity, which means that an
+antenna will maintain the same characteristics regardless if it is transmitting or
+receiving.
+o Most antennas are passive resonant devices, which operate efficiently over
+a relatively narrow frequency band.
+o When a signal is fed into an antenna, the antenna will emit radiation
+distributed in space in a certain way.
+o A graphical representation of the relative angular distribution of the radiated
+power in space is called a radiation pattern.
+33
+
+===== PAGE 34 =====
+Antenna gain: Under the condition of the
+same input power, the power density ratio of
+signal generated at the same point in space
+by actual antenna and ideal radiation unit. It
+quantitatively describes the extent to which
+an antenna concentrates the input power.
+Polarization: A phenomenon that things
+under certain conditions undergo
+polarization, making its properties deviate
+from the original state.
+Effects of Antenna Gain and Polarization on 
+Transmission Range
+34
+
+===== PAGE 35 =====
+Effects of Antenna Gain
+o For RFID readers with output 1W, with the help of omnidirectional
+antenna, signals can only transmit 2-3m, which is more suitable for scenarios
+in which the reader is surrounded by tags.
+o In practice, the reader will be placed at the edge of a certain region, while
+plenty of tags are placed at the center, forming a region which is in a certain
+angle range radiated by the reader.
+35
+
+===== PAGE 36 =====
+Effects of Antenna Gain (Cont’D)
+o Directional antenna can concentrate the energy in one place.
+o For RFID application scenarios, directional antennas make full use of the
+transmission energy, maximizing energy utilization, while reducing energy
+waste caused by scanning unwanted regions
+o Below is the radiation model of a directional antenna.
+o For any angle d relative to the center of the antenna, the edge of the curve
+represents the energy density of the antenna radiated in this direction.
+36
+
+===== PAGE 37 =====
+2
+2
+44
+beam beam
+rG r
+==
+Effects of Antenna Gain
+o The ratio of the radiation intensity on the direction d and that averaged in
+each direction, is called the directional gain of the antenna in that direction.
+o The radiation efficiency in this direction is the power gain of the antenna, G,
+also named as amplification coefficient.
+o For directional antenna, if higher power gain is needed, the radiation range of
+the signal is relatively thinner, shown on the right.
+37
+
+===== PAGE 38 =====
+Plane angle (unit: radians): The vertex at the centre of the circle.
+The plane angle corresponding to the arc length equal to the radius 𝑟 is set to
+1 𝑟𝑎𝑑.
+The angle corresponding to the circumference of the circle (2πr) is 2𝜋 𝑟𝑎𝑑
+Solid angle (unit: solid radians 𝑠𝑟): The vertex is at the centre of the sphere.
+• The solid angle corresponding to the spherical surface with an area equal to 𝑟2
+is defined as 1 𝑠𝑟.
+• The solid angle corresponding to the area of the spherical surface (4𝜋𝑟2) is
+4𝜋 𝑠𝑟.
+Effects of Antenna Gain (Cont’D)
+38
+
+===== PAGE 39 =====
+Effects of Antenna Gain (Cont’D)
+o The figure below is the directional antenna’s polar coordinate radiation
+pattern of commercial RFID readers.
+o The curve is the logarithmic mode to describe the size of the energy gain in all
+directions.
+o The arc length corresponding to 3dB is about 72°(1.25 rad), hence
+o The corresponding beam width (solid angle) is (1.25)2=1.6.
+o The antenna gain is about:
+39
+
+===== PAGE 40 =====
+Effects of Antenna Gain (Cont’D)
+o Not all antennas are specifically directional, one of which is the dipole
+antenna.
+o The dipole antenna does not radiate the signal along the axis but is uniformly
+radiated in all directions perpendicular to the axis. As shown below.
+o The antenna gain relative to dipole antenna is 2.2 dB smaller than that
+relative to omnidirectional antenna.
+40
+
+===== PAGE 41 =====
+Effects of Antenna Gain (Cont’D)
+o By means of the gain and transmission energy of the antenna, it’s possible to
+calculate the input energy required for the maximum gain effect in the
+direction indicated by the directional antenna by using an omnidirectional
+antenna, which is called the effective omnidirectional radiated power (EIRP,
+Equivalent Isotropic Radiated Power).
+o EIRP is often used explicitly or implicitly to specify the energy limits on
+wireless operation.
+o For example, FCC regulations in the United States, a non-irradiated
+transmitter can transmit 1W of energy signals, and can use 6dBi antenna;
+antenna gain increased by 1dB, transmission energy needs to be reduced by
+1dB.
+o In fact, FCC is not more than 36dBm (30dBm+6dBi).
+41
+
+===== PAGE 42 =====
+Backward link effect?
+Effects of Antenna Gain (Cont’D)
+o The figure shows the effect of 6dBi
+antenna gain when the tag is located
+in the direction of the directional
+antenna gain.
+o The transmission distance of the
+forward link increases from 3m to
+6m.
+o The energy loss is accompanied by a
+decrease in the square velocity of the
+distance.
+42
+
+===== PAGE 43 =====
+Effective aperture：
+G means antenna gain
+The relationship between energy and
+distance:
+ Friis equation
+Forward link and reverse link energy cost:
+Effects of Antenna Gain (Cont’D)
+43
+
+===== PAGE 44 =====
+Define the minimum amount of energy
+required by the tag:
+Forward link transmit range:
+Define the minimum signal energy required
+by the reader to demodulate the signal:
+The reverse link transmission range:
+,
+min,
+()4
+TX reader b reader tag
+forward
+tag
+P T G GR P
+
+=
+Effects of Antenna Gain (Cont’D)
+44
+
+===== PAGE 45 =====
+Antenna Polarization and Polarization Diversity
+o Polarization is a physical phenomenon of radio signal propagation and refers to
+the orientation of the electric field vector in the radiated wave.
+o If the vector appears to rotate with time, then the wave is elliptically polarized.
+o The ellipse so described may vary in ellipticity from a circle to a straight line,
+or from circular to linear polarization.
+o So, in the general sense, all polarization may be considered to be elliptical.
+45
+
+
+===== PAGE 46 =====
+Vertical
+polarization
+Horizontal
+polarization
+Linear Polarization and Circle Polarization
+o In the figure, the electromagnetic vector represents the direction of the
+electromagnetic field.
+o The direction of the electric field and the magnetic field are perpendicular to
+each other, and the direction of the field is always perpendicular to the
+propagation direction. The waves perpendicular to the vibration direction and
+the propagation direction are called transverse waves.
+o The direction of the field determines its polarization direction.
+o The way that polarization direction is always fixed is also known as linear
+polarization.
+46
+
+===== PAGE 47 =====
+Circularly
+Polarization
+Linear Polarization and Circle Polarization (Cont’D)
+o The direction of the electromagnetic field can change by time.
+o When the direction of the electromagnetic field is rotated around the axis of
+the propagation direction over time without changing its field strength, the
+result is circularly polarized radiation similar to linear polarization.
+o Through a simple vector superposition process, we can convert the pure circle
+polarization into a linear polarization superposition.
+47
+
+===== PAGE 48 =====
+Linear Polarization and Circle Polarization (Cont’D)
+o When the circularly polarized electromagnetic wave acts on a linearly
+polarized antenna, similar to the previous decomposition process, only the
+electric field component in the same direction as the conductor produces
+potential, and the vertical component will have no effect.
+o Double dipole: Mainly by simultaneously placing two orthogonal antennas on
+the tag to achieve the purpose of absorbing energy in different directions.
+o For linear polarization, we only need to multiply a triangular sine variable to
+represent its component, where the polarization direction and the direction of
+the receiving antenna angle, as shown in the right formula.
+48
+
+===== PAGE 49 =====
+Signal Transmission in Realistic Environments
+o All of above are in ideal environments for the relevant calculations, but the
+actual environment is always full of noise and interference.
+o The scattering of the reader’s own signal,
+o The interference signal after the reflection.
+o Not a simple energy superposition, but the accumulation of each point
+potential, the results are unpredictable, namely: multipath effect.
+49
+
+===== PAGE 50 =====
+The reflected wave and
+the original wave
+have the same phase
+The reflected wave and
+the original wave
+have opposite phase
+The phase difference depends on
+the length of electromagnetic
+wave transmission distance, the
+length increases by ¼ of the
+wavelength, and the phase changes
+by 90°.
+Signal Transmission in Realistic Environments 
+(Cont’D)
+o After superimposing a bunch of electromagnetic wave from reader and its two
+reflected waves from the floor and the wall, if the reflected wave has 1/10 of
+the original electromagnetic wave energy, the superposition potential will be:
+where 𝛿 represents the phase difference between the reflected wave and the
+original electromagnetic wave, and ν represents the ratio of the amplitude of the
+reflected wave to that of the original electromagnetic wave.
+50
+
+===== PAGE 51 =====
+Consider the worst case, when the phase
+difference is 0°, the superposition
+potential is:
+When the phase difference is 180°, the
+superposition potential is:
+ The reflected wave and
+the original wave
+have the same phase
+The reflected wave and
+the original wave
+have opposite phase
+Signal Transmission in Realistic Environments 
+(Cont’D)
+51
+
+===== PAGE 52 =====
+Signal Transmission in Realistic Environments 
+(Cont’D)
+o In RFID systems, the ground reflection interference is very serious, the
+concrete reflectivity is up to 2.5.
+o What also affect the recognition efficiency are the incident angle and the
+polarization mode.
+o The vertically polarized waves can not be reflected on a ground at a certain
+angle called the Brewster angle, as shown below.
+52
+
+===== PAGE 53 =====
+Signal Transmission in Realistic Environments 
+(Cont’D)
+o The signal energy attenuation of the vertically polarized signal is more regular,
+while the horizontally polarized signal energy is more affected by the
+multipath effect, as shown in the right figure.
+o Linearly polarized readers can achieve better reading when using polarized
+antennas; horizontally polarized antennas will be able to identify farther tags.
+53
+
+===== PAGE 54 =====
+For different applications of RFID systems, the first thing to
+be considered is RFID carrier frequency. Avoiding conflicts is
+the basis for the normal operation of RFID systems; UHF
+signals are suitable for long-range identification, while LF
+signals are suitable for short-range applications.
+It also needs carefully choice for the forward link and
+reverse link signal modulation encoding situation. Passive
+and semi-active tags, encoded to be able to provide stable
+energy; in more complex wireless environment, anti-
+interference ability should be strong.
+Summary of RFID Wireless Communication Principle
+54
+
+===== PAGE 55 =====
+The link budget is an important parameter related to the
+scope of application of the RFID system. The maximum
+transmission power, signal attenuation and path loss, tag
+activation energy and other factors nee to be considered.
+Long-distance transmission, take the link budget distance
+limit into consideration; close communication, reduce the
+transmission power to reduce the communication distance.
+Summary of RFID Wireless Communication Principle 
+(Cont’D)
+55
+
+===== PAGE 56 =====
+In order to adapt to a wider range of application requirements,
+the choice of antenna plays an important role. Compared to
+the omnidirectional antenna, the directional antenna reduces
+the coverage, but provides a longer communication distance,
+thus expanding the scope of application; the antenna
+polarization allows the tag to avoid encountering the antenna
+polarization direction perpendicular to the electromagnetic
+wave, resulting in signal not recognizable, so circular
+polarization greatly increases the applicability of the RFID
+system.
+Summary of RFID Wireless Communication 
+Principle (Cont’D)
+56
+
+===== PAGE 57 =====
+RFID system is running in the actual environment, the
+transmission interference of which is also much more
+complex than the theoretical analysis. Such as real noise,
+obstruction, signal absorption, signal scattering, multipath
+effects, and so on. Noise interferes the recognition and
+transmission of the signal. Signal absorption interferes the
+transmission range of RFID system. Signal scattering makes
+RFID signal recognition unstable. Some areas that should not
+be covered may be misread. Multipath effects can cause erratic
+changes in signal strength, resulting in instability in the range
+of tag identification.
+Summary of RFID Wireless Communication 
+Principle (Cont’D)
+57
+
+===== PAGE 58 =====
+School of Electronic Engineering and Computer Science
+Thank You
+Dr Fatma Benkhelifa
+

@@ -9,6 +9,8 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.Border;
@@ -35,6 +37,9 @@ import javafx.scene.text.FontWeight;
 import javafx.scene.text.TextAlignment;
 
 import java.util.List;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 final class UiTheme {
     static final double WINDOW_WIDTH = 1350;
@@ -193,6 +198,10 @@ final class UiTheme {
     }
 
     static StackPane createIllustrationCard(String titleText, String subtitleText) {
+        return createIllustrationCard(titleText, subtitleText, null);
+    }
+
+    static StackPane createIllustrationCard(String titleText, String subtitleText, String imageResourcePath) {
         StackPane leftPane = new StackPane();
         leftPane.setStyle(
             "-fx-background-color: white;" +
@@ -216,6 +225,22 @@ final class UiTheme {
         subtitle.setWrapText(true);
         subtitle.setTextAlignment(TextAlignment.CENTER);
 
+        VBox graphics = createIllustrationGraphic(imageResourcePath);
+        if (subtitleText == null || subtitleText.isBlank()) {
+            placeholder.getChildren().addAll(title, graphics);
+        } else {
+            placeholder.getChildren().addAll(title, subtitle, graphics);
+        }
+        leftPane.getChildren().add(placeholder);
+        return leftPane;
+    }
+
+    private static VBox createIllustrationGraphic(String imageResourcePath) {
+        VBox graphics = tryLoadIllustrationImage(imageResourcePath);
+        if (graphics != null) {
+            return graphics;
+        }
+
         Rectangle block1 = new Rectangle(280, 120);
         block1.setArcWidth(25);
         block1.setArcHeight(25);
@@ -231,12 +256,64 @@ final class UiTheme {
         block3.setArcHeight(25);
         block3.setFill(Color.web("#e6f0ff"));
 
-        VBox graphics = new VBox(15, block1, block2, block3);
-        graphics.setAlignment(Pos.CENTER);
+        VBox fallback = new VBox(15, block1, block2, block3);
+        fallback.setAlignment(Pos.CENTER);
+        return fallback;
+    }
 
-        placeholder.getChildren().addAll(title, subtitle, graphics);
-        leftPane.getChildren().add(placeholder);
-        return leftPane;
+    private static VBox tryLoadIllustrationImage(String imageResourcePath) {
+        if (imageResourcePath == null || imageResourcePath.isBlank()) {
+            return null;
+        }
+
+        try {
+            Image image = loadIllustrationImage(imageResourcePath);
+            if (image.isError()) {
+                return null;
+            }
+
+            ImageView imageView = new ImageView(image);
+            imageView.setPreserveRatio(true);
+            imageView.setFitWidth(520);
+            imageView.setFitHeight(520);
+            imageView.setSmooth(true);
+
+            StackPane imageFrame = new StackPane(imageView);
+            imageFrame.setPadding(new Insets(14));
+            imageFrame.setMaxWidth(560);
+            imageFrame.setMaxHeight(560);
+            imageFrame.setStyle(
+                "-fx-background-color: linear-gradient(to bottom right, #fff3fa, #fff8eb);" +
+                    "-fx-background-radius: 26;" +
+                    "-fx-border-color: #f4d9e6;" +
+                    "-fx-border-width: 1.4;" +
+                    "-fx-border-radius: 26;"
+            );
+
+            VBox box = new VBox(imageFrame);
+            box.setAlignment(Pos.CENTER);
+            return box;
+        } catch (Exception ignored) {
+            return null;
+        }
+    }
+
+    private static Image loadIllustrationImage(String imageResourcePath) throws Exception {
+        try (InputStream stream = UiTheme.class.getResourceAsStream(imageResourcePath)) {
+            if (stream != null) {
+                return new Image(stream);
+            }
+        }
+
+        String normalized = imageResourcePath.startsWith("/")
+            ? imageResourcePath.substring(1)
+            : imageResourcePath;
+        Path fallbackPath = Path.of("").toAbsolutePath().resolve("src/main/resources").resolve(normalized);
+        if (Files.exists(fallbackPath)) {
+            return new Image(fallbackPath.toUri().toString());
+        }
+
+        throw new IllegalStateException("Illustration image not found: " + imageResourcePath);
     }
 
     static VBox createFormCard(Node... children) {

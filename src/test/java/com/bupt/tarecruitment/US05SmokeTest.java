@@ -38,6 +38,8 @@ public final class US05SmokeTest {
             AuthService authService = new AuthService(userRepository, new AuthValidator());
             authService.register("ta201", "pass201", UserRole.APPLICANT);
             authService.register("ta202", "pass202", UserRole.APPLICANT);
+            authService.register("ta203", "pass203", UserRole.APPLICANT);
+            authService.register("mo201", "pass301", UserRole.MO);
 
             TextFileApplicantProfileRepository profileRepository = new TextFileApplicantProfileRepository(tempDataDirectory);
             ApplicantProfileService profileService = new ApplicantProfileService(
@@ -59,6 +61,18 @@ public final class US05SmokeTest {
                 List.of("Teaching Assistant")
             );
             profileService.createProfile(originalProfile);
+            profileService.createProfile(new ApplicantProfile(
+                "profile202",
+                "ta202",
+                "231225202",
+                "Second Applicant",
+                "Computer Science",
+                2,
+                "Not Graduated",
+                List.of("Python"),
+                List.of("WED-09:00-11:00"),
+                List.of("Lab Support")
+            ));
 
             ApplicantProfile updatedProfile = new ApplicantProfile(
                 "profile201",
@@ -96,9 +110,9 @@ public final class US05SmokeTest {
             expectUpdateFailure(
                 profileService,
                 new ApplicantProfile(
-                    "profile202",
-                    "ta202",
-                    "231225202",
+                    "profile203",
+                    "ta203",
+                    "231225203",
                     "Missing Existing Profile",
                     "Computer Science",
                     2,
@@ -108,6 +122,40 @@ public final class US05SmokeTest {
                     List.of("Lab Support")
                 ),
                 "No profile exists for userId"
+            );
+
+            expectUpdateFailure(
+                profileService,
+                new ApplicantProfile(
+                    "wrong-profile-id",
+                    "ta201",
+                    "231225201",
+                    "Edited Demo Applicant",
+                    "Computer Science",
+                    3,
+                    "Graduated",
+                    List.of("Python"),
+                    List.of("TUE-14:00-16:00"),
+                    List.of("Lab Support")
+                ),
+                "profileId does not match the existing profile"
+            );
+
+            expectUpdateFailure(
+                profileService,
+                new ApplicantProfile(
+                    "profile201",
+                    "ta201",
+                    "231225202",
+                    "Edited Demo Applicant",
+                    "Computer Science",
+                    3,
+                    "Graduated",
+                    List.of("Python"),
+                    List.of("TUE-14:00-16:00"),
+                    List.of("Lab Support")
+                ),
+                "studentId is already used by another applicant"
             );
 
             expectUpdateFailure(
@@ -125,6 +173,23 @@ public final class US05SmokeTest {
                     List.of("Lab Support")
                 ),
                 "fullName must not be blank."
+            );
+
+            expectUpdateFailure(
+                profileService,
+                new ApplicantProfile(
+                    "profile301",
+                    "mo201",
+                    "231225301",
+                    "Module Organiser User",
+                    "Computer Science",
+                    2,
+                    "Not Graduated",
+                    List.of("Python"),
+                    List.of("TUE-14:00-16:00"),
+                    List.of("Lab Support")
+                ),
+                "is not an ACTIVE APPLICANT account"
             );
 
             System.out.println("US05 smoke test passed.");

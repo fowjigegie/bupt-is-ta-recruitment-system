@@ -61,6 +61,18 @@ public final class US10SmokeTest {
                 List.of("MON-09:00-11:00"),
                 List.of("Teaching Assistant")
             ));
+            profileRepository.save(new ApplicantProfile(
+                "profile403",
+                "ta402",
+                "231224402",
+                "Normalized Skill Demo",
+                "Computer Science",
+                2,
+                "Not Graduated",
+                List.of(" java ", "COMMUNICATION", "Teamwork"),
+                List.of("TUE-09:00-11:00"),
+                List.of("Lab Support")
+            ));
 
             TextFileJobRepository jobRepository = new TextFileJobRepository(tempDataDirectory);
             jobRepository.save(new JobPosting(
@@ -85,6 +97,17 @@ public final class US10SmokeTest {
                 List.of("WED-14:00-16:00"),
                 JobStatus.OPEN
             ));
+            jobRepository.save(new JobPosting(
+                "job403",
+                "mo402",
+                "Tutorial Support",
+                "COMP402",
+                "Support tutorials and office hours.",
+                List.of("Java", "communication", " SQL "),
+                2,
+                List.of("THU-10:00-12:00"),
+                JobStatus.OPEN
+            ));
 
             MissingSkillsFeedbackService feedbackService = new MissingSkillsFeedbackService(
                 profileRepository,
@@ -105,9 +128,35 @@ public final class US10SmokeTest {
             assertEquals(100, noGapFeedback.coveragePercent(), "Jobs with no required skills should show 100% coverage.");
             assertTrue(noGapFeedback.fullyMatched(), "Jobs with no required skills should count as fully matched.");
 
-            assertTrue(
-                feedbackService.feedbackForApplicantAndJob("ta402", "job401").isEmpty(),
-                "Applicants without a profile should not get skill-gap feedback yet."
+            MissingSkillsFeedback normalizedFeedback = feedbackService.feedbackForApplicantAndJob("ta402", "job403")
+                .orElseThrow(() -> new IllegalStateException("Expected normalized skill feedback for ta402 / job403."));
+            assertEquals(
+                List.of("Java", "communication"),
+                normalizedFeedback.matchedSkills(),
+                "Skill matching should ignore case and surrounding spaces."
+            );
+            assertEquals(List.of("SQL"), normalizedFeedback.missingSkills(), "Only unmatched normalized skills should remain.");
+            assertEquals(67, normalizedFeedback.coveragePercent(), "Normalized feedback coverage percentage is incorrect.");
+
+            expectFeedbackFailure(
+                feedbackService,
+                "ta401",
+                "missing-job",
+                "No job exists for jobId"
+            );
+
+            expectFeedbackFailure(
+                feedbackService,
+                "   ",
+                "job401",
+                "applicantUserId must not be blank."
+            );
+
+            expectFeedbackFailure(
+                feedbackService,
+                "ta401",
+                "   ",
+                "jobId must not be blank."
             );
 
             System.out.println("US10 smoke test passed.");
@@ -126,6 +175,25 @@ public final class US10SmokeTest {
     private static void assertTrue(boolean condition, String message) {
         if (!condition) {
             throw new IllegalStateException(message);
+        }
+    }
+
+    private static void expectFeedbackFailure(
+        MissingSkillsFeedbackService feedbackService,
+        String applicantUserId,
+        String jobId,
+        String expectedMessagePart
+    ) {
+        try {
+            feedbackService.feedbackForApplicantAndJob(applicantUserId, jobId);
+            throw new IllegalStateException(
+                "Expected missing-skills feedback lookup to fail for applicantUserId=%s, jobId=%s"
+                    .formatted(applicantUserId, jobId)
+            );
+        } catch (IllegalArgumentException exception) {
+            if (!exception.getMessage().contains(expectedMessagePart)) {
+                throw new IllegalStateException("Unexpected feedback failure message: " + exception.getMessage(), exception);
+            }
         }
     }
 }

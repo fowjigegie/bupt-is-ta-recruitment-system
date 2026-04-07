@@ -37,7 +37,8 @@ public class LoginPage extends Application {
 
         var leftImageArea = UiTheme.createIllustrationCard(
             "BUPT-TA Recruitment",
-            "Single-window navigation is now handled by a shared NavigationManager."
+            "",
+            "/UI/assets/login/login.png"
         );
         HBox.setHgrow(leftImageArea, Priority.ALWAYS);
         leftImageArea.setPrefWidth(770);
