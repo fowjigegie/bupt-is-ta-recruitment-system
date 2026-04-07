@@ -382,53 +382,43 @@ public class ApplicationReviewPage extends Application {
             nav.goTo(PageId.MESSAGES);
         });
 
-        Button acceptButton = UiTheme.createPrimaryButton("Accept", 160, 44);
-        boolean actionable = review.application().status() == ApplicationStatus.SUBMITTED;
-        acceptButton.setDisable(!actionable);
-        acceptButton.setOnAction(event -> {
-            try {
-                context.services().applicationDecisionService().updateStatus(
-                    context.session().userId(),
-                    review.application().applicationId(),
-                    ApplicationStatus.ACCEPTED,
-                    "Accepted by MO in Application Review page."
-                );
-                actionStatus.setTextFill(Color.web("#2e7d32"));
-                actionStatus.setText("Application accepted.");
-                refreshList.run();
-            } catch (IllegalArgumentException exception) {
-                actionStatus.setTextFill(Color.web("#b00020"));
-                actionStatus.setText(exception.getMessage());
-            }
-        });
+        ApplicationStatus currentStatus = review.application().status();
+        boolean actionable = currentStatus != ApplicationStatus.WITHDRAWN;
 
-        Button withdrawnButton = UiTheme.createSoftButton("Withdrawn", 160, 44);
-        withdrawnButton.setDisable(!actionable);
-        withdrawnButton.setOnAction(event -> {
-            try {
-                JobApplication current = context.services().applicationRepository()
-                    .findByApplicationId(review.application().applicationId())
-                    .orElseThrow(() -> new IllegalArgumentException("Application not found."));
-                JobApplication updated = new JobApplication(
-                    current.applicationId(),
-                    current.jobId(),
-                    current.applicantUserId(),
-                    current.cvId(),
-                    ApplicationStatus.WITHDRAWN,
-                    current.submittedAt(),
-                    "Marked as withdrawn by MO."
-                );
-                context.services().applicationRepository().save(updated);
-                actionStatus.setTextFill(Color.web("#2e7d32"));
-                actionStatus.setText("Application updated to withdrawn.");
-                refreshList.run();
-            } catch (IllegalArgumentException exception) {
-                actionStatus.setTextFill(Color.web("#b00020"));
-                actionStatus.setText(exception.getMessage());
-            }
-        });
+        Button shortlistedButton = UiTheme.createSoftButton("Shortlisted", 160, 44);
+        shortlistedButton.setDisable(!actionable || currentStatus == ApplicationStatus.SHORTLISTED);
+        shortlistedButton.setOnAction(event -> updateReviewStatus(
+            context,
+            review.application().applicationId(),
+            ApplicationStatus.SHORTLISTED,
+            "Shortlisted by MO in Application Review page.",
+            actionStatus,
+            refreshList
+        ));
 
-        HBox actionRow = new HBox(12, chatButton, acceptButton, withdrawnButton);
+        Button acceptedButton = UiTheme.createPrimaryButton("Accepted", 160, 44);
+        acceptedButton.setDisable(!actionable || currentStatus == ApplicationStatus.ACCEPTED);
+        acceptedButton.setOnAction(event -> updateReviewStatus(
+            context,
+            review.application().applicationId(),
+            ApplicationStatus.ACCEPTED,
+            "Accepted by MO in Application Review page.",
+            actionStatus,
+            refreshList
+        ));
+
+        Button rejectedButton = UiTheme.createSoftButton("Rejected", 160, 44);
+        rejectedButton.setDisable(!actionable || currentStatus == ApplicationStatus.REJECTED);
+        rejectedButton.setOnAction(event -> updateReviewStatus(
+            context,
+            review.application().applicationId(),
+            ApplicationStatus.REJECTED,
+            "Rejected by MO in Application Review page.",
+            actionStatus,
+            refreshList
+        ));
+
+        HBox actionRow = new HBox(12, chatButton, shortlistedButton, acceptedButton, rejectedButton);
         actionRow.setAlignment(Pos.CENTER_LEFT);
 
         HBox row1 = new HBox(12, nameField, gradeField);
@@ -447,6 +437,58 @@ public class ApplicationReviewPage extends Application {
         );
         form.setPadding(new Insets(4, 6, 12, 6));
         return form;
+    }
+
+    private static void updateReviewStatus(
+        UiAppContext context,
+        String applicationId,
+        ApplicationStatus nextStatus,
+        String reviewerNote,
+        Label actionStatus,
+        Runnable refreshList
+    ) {
+        try {
+            JobApplication current = context.services().applicationRepository()
+                .findByApplicationId(applicationId)
+                .orElseThrow(() -> new IllegalArgumentException("Application not found."));
+
+            ApplicationStatus fromStatus = current.status();
+            if (fromStatus == nextStatus) {
+                return;
+            }
+            if (fromStatus == ApplicationStatus.WITHDRAWN) {
+                throw new IllegalArgumentException("Withdrawn applications cannot be reviewed.");
+            }
+
+            javafx.scene.control.Alert confirm = new javafx.scene.control.Alert(javafx.scene.control.Alert.AlertType.CONFIRMATION);
+            confirm.setTitle("Confirm status change");
+            confirm.setHeaderText(null);
+            confirm.setContentText(
+                "Change application status from "
+                    + ApplicationStatusPresenter.toDisplayText(fromStatus)
+                    + " to "
+                    + ApplicationStatusPresenter.toDisplayText(nextStatus)
+                    + "?"
+            );
+
+            var result = confirm.showAndWait();
+            if (result.isEmpty() || result.get() != javafx.scene.control.ButtonType.OK) {
+                return;
+            }
+
+            context.services().applicationDecisionService().updateStatus(
+                context.session().userId(),
+                applicationId,
+                nextStatus,
+                reviewerNote
+            );
+            actionStatus.setTextFill(Color.web("#2e7d32"));
+            actionStatus.setText("Application updated to " + ApplicationStatusPresenter.toDisplayText(nextStatus) + ".");
+            refreshList.run();
+        } catch (IllegalArgumentException exception) {
+            actionStatus.setTextFill(Color.web("#b00020"));
+            actionStatus.setText(exception.getMessage());
+        }
     }
 
     private static String valueOrFallback(String first, String fallback) {
