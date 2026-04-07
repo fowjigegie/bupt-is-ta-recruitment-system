@@ -34,7 +34,8 @@ public class RegisterPage extends Application {
 
         var left = UiTheme.createIllustrationCard(
             "Registration",
-            "Role selection now matches the backend: APPLICANT, MO, and ADMIN."
+            "",
+            "/UI/assets/login/login.png"
         );
         HBox.setHgrow(left, Priority.ALWAYS);
         left.setPrefWidth(770);
