@@ -55,13 +55,29 @@ public final class US13SmokeTest {
 
             JobApplication accepted = decisionService.updateStatus("mo101", "application101", ApplicationStatus.ACCEPTED, "Offer approved");
             assertEquals(ApplicationStatus.ACCEPTED, accepted.status(), "Accept action should update status.");
+            JobApplication storedAccepted = applicationRepository.findByApplicationId("application101")
+                .orElseThrow(() -> new IllegalStateException("Accepted application not found."));
+            assertEquals(ApplicationStatus.ACCEPTED, storedAccepted.status(), "Accepted status should persist in repository.");
 
             JobApplication rejected = decisionService.updateStatus("mo101", "application102", ApplicationStatus.REJECTED, "Not a fit");
             assertEquals(ApplicationStatus.REJECTED, rejected.status(), "Reject action should update status.");
 
+            // Flexible handling: move from shortlisted -> rejected as business changes.
+            JobApplication backToShortlisted = decisionService.updateStatus(
+                "mo101",
+                "application102",
+                ApplicationStatus.SHORTLISTED,
+                "Keep as backup candidate"
+            );
+            assertEquals(ApplicationStatus.SHORTLISTED, backToShortlisted.status(), "Should support status adjustments.");
+
             expectFailure(
                 () -> decisionService.updateStatus("mo101", "application201", ApplicationStatus.REJECTED, "Other organiser job"),
                 "own jobs"
+            );
+            expectFailure(
+                () -> decisionService.updateStatus("ta101", "application101", ApplicationStatus.REJECTED, "Not organiser"),
+                "MO"
             );
             expectFailure(
                 () -> decisionService.updateStatus("mo101", "application301", ApplicationStatus.SHORTLISTED, "Withdrawn"),
