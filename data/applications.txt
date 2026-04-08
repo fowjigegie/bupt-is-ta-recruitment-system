@@ -1,5 +1,0 @@
-# Format: applicationId|jobId|applicantUserId|cvId|status|submittedAt|reviewerNote
-application001|job001|ta001|cv001|ACCEPTED|2026-04-01T13:14:07.129951400|b64:
-application002|job002|ta001|cv001|WITHDRAWN|2026-04-01T13:26:18.823369700|b64:
-application003|job002|ta001|cv001|WITHDRAWN|2026-04-01T13:26:32.640398200|b64:
-application004|job002|ta001|cv001|SUBMITTED|2026-04-01T13:27:28.682474400|b64:
