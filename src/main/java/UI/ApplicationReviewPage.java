@@ -51,20 +51,12 @@ public class ApplicationReviewPage extends Application {
         List<JobPosting> ownedJobs = loadOwnedJobs(context);
 
         VBox content = new VBox(18);
-        content.setPadding(new Insets(35, 40, 28, 40));
+        content.setPadding(new Insets(20, 40, 28, 40));
 
         Label heading = UiTheme.createPageHeading("Application review");
         heading.setStyle("-fx-text-fill: #4664a8;");
 
-        Label subHeading = new Label("Select a job to review applicants. CV details stay on this page.");
-        subHeading.setStyle(
-            "-fx-font-family: Arial;" +
-                "-fx-font-size: 18px;" +
-                "-fx-font-weight: bold;" +
-                "-fx-text-fill: #4664a8;"
-        );
-
-        content.getChildren().addAll(heading, subHeading);
+        content.getChildren().add(heading);
 
         if (ownedJobs.isEmpty()) {
             content.getChildren().add(UiTheme.createWhiteCard(
