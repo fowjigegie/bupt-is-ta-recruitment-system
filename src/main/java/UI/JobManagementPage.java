@@ -48,11 +48,8 @@ public class JobManagementPage extends Application {
             .toList();
 
         VBox center = new VBox(20);
-        center.setPadding(new Insets(30, 40, 30, 40));
-        center.getChildren().addAll(
-            UiTheme.createPageHeading("Job management"),
-            UiTheme.createMutedText("This page now reads real jobs and applications from the repository.")
-        );
+        center.setPadding(new Insets(18, 40, 30, 40));
+        center.getChildren().add(UiTheme.createPageHeading("Job management"));
 
         if (jobs.isEmpty()) {
             center.getChildren().add(UiTheme.createWhiteCard("No jobs yet", "Publish a vacancy first and it will appear here."));

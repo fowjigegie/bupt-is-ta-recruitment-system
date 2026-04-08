@@ -62,19 +62,14 @@ public class ModuleOrganizerDashboardPage extends Application {
         long unreadMessages = context.services().messageService().countUnreadMessagesForUser(userId);
 
         VBox center = new VBox(18);
-        center.setPadding(new Insets(22, 40, 24, 40));
+        center.setPadding(new Insets(14, 40, 24, 40));
         center.setFillWidth(true);
         center.setMaxWidth(Double.MAX_VALUE);
 
-        String displayName = context.session().displayName();
-        Label welcomeSub = new Label("Signed in as " + displayName + ". Shortcuts below; job list in Job Management.");
-        welcomeSub.setFont(Font.font("Arial", 14));
-        welcomeSub.setTextFill(MO_SIDEBAR_BLUE);
-        welcomeSub.setWrapText(true);
         Label welcomeTitle = UiTheme.createPageHeading("Welcome Back");
         welcomeTitle.setTextFill(MO_SIDEBAR_BLUE);
 
-        center.getChildren().addAll(welcomeTitle, welcomeSub);
+        center.getChildren().add(welcomeTitle);
 
         HBox stats = new HBox(16,
             createCompactMoStatCard("Owned postings", Long.toString(ownedJobsCount), "Jobs for this organiser."),

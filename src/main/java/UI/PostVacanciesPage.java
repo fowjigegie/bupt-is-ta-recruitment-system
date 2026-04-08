@@ -3,9 +3,14 @@ package UI;
 import com.bupt.tarecruitment.job.JobPosting;
 import com.bupt.tarecruitment.job.JobStatus;
 import javafx.application.Application;
+import javafx.beans.binding.Bindings;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
+import javafx.scene.control.Button;
+import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
@@ -17,6 +22,7 @@ import javafx.scene.layout.BorderStroke;
 import javafx.scene.layout.BorderStrokeStyle;
 import javafx.scene.layout.BorderWidths;
 import javafx.scene.layout.CornerRadii;
+import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
@@ -35,7 +41,7 @@ public class PostVacanciesPage extends Application {
 
     static Scene createScene(NavigationManager nav, UiAppContext context) {
         VBox center = new VBox(22);
-        center.setPadding(new Insets(35, 40, 28, 40));
+        center.setPadding(new Insets(20, 40, 28, 40));
 
         Optional<JobPosting> editJob = Optional.ofNullable(context.editingJobId())
             .flatMap(jobId -> context.services().jobRepository().findByJobId(jobId))
@@ -57,23 +63,29 @@ public class PostVacanciesPage extends Application {
 
         TextField moduleField = createField();
         TextField weeklyHoursField = createField();
-        TextField scheduleField = createField();
         TextArea descriptionArea = createArea();
         TextArea requirementArea = createArea();
+        ObservableList<String> selectedScheduleSlots = FXCollections.observableArrayList();
 
         if (isEditMode) {
             JobPosting job = editJob.get();
             titleField.setText(job.title());
             moduleField.setText(job.moduleOrActivity());
             weeklyHoursField.setText(Integer.toString(job.weeklyHours()));
-            scheduleField.setText(String.join("; ", job.scheduleSlots()));
             descriptionArea.setText(job.description());
             requirementArea.setText(String.join("; ", job.requiredSkills()));
+            selectedScheduleSlots.setAll(job.scheduleSlots());
         }
 
         Label statusLabel = new Label();
         statusLabel.setWrapText(true);
         statusLabel.setTextFill(Color.web("#b00020"));
+        // Avoid leaving blank vertical space when no status message is shown.
+        statusLabel.managedProperty().bind(Bindings.createBooleanBinding(
+            () -> statusLabel.getText() != null && !statusLabel.getText().isBlank(),
+            statusLabel.textProperty()
+        ));
+        statusLabel.visibleProperty().bind(statusLabel.managedProperty());
 
         Label titleLabel = new Label(isEditMode ? "Edit Posting" : "New Posting");
         titleLabel.setStyle(
@@ -82,7 +94,7 @@ public class PostVacanciesPage extends Application {
                 "-fx-text-fill: #ff66b3;"
         );
 
-        VBox formBox = new VBox(18);
+        VBox formBox = new VBox(14);
         formBox.setPadding(new Insets(28));
         formBox.setPrefWidth(930);
         formBox.setBackground(new Background(
@@ -105,9 +117,14 @@ public class PostVacanciesPage extends Application {
             createLabeledFieldBox("Weekly Hours", weeklyHoursField, 390)
         );
 
-        VBox scheduleBox = createLabeledFieldBox("Schedule Slots", scheduleField, 798);
-        VBox descriptionBox = createLabeledAreaBox("Job Description", descriptionArea, 798, 130);
-        VBox requirementBox = createLabeledAreaBox("Job Requirements", requirementArea, 798, 150);
+        VBox scheduleBox = createScheduleSelectorBox(selectedScheduleSlots);
+        VBox descriptionBox = createLabeledAreaBox("Job Description", descriptionArea, 430, 250);
+        VBox requirementBox = createLabeledAreaBox("Job Requirements", requirementArea, 430, 250);
+        HBox.setHgrow(descriptionBox, Priority.ALWAYS);
+        HBox.setHgrow(requirementBox, Priority.ALWAYS);
+        HBox detailRow = new HBox(18, descriptionBox, requirementBox);
+        detailRow.setAlignment(Pos.CENTER);
+        detailRow.setFillHeight(true);
 
         var publishButton = UiTheme.createPrimaryButton(isEditMode ? "Update" : "Publish", 180, 52);
         publishButton.setOnAction(event -> {
@@ -119,7 +136,7 @@ public class PostVacanciesPage extends Application {
                     organiserField,
                     moduleField,
                     weeklyHoursField,
-                    scheduleField,
+                    List.copyOf(selectedScheduleSlots),
                     descriptionArea,
                     requirementArea,
                     statusLabel
@@ -131,7 +148,7 @@ public class PostVacanciesPage extends Application {
                     organiserField,
                     moduleField,
                     weeklyHoursField,
-                    scheduleField,
+                    List.copyOf(selectedScheduleSlots),
                     descriptionArea,
                     requirementArea,
                     statusLabel
@@ -146,30 +163,30 @@ public class PostVacanciesPage extends Application {
                 titleField.setText(job.title());
                 moduleField.setText(job.moduleOrActivity());
                 weeklyHoursField.setText(Integer.toString(job.weeklyHours()));
-                scheduleField.setText(String.join("; ", job.scheduleSlots()));
                 descriptionArea.setText(job.description());
                 requirementArea.setText(String.join("; ", job.requiredSkills()));
+                selectedScheduleSlots.setAll(job.scheduleSlots());
                 statusLabel.setText("");
             } else {
                 titleField.clear();
                 moduleField.clear();
                 weeklyHoursField.clear();
-                scheduleField.clear();
                 descriptionArea.clear();
                 requirementArea.clear();
+                selectedScheduleSlots.clear();
                 statusLabel.setText("");
             }
         });
 
-        HBox actionRow = new HBox(12, clearButton, publishButton);
-        actionRow.setAlignment(Pos.CENTER_RIGHT);
+        HBox actionRow = new HBox(14, clearButton, publishButton);
+        actionRow.setAlignment(Pos.CENTER);
+        actionRow.setPadding(new Insets(2, 0, 0, 0));
 
         formBox.getChildren().addAll(
             firstRow,
             metaRow,
             scheduleBox,
-            descriptionBox,
-            requirementBox,
+            detailRow,
             statusLabel,
             actionRow
         );
@@ -203,7 +220,7 @@ public class PostVacanciesPage extends Application {
         TextField organiserField,
         TextField moduleField,
         TextField weeklyHoursField,
-        TextField scheduleField,
+        List<String> scheduleSlots,
         TextArea descriptionArea,
         TextArea requirementArea,
         Label statusLabel
@@ -227,7 +244,7 @@ public class PostVacanciesPage extends Application {
                 descriptionArea.getText().trim(),
                 splitList(requirementArea.getText()),
                 weeklyHours,
-                splitList(scheduleField.getText())
+                scheduleSlots
             );
             context.selectJob(posting.jobId());
             statusLabel.setTextFill(Color.web("#2e7d32"));
@@ -244,7 +261,7 @@ public class PostVacanciesPage extends Application {
         TextField organiserField,
         TextField moduleField,
         TextField weeklyHoursField,
-        TextField scheduleField,
+        List<String> scheduleSlots,
         TextArea descriptionArea,
         TextArea requirementArea,
         Label statusLabel
@@ -269,7 +286,7 @@ public class PostVacanciesPage extends Application {
                 descriptionArea.getText().trim(),
                 splitList(requirementArea.getText()),
                 weeklyHours,
-                splitList(scheduleField.getText()),
+                scheduleSlots,
                 existingJob.status() == null ? JobStatus.OPEN : existingJob.status()
             );
 
@@ -311,6 +328,8 @@ public class PostVacanciesPage extends Application {
 
     private static VBox createLabeledAreaBox(String labelText, TextArea area, double width, double height) {
         VBox box = new VBox(8);
+        box.setFillWidth(true);
+        box.setMaxWidth(Double.MAX_VALUE);
 
         Label label = new Label(labelText + " :");
         label.setStyle(
@@ -320,8 +339,148 @@ public class PostVacanciesPage extends Application {
         );
 
         area.setPrefSize(width, height);
+        area.setMaxWidth(Double.MAX_VALUE);
         box.getChildren().addAll(label, area);
         return box;
+    }
+
+    private static VBox createScheduleSelectorBox(ObservableList<String> selectedScheduleSlots) {
+        VBox box = new VBox(8);
+
+        Label label = new Label("Schedule Slots :");
+        label.setStyle(
+            "-fx-font-size: 18px;" +
+                "-fx-font-weight: bold;" +
+                "-fx-text-fill: #4664a8;"
+        );
+
+        ComboBox<String> dayBox = new ComboBox<>();
+        dayBox.getItems().addAll("MON", "TUE", "WED", "THU", "FRI");
+        dayBox.setPromptText("Weekday");
+        dayBox.setPrefWidth(130);
+
+        ComboBox<String> startBox = new ComboBox<>();
+        startBox.getItems().addAll(
+            "08:00", "09:00", "10:00", "11:00", "12:00",
+            "13:00", "14:00", "15:00", "16:00", "17:00"
+        );
+        startBox.setPromptText("Start");
+        startBox.setPrefWidth(130);
+
+        ComboBox<String> endBox = new ComboBox<>();
+        endBox.getItems().addAll(
+            "09:00", "10:00", "11:00", "12:00", "13:00",
+            "14:00", "15:00", "16:00", "17:00", "18:00"
+        );
+        endBox.setPromptText("End");
+        endBox.setPrefWidth(130);
+
+        Button addSlotButton = UiTheme.createSoftButton("Add Slot", 110, 42);
+        Label helperText = new Label("You can add up to 5 slots.");
+        helperText.setStyle("-fx-font-size: 13px; -fx-text-fill: #8b7fa0;");
+
+        FlowPane tagsPane = new FlowPane();
+        tagsPane.setHgap(8);
+        tagsPane.setVgap(8);
+        tagsPane.setPrefWrapLength(760);
+        tagsPane.setStyle(
+            "-fx-background-color: #fff3f7;" +
+                "-fx-background-radius: 14;" +
+                "-fx-border-color: #f4d9e6;" +
+                "-fx-border-radius: 14;" +
+                "-fx-border-width: 2;" +
+                "-fx-padding: 10;"
+        );
+
+        Runnable[] refreshTagsRef = new Runnable[1];
+        refreshTagsRef[0] = () -> {
+            tagsPane.getChildren().clear();
+            for (String slot : selectedScheduleSlots) {
+                Label chipText = new Label(slot);
+                chipText.setStyle("-fx-text-fill: #4664a8; -fx-font-weight: bold; -fx-font-size: 13px;");
+
+                Button removeBtn = new Button("×");
+                removeBtn.setStyle(
+                    "-fx-background-color: transparent;" +
+                        "-fx-text-fill: #8a4f7a;" +
+                        "-fx-font-size: 14px;" +
+                        "-fx-font-weight: bold;" +
+                        "-fx-cursor: hand;" +
+                        "-fx-padding: 0 2 0 6;"
+                );
+                removeBtn.setOnAction(event -> {
+                    selectedScheduleSlots.remove(slot);
+                    refreshTagsRef[0].run();
+                    helperText.setText("You can add up to 5 slots.");
+                });
+
+                HBox chip = new HBox(4, chipText, removeBtn);
+                chip.setAlignment(Pos.CENTER_LEFT);
+                chip.setStyle(
+                    "-fx-background-color: #ffe7f3;" +
+                        "-fx-background-radius: 14;" +
+                        "-fx-border-color: #f3b7db;" +
+                        "-fx-border-radius: 14;" +
+                        "-fx-border-width: 1.2;" +
+                        "-fx-padding: 4 8 4 10;"
+                );
+                tagsPane.getChildren().add(chip);
+            }
+        };
+
+        addSlotButton.setOnAction(event -> {
+            String day = dayBox.getValue();
+            String start = startBox.getValue();
+            String end = endBox.getValue();
+            if (day == null || start == null || end == null) {
+                helperText.setText("Please choose weekday, start and end time first.");
+                return;
+            }
+            if (end.compareTo(start) <= 0) {
+                helperText.setText("End time must be later than start time.");
+                return;
+            }
+            if (selectedScheduleSlots.size() >= 5) {
+                helperText.setText("At most 5 schedule slots are allowed.");
+                return;
+            }
+            if (hasScheduleOverlap(selectedScheduleSlots, day, start, end)) {
+                helperText.setText("Invalid slot: overlaps with an existing schedule.");
+                return;
+            }
+            String slot = day + "-" + start + "-" + end;
+            if (!selectedScheduleSlots.contains(slot)) {
+                selectedScheduleSlots.add(slot);
+                refreshTagsRef[0].run();
+                helperText.setText("You can add up to 5 slots.");
+            } else {
+                helperText.setText("This slot already exists.");
+            }
+        });
+        HBox selectorRow = new HBox(12, dayBox, startBox, endBox, addSlotButton);
+        selectorRow.setAlignment(Pos.CENTER_LEFT);
+        refreshTagsRef[0].run();
+
+        box.getChildren().addAll(label, selectorRow, helperText, tagsPane);
+        return box;
+    }
+
+    private static boolean hasScheduleOverlap(List<String> existingSlots, String day, String start, String end) {
+        for (String slot : existingSlots) {
+            String[] parts = slot.split("-");
+            if (parts.length != 3) {
+                continue;
+            }
+            if (!day.equals(parts[0])) {
+                continue;
+            }
+            String existingStart = parts[1];
+            String existingEnd = parts[2];
+            if (start.compareTo(existingEnd) < 0 && existingStart.compareTo(end) < 0) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private static TextField createField() {
@@ -340,7 +499,7 @@ public class PostVacanciesPage extends Application {
 
     private static TextArea createArea() {
         TextArea area = new TextArea();
-        area.setPrefRowCount(4);
+        area.setPrefRowCount(5);
         area.setWrapText(true);
         area.setStyle(
             "-fx-control-inner-background: #fff3f7;" +
