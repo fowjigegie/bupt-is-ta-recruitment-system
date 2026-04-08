@@ -2,7 +2,7 @@
 
 $projectRoot = Split-Path -Parent $PSScriptRoot
 $buildScript = Join-Path $PSScriptRoot "build.ps1"
-$testSourceDir = Join-Path $projectRoot "src\\test\\java"
+$testSourceDir = Join-Path $projectRoot "src\\test\\java\\com\\bupt\\tarecruitment"
 $mainOutputDir = Join-Path $projectRoot "out\\main"
 $testOutputDir = Join-Path $projectRoot "out\\test"
 $javac = Get-JavaToolPath -ToolName "javac" -MinimumVersion 21
@@ -16,26 +16,18 @@ try {
         throw "Test source directory not found: $testSourceDir"
     }
 
-    $stagedTestSourceDir = Join-Path $tempWorkspace "src\\test\\java"
+    $stagedTestSourceDir = Join-Path $tempWorkspace "src\\test\\java\\com\\bupt\\tarecruitment"
     $stagedMainOutputDir = Join-Path $tempWorkspace "out\\main"
     $stagedTestOutputDir = Join-Path $tempWorkspace "out\\test"
-    $argFile = Join-Path $tempWorkspace "test-sources.txt"
+    $targetSourceFile = Join-Path $stagedTestSourceDir "US13SmokeTest.java"
 
-    Copy-DirectoryContents -Source $testSourceDir -Destination $stagedTestSourceDir
+    New-Item -ItemType Directory -Path $stagedTestSourceDir -Force | Out-Null
+    Copy-Item -Path (Join-Path $testSourceDir "US13SmokeTest.java") -Destination $targetSourceFile -Force
     Copy-DirectoryContents -Source $mainOutputDir -Destination $stagedMainOutputDir
     New-Item -ItemType Directory -Path $stagedTestOutputDir -Force | Out-Null
-
-    $sourceFiles = Get-ChildItem -Path $stagedTestSourceDir -Recurse -Filter *.java | Select-Object -ExpandProperty FullName
-
-    if (-not $sourceFiles) {
-        throw "No Java test files found under $testSourceDir"
-    }
-
-    $sourceFiles | Set-Content -Path $argFile -Encoding Ascii
-
-    & $javac -encoding UTF-8 -cp $stagedMainOutputDir -d $stagedTestOutputDir "@$argFile"
+    & $javac -encoding UTF-8 -cp $stagedMainOutputDir -d $stagedTestOutputDir $targetSourceFile
     if ($LASTEXITCODE -ne 0) {
-        throw "javac failed when compiling test sources."
+        throw "javac failed when compiling US13SmokeTest."
     }
 
     Reset-Directory -Path $testOutputDir
