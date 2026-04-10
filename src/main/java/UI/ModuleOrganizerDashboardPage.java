@@ -41,12 +41,19 @@ public class ModuleOrganizerDashboardPage extends Application {
 
     static Scene createScene(NavigationManager nav, UiAppContext context) {
         String userId = context.session().userId();
+        // Page flow:
+        // 1) gather MO-only data
+        // 2) render KPI cards and shortcuts
+        // 3) render compact posted-jobs preview list
+        // 4) route to full pages for deep operations
 
+        // Scope dashboard data to the currently signed-in organiser.
         List<JobPosting> ownedJobs = context.services().jobRepository().findAll().stream()
             .filter(job -> job.organiserId().equals(userId))
             .sorted(Comparator.comparing(JobPosting::jobId))
             .toList();
 
+        // KPI cards shown on the top row.
         long ownedJobsCount = ownedJobs.size();
         long ownedApplications = context.services().applicationRepository().findAll().stream()
             .filter(application -> context.services().jobRepository().findByJobId(application.jobId())
@@ -82,6 +89,7 @@ public class ModuleOrganizerDashboardPage extends Application {
         Button postButton = UiTheme.createPrimaryButton("Post a new vacancy", 300, 72);
         applyMoDashboardGradientButtonStyle(postButton);
         postButton.setOnAction(event -> {
+            // Dashboard shortcut always opens a blank posting form.
             context.clearJobEdit();
             nav.goTo(PageId.POST_VACANCIES);
         });
@@ -90,6 +98,7 @@ public class ModuleOrganizerDashboardPage extends Application {
         applyMoDashboardGradientButtonStyle(pendingButton);
         pendingButton.setOnAction(event -> {
             // Default entry should show all reviewable applications.
+            // Clearing stale context keeps this entry equivalent to an "inbox" view.
             context.selectJob(null);
             context.selectApplication(null);
             nav.goTo(PageId.APPLICATION_REVIEW);
@@ -98,6 +107,7 @@ public class ModuleOrganizerDashboardPage extends Application {
         Button chatButton = UiTheme.createPrimaryButton("Chat", 300, 72);
         applyMoDashboardGradientButtonStyle(chatButton);
         chatButton.setOnAction(event -> {
+            // Reuse latest conversation context if one exists.
             context.services().messageService()
                 .findMostRecentConversationForUser(userId)
                 .ifPresentOrElse(
@@ -111,6 +121,7 @@ public class ModuleOrganizerDashboardPage extends Application {
         quickActions.setAlignment(Pos.CENTER);
         quickActions.setMaxWidth(Double.MAX_VALUE);
         quickActions.setPadding(new Insets(4, 0, 8, 0));
+        // Keep badges compact to avoid oversized pills breaking button alignment.
         quickActions.getChildren().addAll(
             wrapPrimaryButton(postButton),
             wrapPrimaryButtonWithBadge(pendingButton, String.valueOf(Math.min(pendingReviews, 99))),
@@ -145,6 +156,7 @@ public class ModuleOrganizerDashboardPage extends Application {
     }
 
     private static void applyMoDashboardGradientButtonStyle(Button button) {
+        // Shared style helper for MO dashboard shortcuts.
         button.setFont(Font.font("Arial", FontWeight.BOLD, 16));
         button.setStyle(
             "-fx-background-color: linear-gradient(to right, #ffd699, #ffb3d9);" +
@@ -220,6 +232,7 @@ public class ModuleOrganizerDashboardPage extends Application {
     }
 
     private static VBox buildJobManagementSection(NavigationManager nav, UiAppContext context, List<JobPosting> ownedJobs) {
+        // Lightweight preview list on dashboard; full controls stay in Job Management page.
         Label sectionTitle = new Label("Jobs I have posted");
         sectionTitle.setFont(Font.font("Arial", FontWeight.BOLD, 20));
         sectionTitle.setTextFill(MO_SIDEBAR_BLUE);
@@ -253,6 +266,7 @@ public class ModuleOrganizerDashboardPage extends Application {
             listContainer.getChildren().add(empty);
         } else {
             for (JobPosting job : ownedJobs) {
+                // Keep action surface small on dashboard; full CRUD is on Job Management page.
                 listContainer.getChildren().add(createPostedJobRow(nav, context, job));
             }
         }
@@ -293,6 +307,7 @@ public class ModuleOrganizerDashboardPage extends Application {
     }
 
     private static HBox createPostedJobRow(NavigationManager nav, UiAppContext context, JobPosting job) {
+        // Derive live application count each render to stay consistent with repository state.
         long applicationCount = context.services().applicationRepository().findAll().stream()
             .filter(a -> a.jobId().equals(job.jobId()))
             .count();
@@ -329,6 +344,7 @@ public class ModuleOrganizerDashboardPage extends Application {
                 "-fx-cursor: hand;"
         );
         manageButton.setOnAction(event -> {
+            // Store selected job so destination page can focus on the same posting.
             context.selectJob(job.jobId());
             nav.goTo(PageId.JOB_MANAGEMENT);
         });

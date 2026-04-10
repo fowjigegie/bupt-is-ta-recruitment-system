@@ -42,10 +42,15 @@ public class JobManagementPage extends Application {
     }
 
     static Scene createScene(NavigationManager nav, UiAppContext context) {
+        // Show only postings owned by the current MO.
         List<JobPosting> jobs = context.services().jobRepository().findAll().stream()
             .filter(job -> job.organiserId().equals(context.session().userId()))
             .sorted(Comparator.comparing(JobPosting::jobId))
             .toList();
+        // Page intent:
+        // - surface all MO-owned jobs
+        // - allow targeted edit/status/review actions
+        // - keep status changes persisted immediately
 
         VBox center = new VBox(20);
         center.setPadding(new Insets(18, 40, 30, 40));
@@ -77,6 +82,7 @@ public class JobManagementPage extends Application {
     }
 
     private static VBox createListingRow(NavigationManager nav, UiAppContext context, JobPosting job) {
+        // Applicant count is computed live from repository data.
         long applicants = context.services().applicationRepository().findAll().stream()
             .filter(application -> application.jobId().equals(job.jobId()))
             .count();
@@ -117,6 +123,7 @@ public class JobManagementPage extends Application {
 
         var editButton = UiTheme.createSoftButton("Edit Details", 150, 42);
         if (isClosed) {
+            // Closed postings are frozen and cannot be edited.
             editButton.setDisable(true);
             editButton.setOpacity(0.55);
         }
@@ -139,6 +146,7 @@ public class JobManagementPage extends Application {
         ContextMenu statusMenu = new ContextMenu();
         MenuItem openItem = new MenuItem("Open");
         MenuItem closeItem = new MenuItem("Close");
+        // We expose status transitions via a tiny context menu to save row width.
         openItem.setOnAction(event -> {
             if (!isClosed) {
                 return;
@@ -176,6 +184,7 @@ public class JobManagementPage extends Application {
 
         var reviewButton = UiTheme.createSoftButton("View applicants", 150, 42);
         reviewButton.setOnAction(event -> {
+            // Pass selected job/application context into Application Review page.
             context.selectJob(job.jobId());
             JobApplication firstApplication = context.services().applicationRepository().findAll().stream()
                 .filter(application -> application.jobId().equals(job.jobId()))
@@ -194,6 +203,7 @@ public class JobManagementPage extends Application {
     }
 
     private static boolean confirmClose(JobPosting job) {
+        // Confirmation is required because closing immediately affects applicant-side visibility.
         Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
         alert.setTitle("Confirm status change");
         alert.setHeaderText("Close this posting?");
@@ -207,6 +217,7 @@ public class JobManagementPage extends Application {
     }
 
     private static void updateJobStatus(UiAppContext context, JobPosting job, JobStatus nextStatus) {
+        // Immutable update: create a new JobPosting record with changed status only.
         JobPosting updated = new JobPosting(
             job.jobId(),
             job.organiserId(),

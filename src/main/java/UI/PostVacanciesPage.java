@@ -42,7 +42,11 @@ public class PostVacanciesPage extends Application {
     static Scene createScene(NavigationManager nav, UiAppContext context) {
         VBox center = new VBox(22);
         center.setPadding(new Insets(20, 40, 28, 40));
+        // This page supports two entry states:
+        // - normal create mode from sidebar/dashboard
+        // - edit mode from Job Management via editingJobId context
 
+        // Edit mode is entered only when Job Management sets editingJobId in context.
         Optional<JobPosting> editJob = Optional.ofNullable(context.editingJobId())
             .flatMap(jobId -> context.services().jobRepository().findByJobId(jobId))
             .filter(job -> job.organiserId().equals(context.session().userId()))
@@ -68,6 +72,7 @@ public class PostVacanciesPage extends Application {
         ObservableList<String> selectedScheduleSlots = FXCollections.observableArrayList();
 
         if (isEditMode) {
+            // Pre-fill form fields so MO can update an existing posting safely.
             JobPosting job = editJob.get();
             titleField.setText(job.title());
             moduleField.setText(job.moduleOrActivity());
@@ -129,6 +134,7 @@ public class PostVacanciesPage extends Application {
         var publishButton = UiTheme.createPrimaryButton(isEditMode ? "Update" : "Publish", 180, 52);
         publishButton.setOnAction(event -> {
             if (isEditMode) {
+                // Keep original jobId/status and update editable fields.
                 update(
                     context,
                     editJob.get(),
@@ -142,6 +148,7 @@ public class PostVacanciesPage extends Application {
                     statusLabel
                 );
             } else {
+                // Create a brand-new posting with auto-generated jobId.
                 publish(
                     context,
                     titleField,
@@ -159,6 +166,7 @@ public class PostVacanciesPage extends Application {
         var clearButton = UiTheme.createSoftButton("Clear", 110, 46);
         clearButton.setOnAction(event -> {
             if (isEditMode) {
+                // In edit mode, "Clear" means reset to persisted values (not empty form).
                 JobPosting job = editJob.get();
                 titleField.setText(job.title());
                 moduleField.setText(job.moduleOrActivity());
@@ -168,6 +176,7 @@ public class PostVacanciesPage extends Application {
                 selectedScheduleSlots.setAll(job.scheduleSlots());
                 statusLabel.setText("");
             } else {
+                // In create mode, "Clear" empties all user-entered fields.
                 titleField.clear();
                 moduleField.clear();
                 weeklyHoursField.clear();
@@ -225,6 +234,7 @@ public class PostVacanciesPage extends Application {
         TextArea requirementArea,
         Label statusLabel
     ) {
+        // Reset status area before running validation and save.
         statusLabel.setTextFill(Color.web("#b00020"));
         statusLabel.setText("");
 
@@ -266,6 +276,7 @@ public class PostVacanciesPage extends Application {
         TextArea requirementArea,
         Label statusLabel
     ) {
+        // Update flow mirrors publish validation, but preserves identity and status fields.
         statusLabel.setTextFill(Color.web("#b00020"));
         statusLabel.setText("");
 
@@ -301,6 +312,7 @@ public class PostVacanciesPage extends Application {
     }
 
     private static List<String> splitList(String rawValue) {
+        // Accept comma/semicolon-delimited user input and normalize it for service layer.
         if (rawValue == null || rawValue.isBlank()) {
             return List.of();
         }
@@ -330,6 +342,7 @@ public class PostVacanciesPage extends Application {
         VBox box = new VBox(8);
         box.setFillWidth(true);
         box.setMaxWidth(Double.MAX_VALUE);
+        // Area boxes are intentionally stretchable so left/right columns stay visually balanced.
 
         Label label = new Label(labelText + " :");
         label.setStyle(
@@ -346,6 +359,9 @@ public class PostVacanciesPage extends Application {
 
     private static VBox createScheduleSelectorBox(ObservableList<String> selectedScheduleSlots) {
         VBox box = new VBox(8);
+        // Slot picker intentionally constrains input shape:
+        // day (MON-FRI) + start/end (08:00-18:00)
+        // to avoid invalid free-text schedule formats.
 
         Label label = new Label("Schedule Slots :");
         label.setStyle(
@@ -394,6 +410,7 @@ public class PostVacanciesPage extends Application {
 
         Runnable[] refreshTagsRef = new Runnable[1];
         refreshTagsRef[0] = () -> {
+            // Rebuild chips from source-of-truth list after every add/remove.
             tagsPane.getChildren().clear();
             for (String slot : selectedScheduleSlots) {
                 Label chipText = new Label(slot);
@@ -429,6 +446,7 @@ public class PostVacanciesPage extends Application {
         };
 
         addSlotButton.setOnAction(event -> {
+            // Enforce input completeness, ordering, max count and overlap constraints.
             String day = dayBox.getValue();
             String start = startBox.getValue();
             String end = endBox.getValue();
@@ -454,6 +472,7 @@ public class PostVacanciesPage extends Application {
                 refreshTagsRef[0].run();
                 helperText.setText("You can add up to 5 slots.");
             } else {
+                // Duplicate entries are ignored to keep output deterministic.
                 helperText.setText("This slot already exists.");
             }
         });
@@ -466,6 +485,7 @@ public class PostVacanciesPage extends Application {
     }
 
     private static boolean hasScheduleOverlap(List<String> existingSlots, String day, String start, String end) {
+        // Detect overlaps only within the same day using half-open interval logic.
         for (String slot : existingSlots) {
             String[] parts = slot.split("-");
             if (parts.length != 3) {

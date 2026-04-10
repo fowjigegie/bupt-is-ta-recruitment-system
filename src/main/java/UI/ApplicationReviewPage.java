@@ -48,7 +48,13 @@ public class ApplicationReviewPage extends Application {
     }
 
     static Scene createScene(NavigationManager nav, UiAppContext context) {
+        // Review scope is limited to jobs owned by current MO.
         List<JobPosting> ownedJobs = loadOwnedJobs(context);
+        // UX structure:
+        // - top: job selector
+        // - left: applicant list for selected job
+        // - right: inline CV/profile details + actions
+        // This avoids modal dialogs and keeps review context visible.
 
         VBox content = new VBox(18);
         content.setPadding(new Insets(20, 40, 28, 40));
@@ -135,7 +141,9 @@ public class ApplicationReviewPage extends Application {
             Label actionStatus = UiTheme.createMutedText("");
             actionStatus.setTextFill(Color.web("#b00020"));
             ObjectProperty<JobApplication> selectedApplication = new SimpleObjectProperty<>(null);
+            // selectedApplication acts as page state for synchronizing list selection and detail panel.
 
+            // Use a mutable runnable holder so selection callbacks can trigger full list refresh.
             Runnable[] refreshListRef = new Runnable[1];
             refreshListRef[0] = () -> {
                 applicantListBox.getChildren().clear();
@@ -158,6 +166,7 @@ public class ApplicationReviewPage extends Application {
 
                 if (selectedApplication.get() == null
                     || applications.stream().noneMatch(app -> app.applicationId().equals(selectedApplication.get().applicationId()))) {
+                    // Default to first application to keep right panel populated.
                     selectedApplication.set(applications.getFirst());
                 }
 
@@ -175,6 +184,7 @@ public class ApplicationReviewPage extends Application {
                 }
 
                 if (selectedApplication.get() != null) {
+                    // Keep right panel synchronized with left-panel selection.
                     renderSelectedDetail(context, selectedApplication.get(), detailTitle, detailContent, actionStatus, nav, refreshListRef[0]);
                 }
             };
@@ -235,6 +245,7 @@ public class ApplicationReviewPage extends Application {
     }
 
     private static List<JobPosting> loadOwnedJobs(UiAppContext context) {
+        // Data source is repository snapshot at render time (no client cache).
         return context.services().jobRepository().findAll().stream()
             .filter(job -> job.organiserId().equals(context.session().userId()))
             .sorted(Comparator.comparing(JobPosting::jobId))
@@ -242,6 +253,7 @@ public class ApplicationReviewPage extends Application {
     }
 
     private static List<JobApplication> loadApplicationsForJob(UiAppContext context, String jobId) {
+        // Keep deterministic order for stable UI rendering and predictable tests.
         return context.services().applicationRepository().findAll().stream()
             .filter(application -> application.jobId().equals(jobId))
             .sorted(Comparator.comparing(JobApplication::applicationId))
@@ -279,6 +291,7 @@ public class ApplicationReviewPage extends Application {
         statusLabel.setStyle("-fx-background-color: " + statusColor(application.status()) + "; -fx-background-radius: 10;");
 
         Button detailsButton = UiTheme.createSoftButton("View", 80, 42);
+        // Row action only updates local page state; no navigation side effects.
         detailsButton.setOnAction(event -> onSelect.accept(application));
 
         Region spacer1 = new Region();
@@ -307,6 +320,7 @@ public class ApplicationReviewPage extends Application {
         Runnable refreshList
     ) {
         try {
+            // Load unified profile + CV snapshot for selected application.
             ApplicantCvReview review = context.services().cvReviewService().loadReviewByApplicationId(application.applicationId());
             detailTitle.setText("CV | " + review.cv().cvId() + " | " + review.profile().fullName());
             detailTitle.setTextFill(Color.web("#4664a8"));
@@ -327,6 +341,7 @@ public class ApplicationReviewPage extends Application {
         NavigationManager nav,
         Runnable refreshList
     ) {
+        // Parse CV text into structured fields, then fallback to profile data when missing.
         ApplicantProfile profile = review.profile();
         Map<String, String> parsed = parseCvContent(review.cvContent());
 
@@ -370,12 +385,14 @@ public class ApplicationReviewPage extends Application {
 
         Button chatButton = UiTheme.createOutlineButton("Chat", 160, 44);
         chatButton.setOnAction(event -> {
+            // Jump into Messages with preselected peer/job context.
             context.openChatContext(review.application().jobId(), review.application().applicantUserId());
             nav.goTo(PageId.MESSAGES);
         });
 
         ApplicationStatus currentStatus = review.application().status();
         boolean actionable = currentStatus != ApplicationStatus.WITHDRAWN;
+        // Action buttons are disabled when status is withdrawn or already equal to target status.
 
         Button shortlistedButton = UiTheme.createSoftButton("Shortlisted", 160, 44);
         shortlistedButton.setDisable(!actionable || currentStatus == ApplicationStatus.SHORTLISTED);
@@ -440,6 +457,7 @@ public class ApplicationReviewPage extends Application {
         Runnable refreshList
     ) {
         try {
+            // Reload latest application first to avoid acting on stale UI state.
             JobApplication current = context.services().applicationRepository()
                 .findByApplicationId(applicationId)
                 .orElseThrow(() -> new IllegalArgumentException("Application not found."));
@@ -465,6 +483,7 @@ public class ApplicationReviewPage extends Application {
 
             var result = confirm.showAndWait();
             if (result.isEmpty() || result.get() != javafx.scene.control.ButtonType.OK) {
+                // User cancelled confirmation; keep current status unchanged.
                 return;
             }
 
@@ -544,6 +563,9 @@ public class ApplicationReviewPage extends Application {
     }
 
     private static Map<String, String> parseCvContent(String content) {
+        // Lightweight parser:
+        // - known "Key: Value" lines become structured fields
+        // - unrecognized lines are preserved as CV body text
         Map<String, String> result = new LinkedHashMap<>();
         if (content == null || content.isBlank()) {
             return result;
