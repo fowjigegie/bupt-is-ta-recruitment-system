@@ -3,6 +3,7 @@ package com.bupt.tarecruitment.admin;
 import java.util.List;
 import java.util.Objects;
 
+// US14: 管理员端展示用的汇总对象（每个 TA 一条）。
 public record WorkloadSummary(
     String applicantUserId,
     String applicantDisplayName,

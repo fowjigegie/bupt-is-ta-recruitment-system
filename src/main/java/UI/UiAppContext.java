@@ -26,6 +26,7 @@ public final class UiAppContext {
     }
 
     public static UiAppContext createDefault() {
+        // US00: 启动时先初始化数据目录，再装配 AuthService 和各业务 Service
         StartupReport startupReport = new ProjectBootstrap().initialize();
         AuthService authService = new AuthService(
             new TextFileUserRepository(startupReport.dataDirectory()),
@@ -116,6 +117,8 @@ public final class UiAppContext {
     }
 
     public void openChatContext(String jobId, String peerUserId) {
+        // US08: 从 Job Detail、Dashboard 等页面跳进 Messages 时，先把“当前岗位 + 当前聊天对象”记住，
+        // 消息页就能直接定位到正确的 conversation，而不是让用户重新手动选择。
         selectJob(jobId);
         selectChatPeer(peerUserId);
     }

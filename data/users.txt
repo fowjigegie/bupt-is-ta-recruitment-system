@@ -8,3 +8,4 @@ mo005|demo-mo5-password|MO|Network Module Organiser|ACTIVE
 mo006|demo-mo6-password|MO|Mobile Module Organiser|ACTIVE
 ta001|demo-ta-password|APPLICANT|Demo Applicant|ACTIVE
 ta002|demo-ta2-password|APPLICANT|Apply Demo Applicant|ACTIVE
+ta010|1|APPLICANT|ta010|ACTIVE

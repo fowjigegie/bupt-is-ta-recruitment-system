@@ -10,6 +10,8 @@ public final class ApplicantCvIdGenerator {
         this.repository = Objects.requireNonNull(repository);
     }
 
+    // US02: CV 编号是全局递增的，而不是“每个 applicant 从 001 重新开始”。
+    // 这样可以保证整个系统里的 cvId 都唯一，后续在申请表里引用时更简单。
     public String nextCvId() {
         int nextSequence = repository.findAll().stream()
             .map(ApplicantCv::cvId)

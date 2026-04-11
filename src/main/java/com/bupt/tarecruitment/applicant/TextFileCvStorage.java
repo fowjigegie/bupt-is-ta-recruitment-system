@@ -17,6 +17,8 @@ public final class TextFileCvStorage implements CvTextStorage {
         this.dataDirectory = Objects.requireNonNull(dataDirectory);
     }
 
+    // 真正把整份 CV 文本落到 data/cvs/<applicant>/<cvId>.txt。
+    // metadata 里只保存这个相对路径，不直接塞进 data/cvs.txt。
     @Override
     public String saveCv(String applicantUserId, String cvId, String cvContent) {
         if (applicantUserId == null || applicantUserId.isBlank()) {
@@ -31,6 +33,7 @@ public final class TextFileCvStorage implements CvTextStorage {
             throw new IllegalArgumentException("cvContent must not be blank.");
         }
 
+        // 每个 applicant 都有自己的子目录，便于后续按人管理多份 CV。
         String relativePath = Path.of("cvs", applicantUserId, cvId + ".txt").toString().replace('\\', '/');
         Path targetPath = resolveCvPath(relativePath);
 
@@ -43,6 +46,7 @@ public final class TextFileCvStorage implements CvTextStorage {
         }
     }
 
+    // 通过 metadata 保存的相对路径，把 CV 正文读回内存。
     @Override
     public String loadCv(String relativePath) {
         if (relativePath == null || relativePath.isBlank()) {
@@ -61,6 +65,7 @@ public final class TextFileCvStorage implements CvTextStorage {
         }
     }
 
+    // 做一次路径越界保护，确保读写都只能发生在 data/cvs/ 目录之内。
     private Path resolveCvPath(String relativePath) {
         Path cvsRoot = dataDirectory.resolve("cvs").normalize();
         Path resolvedPath = dataDirectory.resolve(relativePath).normalize();

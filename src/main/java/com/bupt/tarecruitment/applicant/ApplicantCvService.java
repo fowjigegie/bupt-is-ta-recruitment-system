@@ -21,12 +21,16 @@ public final class ApplicantCvService {
         this.cvStorage = Objects.requireNonNull(cvStorage);
     }
 
+    // 这个服务更多是“CV 与 application 的关联”。
+    // 虽然主要用于提交申请后的引用，但它和 US02 的 CV library 紧密相关，
+    // 因为 application 最终保存的只是 cvId，而不是整份 CV 文本。
     public JobApplication attachCvToApplication(String applicationId, String cvId) {
         requireNonBlank(applicationId, "applicationId");
         requireNonBlank(cvId, "cvId");
 
         JobApplication existingApplication = requireExistingApplication(applicationId);
         ApplicantCv applicantCv = requireExistingCv(cvId);
+        // 只允许 applicant 把“自己的 CV”挂到“自己的申请”上，避免串用别人简历。
         if (!applicantCv.ownerUserId().equals(existingApplication.applicantUserId())) {
             throw new IllegalArgumentException("The selected CV does not belong to applicantUserId: " + existingApplication.applicantUserId());
         }
@@ -45,6 +49,7 @@ public final class ApplicantCvService {
         return updatedApplication;
     }
 
+    // 查询某条申请当前绑定了哪一份 CV。
     public Optional<String> getAssignedCvId(String applicationId) {
         requireNonBlank(applicationId, "applicationId");
 
@@ -53,6 +58,7 @@ public final class ApplicantCvService {
             .filter(cvId -> !cvId.isBlank());
     }
 
+    // 先根据 application 拿到 cvId，再回查 CV 元数据。
     public ApplicantCv getAssignedCv(String applicationId) {
         requireNonBlank(applicationId, "applicationId");
 
@@ -64,6 +70,7 @@ public final class ApplicantCvService {
         return requireExistingCv(application.cvId());
     }
 
+    // 供 MO 查看或详情页展示时读取完整 CV 正文。
     public String loadCvContentByApplicationId(String applicationId) {
         ApplicantCv applicantCv = getAssignedCv(applicationId);
         return cvStorage.loadCv(applicantCv.fileName());

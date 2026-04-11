@@ -40,6 +40,8 @@ class ApplicantProfileServiceUpdateUnitTest {
         );
     }
 
+    // 正常更新流程：
+    // userId 能找到旧 profile，且新旧 profileId 一致时，允许覆盖保存。
     @Test
     void shouldUpdateProfileWhenExistingRecordMatchesUserAndProfileId() {
         ApplicantProfile existing = profile("profile951", "ta951", "231229951", "Original Name");
@@ -55,6 +57,7 @@ class ApplicantProfileServiceUpdateUnitTest {
         verify(profileRepository).save(updated);
     }
 
+    // update 不是 create，如果旧记录都不存在，就不能更新。
     @Test
     void shouldRejectUpdateWhenNoExistingProfileIsFound() {
         ApplicantProfile updated = profile("profile951", "ta951", "231229951", "Updated Name");
@@ -71,6 +74,7 @@ class ApplicantProfileServiceUpdateUnitTest {
         verify(profileRepository, never()).save(updated);
     }
 
+    // profileId 必须和现有 profile 对得上，防止把别人的记录误改掉。
     @Test
     void shouldRejectUpdateWhenProfileIdDoesNotMatchExistingProfile() {
         ApplicantProfile existing = profile("profile951", "ta951", "231229951", "Original Name");
@@ -91,6 +95,7 @@ class ApplicantProfileServiceUpdateUnitTest {
         verify(profileRepository, never()).save(updated);
     }
 
+    // 编辑时也要继续保证 studentId 全局唯一。
     @Test
     void shouldRejectUpdateWhenStudentIdBelongsToAnotherApplicant() {
         ApplicantProfile existing = profile("profile951", "ta951", "231229951", "Original Name");
@@ -113,6 +118,7 @@ class ApplicantProfileServiceUpdateUnitTest {
         verify(profileRepository, never()).save(updated);
     }
 
+    // 只有 ACTIVE APPLICANT 可以更新自己的 profile。
     @Test
     void shouldRejectUpdateWhenUserRoleIsNotApplicant() {
         ApplicantProfile updated = profile("profile951", "mo951", "231229951", "Updated Name");
@@ -128,6 +134,7 @@ class ApplicantProfileServiceUpdateUnitTest {
         verify(profileRepository, never()).save(updated);
     }
 
+    // 被禁用的 applicant 账号也不能继续更新资料。
     @Test
     void shouldRejectUpdateWhenApplicantAccountIsDisabled() {
         ApplicantProfile updated = profile("profile951", "ta951", "231229951", "Updated Name");

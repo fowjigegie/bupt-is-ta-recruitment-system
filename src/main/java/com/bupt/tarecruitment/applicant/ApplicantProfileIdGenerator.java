@@ -9,6 +9,8 @@ public final class ApplicantProfileIdGenerator {
         this.repository = Objects.requireNonNull(repository);
     }
 
+    // US01: 生成新的 profileId，规则是 profile001 / profile002 / ...
+    // 它是全局递增，而不是“每个用户从 001 开始”。
     public String nextProfileId() {
         int maxSuffix = repository.findAll().stream()
             .map(ApplicantProfile::profileId)
@@ -26,6 +28,7 @@ public final class ApplicantProfileIdGenerator {
         try {
             return Integer.parseInt(suffix);
         } catch (NumberFormatException exception) {
+            // 如果旧数据里出现了格式异常的编号，直接按 0 处理，避免生成器整体报错。
             return 0;
         }
     }

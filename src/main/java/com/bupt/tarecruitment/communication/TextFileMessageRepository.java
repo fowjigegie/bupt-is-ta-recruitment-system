@@ -25,6 +25,7 @@ public final class TextFileMessageRepository implements MessageRepository {
         ensureFileExists();
     }
 
+    // 读取全部消息记录。
     @Override
     public List<InquiryMessage> findAll() {
         try {
@@ -41,6 +42,7 @@ public final class TextFileMessageRepository implements MessageRepository {
         }
     }
 
+    // 消息天然带 jobId，因此可以按岗位切出单独会话。
     @Override
     public List<InquiryMessage> findByJobId(String jobId) {
         return findAll().stream()
@@ -48,6 +50,7 @@ public final class TextFileMessageRepository implements MessageRepository {
             .toList();
     }
 
+    // save 既负责新增新消息，也负责“同 messageId 覆盖”已读状态等更新。
     @Override
     public void save(InquiryMessage message) {
         List<InquiryMessage> messages = new ArrayList<>(findAll());
@@ -68,6 +71,8 @@ public final class TextFileMessageRepository implements MessageRepository {
         writeAll(messages);
     }
 
+    // messages.txt 每行固定 7 个字段：
+    // messageId | jobId | sender | receiver | sentAt | content | readStatus
     private InquiryMessage parseLine(String line) {
         String[] fields = line.split(FIELD_SEPARATOR, -1);
         if (fields.length != 7) {
@@ -85,6 +90,7 @@ public final class TextFileMessageRepository implements MessageRepository {
         );
     }
 
+    // 兼容旧数据里的 true/false，同时把当前主线写法统一成 READ / UNREAD。
     private boolean parseReadStatus(String value) {
         String normalized = value == null ? "" : value.trim();
         if (normalized.equalsIgnoreCase("READ") || normalized.equalsIgnoreCase("true")) {
@@ -96,10 +102,12 @@ public final class TextFileMessageRepository implements MessageRepository {
         throw new IllegalStateException("Invalid read status value: " + value);
     }
 
+    // 把内存里的 boolean 已读状态转换成更直观的文本。
     private String formatReadStatus(boolean read) {
         return read ? "READ" : "UNREAD";
     }
 
+    // 整体重写 messages.txt，保持文本存储实现简单。
     private void writeAll(List<InquiryMessage> messages) {
         List<String> lines = new ArrayList<>();
         lines.add(DataFile.MESSAGES.initialLines().getFirst());
@@ -114,6 +122,7 @@ public final class TextFileMessageRepository implements MessageRepository {
         }
     }
 
+    // 把消息对象序列化成一行文本。
     private String formatLine(InquiryMessage message) {
         return String.join(
             OUTPUT_SEPARATOR,
@@ -127,6 +136,7 @@ public final class TextFileMessageRepository implements MessageRepository {
         );
     }
 
+    // 启动时保证 data/messages.txt 存在。
     private void ensureFileExists() {
         try {
             Files.createDirectories(messagesFilePath.getParent());

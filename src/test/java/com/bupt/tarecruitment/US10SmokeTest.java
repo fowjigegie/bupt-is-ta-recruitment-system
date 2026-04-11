@@ -22,6 +22,9 @@ public final class US10SmokeTest {
     private US10SmokeTest() {
     }
 
+    // 这组 smoke test 关注的是 US10 对外故事是否跑通：
+    // 准备 applicant profile 和 job 数据后，
+    // 直接验证页面最终会依赖的几个结果：matched skills、missing skills、coveragePercent。
     public static void main(String[] args) {
         try {
             Path tempDataDirectory = Files.createTempDirectory("us10-smoke");

@@ -303,6 +303,8 @@ public class MoreJobsPage extends Application {
         launch(args);
     }
 
+    // 列表页只展示 US10 的简短版本：
+    // 让 applicant 在浏览岗位时先快速看到“自己大概还缺哪些技能”。
     private static Label createSkillGapPreview(UiAppContext context, JobPosting job) {
         if (context.session() == null || !context.session().isAuthenticated()) {
             return null;

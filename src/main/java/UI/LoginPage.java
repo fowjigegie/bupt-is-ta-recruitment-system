@@ -130,11 +130,13 @@ public class LoginPage extends Application {
         statusLabel.setText("");
 
         try {
+            // US00: 先用用户名+密码登录，再检查选择的角色是否匹配账号角色
             UserAccount account = context.authService().login(
                 usernameField.getText().trim(),
                 passwordField.getText()
             );
 
+            // 前端多一步角色匹配，避免用户用 MO 账号去选 APPLICANT 身份进入
             if (account.role() != roleBox.getValue()) {
                 context.authService().logout();
                 throw new IllegalArgumentException("Selected role does not match this account.");

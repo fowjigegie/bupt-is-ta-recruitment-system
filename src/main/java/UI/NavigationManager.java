@@ -33,14 +33,17 @@ public final class NavigationManager {
     }
 
     public void goTo(PageId pageId) {
+        // 普通页面跳转：会记录历史栈
         navigate(pageId, true, false);
     }
 
     public void replace(PageId pageId) {
+        // 页面替换：不记录历史栈（常用于刷新当前页）
         navigate(pageId, false, false);
     }
 
     public void resetTo(PageId pageId) {
+        // 重置为某页，并清空历史栈（例如登录后跳转到主页）
         navigate(pageId, false, true);
     }
 
@@ -73,7 +76,9 @@ public final class NavigationManager {
             history.clear();
         }
 
+        // US00: 统一做权限/登录拦截，未登录或角色不匹配会被重定向
         PageId targetPage = normalizeTarget(requestedPage);
+        // 只有实际发生跳转时才压栈
         if (pushHistory && currentPage != null && currentPage != targetPage) {
             history.push(currentPage);
         }
@@ -95,6 +100,7 @@ public final class NavigationManager {
             case ADMIN_DASHBOARD -> AdminDashboardPage.createScene(this, context);
         };
 
+        // 记录当前窗口状态，避免页面切换后窗口大小/位置突变
         boolean restoreWindowState = stage.getScene() != null;
         double currentWidth = stage.getWidth();
         double currentHeight = stage.getHeight();
@@ -108,6 +114,7 @@ public final class NavigationManager {
         stage.show();
 
         if (restoreWindowState) {
+            // 恢复窗口大小/位置/最大化状态
             if (!Double.isNaN(currentWidth) && currentWidth > 0) {
                 stage.setWidth(currentWidth);
             }
@@ -147,10 +154,12 @@ public final class NavigationManager {
             return requestedPage;
         }
 
+        // 没有登录则回到登录页
         if (!session().isAuthenticated()) {
             return PageId.LOGIN;
         }
 
+        // 角色不匹配则跳回对应角色首页
         if (session().role() != requiredRole) {
             return roleHome(session().role());
         }
@@ -159,6 +168,7 @@ public final class NavigationManager {
     }
 
     private UserRole requiredRole(PageId pageId) {
+        // 页面与角色的映射规则：用于统一权限拦截
         return switch (pageId) {
             case APPLICANT_DASHBOARD, MORE_JOBS, RESUME_DATABASE, JOB_DETAIL, INTERVIEW_INVITATION ->
                 UserRole.APPLICANT;

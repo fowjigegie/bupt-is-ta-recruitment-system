@@ -126,17 +126,21 @@ public class RegisterPage extends Application {
     ) {
         statusLabel.setText("");
 
+        // US00: 注册时先做两次密码一致性检查
         if (!passwordField.getText().equals(confirmField.getText())) {
             statusLabel.setText("Passwords do not match.");
             return;
         }
 
         try {
+            // 1) 注册账号
             context.authService().register(
                 usernameField.getText().trim(),
                 passwordField.getText(),
                 roleBox.getValue()
             );
+            // 2) 注册成功后直接登录并进入对应角色首页
+            // 这样用户不需要再返回登录页手动登录一次
             UserAccount account = context.authService().login(
                 usernameField.getText().trim(),
                 passwordField.getText()

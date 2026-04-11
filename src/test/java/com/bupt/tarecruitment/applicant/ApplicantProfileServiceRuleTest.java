@@ -15,6 +15,8 @@ public final class ApplicantProfileServiceRuleTest {
     private ApplicantProfileServiceRuleTest() {
     }
 
+    // 这组测试使用内存版 repository 和 userRepository，
+    // 重点验证 ApplicantProfileService 的业务规则，而不是文件读写细节。
     public static void main(String[] args) {
         InMemoryApplicantProfileRepository profileRepository = new InMemoryApplicantProfileRepository();
         InMemoryUserRepository userRepository = new InMemoryUserRepository();

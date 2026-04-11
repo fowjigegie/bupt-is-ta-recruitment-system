@@ -37,6 +37,8 @@ public class InterviewInvitationPage extends Application {
         UiLauncher.launch(PageId.INTERVIEW_INVITATION, stage);
     }
 
+    // US06 主页面：
+    // applicant 登录后会在这里看到自己所有申请的状态卡片，按提交时间从新到旧排序。
     static Scene createScene(NavigationManager nav, UiAppContext context) {
         List<JobApplication> applications = context.services().applicationRepository()
             .findByApplicantUserId(context.session().userId())
@@ -79,6 +81,8 @@ public class InterviewInvitationPage extends Application {
         return UiTheme.createScene(root);
     }
 
+    // 一张卡片对应一条申请。
+    // 左侧显示岗位基本信息和时间，右侧显示状态 chip、applicationId 和查看详情按钮。
     private static VBox createStatusCard(NavigationManager nav, UiAppContext context, JobApplication application) {
         JobPosting job = context.services().jobRepository().findByJobId(application.jobId()).orElse(null);
         String title = job == null ? application.jobId() : job.title();
@@ -122,6 +126,7 @@ public class InterviewInvitationPage extends Application {
                 "-fx-font-size: 14px;" +
                 "-fx-font-weight: bold;"
         );
+        // 详情按钮不是打开 application 独立页面，而是回到对应 job 的 Job Detail。
         detailsButton.setOnAction(event -> {
             context.selectJob(application.jobId());
             nav.goTo(PageId.JOB_DETAIL);
@@ -164,6 +169,7 @@ public class InterviewInvitationPage extends Application {
         return chip;
     }
 
+    // 不同状态用不同颜色，方便 applicant 一眼识别当前进度。
     private static Color statusColor(ApplicationStatus status) {
         return switch (status) {
             case SUBMITTED -> Color.web("#ff66b3");
@@ -174,6 +180,8 @@ public class InterviewInvitationPage extends Application {
         };
     }
 
+    // 这里是状态文字的用户友好版本。
+    // 例如内部的 SUBMITTED 在页面上显示成 Pending Review。
     private static String statusLabelText(ApplicationStatus status) {
         return switch (status) {
             case SUBMITTED -> "Pending Review";

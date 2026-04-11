@@ -36,8 +36,10 @@ public final class AdminWorkloadService {
     }
 
     public List<WorkloadSummary> listAcceptedTaWorkloads(int weeklyHourLimit) {
+        // US14: 只统计状态为 ACCEPTED 的 TA 录用记录
         validateWeeklyHourLimit(weeklyHourLimit);
 
+        // 先按 applicantUserId 分组，后面每个 TA 出一份 WorkloadSummary
         Map<String, List<JobApplication>> acceptedApplicationsByApplicant = applicationRepository.findAll().stream()
             .filter(application -> application.status() == ApplicationStatus.ACCEPTED)
             .collect(Collectors.groupingBy(JobApplication::applicantUserId));
@@ -55,6 +57,7 @@ public final class AdminWorkloadService {
 
         validateWeeklyHourLimit(weeklyHourLimit);
 
+        // 单独取某个 TA 的 ACCEPTED 记录
         List<JobApplication> acceptedApplications = applicationRepository.findByApplicantUserId(applicantUserId.trim()).stream()
             .filter(application -> application.status() == ApplicationStatus.ACCEPTED)
             .toList();
@@ -72,10 +75,12 @@ public final class AdminWorkloadService {
             .sorted(Comparator.comparing(AcceptedAssignment::jobId))
             .toList();
 
+        // 汇总每个 TA 的总周工时
         int totalWeeklyHours = acceptedAssignments.stream()
             .mapToInt(AcceptedAssignment::weeklyHours)
             .sum();
 
+        // 解析排期，找出冲突或格式非法的数据
         ScheduleAnalysis scheduleAnalysis = analyzeSchedules(acceptedAssignments);
         String applicantDisplayName = userRepository.findByUserId(applicantUserId)
             .map(UserAccount::displayName)
@@ -96,6 +101,7 @@ public final class AdminWorkloadService {
     }
 
     private AcceptedAssignment toAcceptedAssignment(JobApplication application) {
+        // 每条 ACCEPTED 申请会映射成一个可展示的 assignment（含岗位信息与排期）
         JobPosting jobPosting = jobRepository.findByJobId(application.jobId())
             .orElseThrow(() -> new IllegalStateException("Accepted application references unknown jobId: " + application.jobId()));
 
@@ -117,8 +123,10 @@ public final class AdminWorkloadService {
             List<ParsedScheduleSlot> parsedSlots = new ArrayList<>();
             for (String scheduleSlotRaw : assignment.scheduleSlots()) {
                 try {
+                    // 排期格式正确就解析，格式错误就记录为 invalid
                     parsedSlots.add(new ParsedScheduleSlot(scheduleSlotRaw, ScheduleSlot.parse(scheduleSlotRaw)));
                 } catch (IllegalArgumentException exception) {
+                    // 这里不抛错，避免一个坏数据导致整个页面挂掉
                     invalidScheduleEntries.add(
                         assignment.jobId()
                             + " | "
@@ -135,6 +143,7 @@ public final class AdminWorkloadService {
             AcceptedAssignment leftAssignment = acceptedAssignments.get(leftIndex);
             for (int rightIndex = leftIndex + 1; rightIndex < acceptedAssignments.size(); rightIndex++) {
                 AcceptedAssignment rightAssignment = acceptedAssignments.get(rightIndex);
+                // 两两比较排期，找出重叠时间段
                 conflicts.addAll(findConflictsBetween(
                     leftAssignment,
                     parsedSlotsByJob.getOrDefault(leftAssignment.jobId(), List.of()),
@@ -166,11 +175,13 @@ public final class AdminWorkloadService {
             for (ParsedScheduleSlot rightParsedSlot : rightSlots) {
                 ScheduleSlot leftSlot = leftParsedSlot.slot();
                 ScheduleSlot rightSlot = rightParsedSlot.slot();
+                // 这里是排期冲突的核心判断：只要时间段重叠，就认为冲突
                 if (!leftSlot.overlaps(rightSlot)) {
                     continue;
                 }
 
                 ScheduleSlot overlapSlot = leftSlot.overlapWith(rightSlot);
+                // 记录冲突的两门课 + 重叠时间段
                 conflicts.add(new WorkloadConflict(
                     leftAssignment.jobId(),
                     leftAssignment.title(),
@@ -185,6 +196,7 @@ public final class AdminWorkloadService {
     }
 
     private void validateWeeklyHourLimit(int weeklyHourLimit) {
+        // 管理员输入的周工时上限必须是正数
         if (weeklyHourLimit <= 0) {
             throw new IllegalArgumentException("weeklyHourLimit must be greater than 0.");
         }

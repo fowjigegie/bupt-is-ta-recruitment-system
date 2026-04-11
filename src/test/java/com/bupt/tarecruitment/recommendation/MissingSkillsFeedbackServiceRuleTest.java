@@ -13,6 +13,8 @@ public final class MissingSkillsFeedbackServiceRuleTest {
     private MissingSkillsFeedbackServiceRuleTest() {
     }
 
+    // 这组规则测试直接测 analyze(...)，
+    // 用来验证 US10 的“规范化 + 缺失技能计算 + 覆盖率计算”是否正确。
     public static void main(String[] args) {
         MissingSkillsFeedbackService service = new MissingSkillsFeedbackService(
             new NoOpProfileRepository(),

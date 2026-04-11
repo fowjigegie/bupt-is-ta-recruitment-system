@@ -15,6 +15,8 @@ public final class MissingSkillsFeedbackServiceLookupTest {
     private MissingSkillsFeedbackServiceLookupTest() {
     }
 
+    // 这组测试关注 US10 对外入口的 lookup 行为：
+    // service 能否根据 applicantUserId 和 jobId 正确找到两边数据，并对非法参数给出预期错误。
     public static void main(String[] args) {
         InMemoryProfileRepository profileRepository = new InMemoryProfileRepository();
         InMemoryJobRepository jobRepository = new InMemoryJobRepository();
