@@ -25,7 +25,7 @@ try {
     Copy-DirectoryContents -Source $mainOutputDir -Destination $stagedMainOutputDir
     New-Item -ItemType Directory -Path $stagedTestOutputDir -Force | Out-Null
 
-    $sourceFiles = Get-ChildItem -Path $stagedTestSourceDir -Recurse -Filter *.java | Select-Object -ExpandProperty FullName
+    $sourceFiles = Get-StandaloneJavaTestSourceFiles -RootDirectory $stagedTestSourceDir
 
     if (-not $sourceFiles) {
         throw "No Java test files found under $testSourceDir"

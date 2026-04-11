@@ -209,6 +209,27 @@ function Copy-DirectoryContents {
     }
 }
 
+function Get-StandaloneJavaTestSourceFiles {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$RootDirectory
+    )
+
+    $javaFiles = Get-ChildItem -Path $RootDirectory -Recurse -Filter *.java | Select-Object -ExpandProperty FullName
+    if (-not $javaFiles) {
+        return @()
+    }
+
+    $standaloneFiles = foreach ($file in $javaFiles) {
+        $usesExternalTestLibraries = Select-String -Path $file -Pattern "org.junit.jupiter", "org.mockito" -SimpleMatch -Quiet
+        if (-not $usesExternalTestLibraries) {
+            $file
+        }
+    }
+
+    return @($standaloneFiles)
+}
+
 function Reset-Directory {
     param(
         [Parameter(Mandatory = $true)]

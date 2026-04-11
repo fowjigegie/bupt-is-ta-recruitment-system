@@ -17,7 +17,7 @@ try {
     }
 
     $argFile = Join-Path $tempWorkspace "test-sources.txt"
-    $sourceFiles = Get-ChildItem -Path $testSourceDir -Recurse -Filter *.java | Select-Object -ExpandProperty FullName
+    $sourceFiles = Get-StandaloneJavaTestSourceFiles -RootDirectory $testSourceDir
 
     if (-not $sourceFiles) {
         throw "No Java test files found under $testSourceDir"
