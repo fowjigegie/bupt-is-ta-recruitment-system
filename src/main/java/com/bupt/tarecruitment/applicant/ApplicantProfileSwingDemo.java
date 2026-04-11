@@ -18,6 +18,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
+// US01/US05: Swing 演示版 profile 创建/编辑界面。
+// 它不影响主线 JavaFX UI，只是给开发或验收时做快速演示。
 public final class ApplicantProfileSwingDemo {
     private final ApplicantProfileService service;
     private final ApplicantProfileIdGenerator profileIdGenerator;
@@ -52,6 +54,7 @@ public final class ApplicantProfileSwingDemo {
     }
 
     public void show() {
+        // 把 create / update / load 三个核心动作都集中到一张演示页面上。
         SwingUtilities.invokeLater(() -> {
             JFrame frame = new JFrame("US-01 Applicant Profile Test UI");
             frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
@@ -119,6 +122,7 @@ public final class ApplicantProfileSwingDemo {
 
     private void createProfile() {
         try {
+            // US01: 新建 profile，使用新的全局 profileId。
             ApplicantProfile profile = new ApplicantProfile(
                 profileIdGenerator.nextProfileId(),
                 userIdField.getText().trim(),
@@ -142,6 +146,7 @@ public final class ApplicantProfileSwingDemo {
     }
 
     private void loadProfile() {
+        // 读取已有 profile 并回填到表单。
         String userId = userIdField.getText().trim();
         if (userId.isBlank()) {
             resultArea.setText("Please enter an applicant userId before loading a profile.");
@@ -159,6 +164,7 @@ public final class ApplicantProfileSwingDemo {
     }
 
     private void updateProfile() {
+        // US05: 编辑已有 profile，沿用旧的 profileId。
         String userId = userIdField.getText().trim();
         if (userId.isBlank()) {
             resultArea.setText("Please enter an applicant userId before updating a profile.");
@@ -208,6 +214,7 @@ public final class ApplicantProfileSwingDemo {
     }
 
     private void tryLoadFixedProfile() {
+        // 如果 demo 绑定了固定 userId，就启动时顺手把已有 profile 带出来。
         Optional<ApplicantProfile> profile = service.getProfileByUserId(fixedUserId);
         if (profile.isPresent()) {
             fillForm(profile.get());
@@ -216,6 +223,7 @@ public final class ApplicantProfileSwingDemo {
     }
 
     private void fillForm(ApplicantProfile profile) {
+        // 把已有 profile 的字段重新灌回表单，方便继续编辑。
         userIdField.setText(profile.userId());
         studentIdField.setText(profile.studentId());
         fullNameField.setText(profile.fullName());

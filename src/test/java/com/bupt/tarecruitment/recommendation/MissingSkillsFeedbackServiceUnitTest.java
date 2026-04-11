@@ -36,6 +36,8 @@ class MissingSkillsFeedbackServiceUnitTest {
         service = new MissingSkillsFeedbackService(profileRepository, jobRepository);
     }
 
+    // analyze(...) 是 US10 最核心的规则方法：
+    // 这里验证它会忽略大小写和首尾空格，并把空白 required skill 排除在计算之外。
     @Test
     void shouldAnalyzeSkillCoverageIgnoringCaseAndWhitespace() {
         ApplicantProfile profile = applicantProfile(
@@ -58,6 +60,8 @@ class MissingSkillsFeedbackServiceUnitTest {
         assertFalse(feedback.fullyMatched());
     }
 
+    // 如果岗位根本没有有效的 required skills，
+    // 系统会把它视为“没有技能门槛”，因此覆盖率是 100%。
     @Test
     void shouldTreatJobsWithNoRealRequiredSkillsAsFullyMatched() {
         ApplicantProfile profile = applicantProfile(
@@ -78,6 +82,8 @@ class MissingSkillsFeedbackServiceUnitTest {
         assertTrue(feedback.fullyMatched());
     }
 
+    // 对外入口方法在 applicant 没有 profile 时应返回空，
+    // 因为没有 profile 就无法计算技能差距。
     @Test
     void shouldReturnEmptyWhenApplicantHasNoProfile() {
         when(profileRepository.findByUserId("ta983")).thenReturn(Optional.empty());
@@ -87,6 +93,7 @@ class MissingSkillsFeedbackServiceUnitTest {
         assertTrue(feedback.isEmpty());
     }
 
+    // 这是对外主流程的 happy path：先查 profile、再查 job、最后产出反馈对象。
     @Test
     void shouldLookupApplicantAndJobThenReturnFeedback() {
         ApplicantProfile profile = applicantProfile(
@@ -110,6 +117,7 @@ class MissingSkillsFeedbackServiceUnitTest {
         assertEquals(50, feedback.coveragePercent());
     }
 
+    // applicantUserId 为空属于非法调用，应直接抛错。
     @Test
     void shouldRejectBlankApplicantUserId() {
         IllegalArgumentException exception = assertThrows(
@@ -120,6 +128,7 @@ class MissingSkillsFeedbackServiceUnitTest {
         assertEquals("applicantUserId must not be blank.", exception.getMessage());
     }
 
+    // jobId 为空同样属于非法调用。
     @Test
     void shouldRejectBlankJobId() {
         IllegalArgumentException exception = assertThrows(
@@ -130,6 +139,7 @@ class MissingSkillsFeedbackServiceUnitTest {
         assertEquals("jobId must not be blank.", exception.getMessage());
     }
 
+    // profile 存在但岗位不存在时，应明确告诉调用方 jobId 无效。
     @Test
     void shouldRejectMissingJobDuringLookup() {
         ApplicantProfile profile = applicantProfile(

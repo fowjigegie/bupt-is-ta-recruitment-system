@@ -1,3 +1,4 @@
 # Format: applicationId|jobId|applicantUserId|cvId|status|submittedAt|reviewerNote
-application001|job001|ta001|cv001|SUBMITTED|2026-03-25T14:00:00|Initial demo application
-application002|job002|ta001|cv002|SUBMITTED|2026-03-25T15:30:00|Second demo application for a different role
+application001|job001|ta001|cv001|SUBMITTED|2026-03-25T14:00|b64:SW5pdGlhbCBkZW1vIGFwcGxpY2F0aW9u
+application002|job002|ta001|cv002|SUBMITTED|2026-03-25T15:30|b64:U2Vjb25kIGRlbW8gYXBwbGljYXRpb24gZm9yIGEgZGlmZmVyZW50IHJvbGU=
+application003|job012|ta010|cv007|SUBMITTED|2026-04-10T20:26:03.429235600|b64:

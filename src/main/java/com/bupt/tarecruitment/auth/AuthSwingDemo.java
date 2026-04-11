@@ -93,6 +93,7 @@ public final class AuthSwingDemo {
 
     private void register() {
         try {
+            // US00: Swing 注册入口，走 AuthService.register
             UserAccount account = service.register(
                 userIdField.getText().trim(),
                 new String(passwordField.getPassword()),
@@ -107,6 +108,7 @@ public final class AuthSwingDemo {
 
     private void login() {
         try {
+            // US00: Swing 登录入口，走 AuthService.login
             UserAccount account = service.login(
                 userIdField.getText().trim(),
                 new String(passwordField.getPassword())
@@ -131,6 +133,7 @@ public final class AuthSwingDemo {
     }
 
     private void viewCurrentUser() {
+        // 展示当前会话用户（如果未登录会提示空）
         service.getCurrentUser()
             .ifPresentOrElse(
                 account -> renderAccount("Current user loaded.", account),
@@ -139,6 +142,7 @@ public final class AuthSwingDemo {
     }
 
     private void logout() {
+        // 清理当前会话
         service.logout();
         resultArea.setText("Logged out.");
         onSessionChanged.run();

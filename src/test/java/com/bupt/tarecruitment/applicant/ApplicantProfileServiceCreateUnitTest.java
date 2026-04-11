@@ -40,6 +40,8 @@ class ApplicantProfileServiceCreateUnitTest {
         );
     }
 
+    // 核心 happy path：
+    // applicant 账号存在、处于 ACTIVE、没有旧 profile、studentId 也没有冲突时，应当成功保存。
     @Test
     void shouldCreateProfileWhenApplicantIsActiveAndProfileIsUnique() {
         ApplicantProfile profile = validProfile("profile901", "ta901", "231229901");
@@ -54,6 +56,8 @@ class ApplicantProfileServiceCreateUnitTest {
         verify(profileRepository).save(profile);
     }
 
+    // 同一个 userId 已经有 profile 时，create 应立即失败，
+    // 并且连 studentId 查重都不需要继续做。
     @Test
     void shouldRejectDuplicateProfileForSameUser() {
         ApplicantProfile profile = validProfile("profile901", "ta901", "231229901");
@@ -71,6 +75,8 @@ class ApplicantProfileServiceCreateUnitTest {
         verify(profileRepository, never()).findByStudentId("231229901");
     }
 
+    // studentId 是 applicant profile 的业务唯一键之一，
+    // 即使是不同 userId，也不能共用同一个 studentId。
     @Test
     void shouldRejectStudentIdAlreadyUsedByAnotherApplicant() {
         ApplicantProfile newProfile = validProfile("profile902", "ta902", "231229901");
@@ -92,6 +98,7 @@ class ApplicantProfileServiceCreateUnitTest {
         verify(profileRepository, never()).save(newProfile);
     }
 
+    // profile 不能挂在一个不存在的用户账号上。
     @Test
     void shouldRejectCreateWhenUserIsNotRegistered() {
         ApplicantProfile profile = validProfile("profile901", "ghost901", "231229901");
@@ -107,6 +114,7 @@ class ApplicantProfileServiceCreateUnitTest {
         verify(profileRepository, never()).save(profile);
     }
 
+    // 只有 APPLICANT 才能创建 Applicant Profile，MO/ADMIN 都不行。
     @Test
     void shouldRejectCreateWhenUserRoleIsNotApplicant() {
         ApplicantProfile profile = validProfile("profile901", "mo901", "231229901");
@@ -122,6 +130,7 @@ class ApplicantProfileServiceCreateUnitTest {
         verify(profileRepository, never()).save(profile);
     }
 
+    // 就算角色是 APPLICANT，只要账号不是 ACTIVE，也不能创建 profile。
     @Test
     void shouldRejectCreateWhenApplicantAccountIsDisabled() {
         ApplicantProfile profile = validProfile("profile901", "ta901", "231229901");

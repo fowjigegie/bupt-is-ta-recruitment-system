@@ -1,0 +1,7 @@
+Name: Jiang Yuan
+Grade: Senior undergraduate
+Programme: python
+Student ID: 2023213389
+Availability: MON-09:00-11:00; WED-14:00-16:00
+Skills: python, java
+Desired Positions: python

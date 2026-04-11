@@ -9,6 +9,7 @@ public final class ApplicantCvDemoMain {
     private ApplicantCvDemoMain() {
     }
 
+    // 本地快速启动 US02 Swing demo，方便在不进主 UI 的情况下单独验证 CV library。
     public static void main(String[] args) {
         StartupReport report = new ProjectBootstrap().initialize();
         ApplicationRepository applicationRepository = new TextFileApplicationRepository(report.dataDirectory());

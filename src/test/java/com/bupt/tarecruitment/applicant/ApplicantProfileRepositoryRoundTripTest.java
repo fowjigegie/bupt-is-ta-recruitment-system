@@ -11,6 +11,8 @@ public final class ApplicantProfileRepositoryRoundTripTest {
     private ApplicantProfileRepositoryRoundTripTest() {
     }
 
+    // 这组测试直接验证 repository 的读写闭环：
+    // save 之后能否正确读回，以及再次 save 同一 userId 时是否会覆盖而不是重复新增。
     public static void main(String[] args) {
         try {
             Path tempDataDirectory = Files.createTempDirectory("profile-repository-roundtrip");

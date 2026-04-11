@@ -7,6 +7,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Scanner;
 
+// US01: 控制台版 profile 创建/查看流程，用于快速演示和手工测试
 public final class ApplicantProfileConsoleWorkflow {
     private final ApplicantProfileService service;
     private final ApplicantProfileIdGenerator profileIdGenerator;
@@ -52,6 +53,7 @@ public final class ApplicantProfileConsoleWorkflow {
     }
 
     private void createProfile() {
+        // 创建 profile（US01 主流程）
         output.println();
         output.println("Create Applicant Profile");
 
@@ -95,6 +97,7 @@ public final class ApplicantProfileConsoleWorkflow {
     }
 
     private void viewProfile() {
+        // 查看已保存的 profile
         output.println();
         output.println("View Applicant Profile");
         String userId = promptNonBlank("Applicant userId");
@@ -109,6 +112,7 @@ public final class ApplicantProfileConsoleWorkflow {
     }
 
     private void printProfile(ApplicantProfile profile) {
+        // 统一打印 profile 字段，便于验收时快速核对
         output.println("Profile summary:");
         output.println(" - profileId: " + profile.profileId());
         output.println(" - userId: " + profile.userId());

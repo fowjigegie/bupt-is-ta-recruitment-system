@@ -56,6 +56,8 @@ public final class ApplicantCvSwingDemo {
         this.lockOwnerUserId = lockOwnerUserId && !this.fixedOwnerUserId.isBlank();
     }
 
+    // 这是 US02 的 Swing 演示入口：
+    // 用来手动创建 CV、导入 txt、列出某个 applicant 的全部 CV，并查看已保存的正文。
     public void show() {
         SwingUtilities.invokeLater(() -> {
             JFrame frame = new JFrame("US-02 CV Library Test UI");
@@ -140,6 +142,7 @@ public final class ApplicantCvSwingDemo {
         });
     }
 
+    // 导入 txt 的作用只是把本地文件内容放进编辑框，真正入库还要再点 Create CV。
     private void importTxtFile(JFrame frame) {
         JFileChooser chooser = new JFileChooser();
         chooser.setDialogTitle("Choose a .txt CV file");
@@ -164,6 +167,7 @@ public final class ApplicantCvSwingDemo {
         }
     }
 
+    // 创建时会同时生成 metadata 记录和对应的 txt 正文文件。
     private void createCv() {
         try {
             ApplicantCv applicantCv = cvLibraryService.createCv(
@@ -192,6 +196,7 @@ public final class ApplicantCvSwingDemo {
         }
     }
 
+    // 根据选中的 cvId，从 metadata + txt 文件把一份已有 CV 重新加载到页面。
     private void loadCv() {
         String cvId = cvIdField.getText().trim();
         if (cvId.isBlank()) {
@@ -211,6 +216,7 @@ public final class ApplicantCvSwingDemo {
         }
     }
 
+    // 纯查看某个 applicant 名下目前保存了哪些 CV。
     private void listCvs() {
         String ownerUserId = ownerUserIdField.getText().trim();
         if (ownerUserId.isBlank()) {

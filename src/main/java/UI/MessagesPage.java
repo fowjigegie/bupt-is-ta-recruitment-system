@@ -48,6 +48,8 @@ public class MessagesPage extends Application {
         UiLauncher.launch(PageId.MESSAGES, stage);
     }
 
+    // US08 主页面：
+    // 左边是“按 job + peer 分组后的 conversation 列表”，右边是当前 thread 的聊天内容和输入框。
     static Scene createScene(NavigationManager nav, UiAppContext context) {
         VBox center = new VBox(16);
         center.setPadding(new Insets(24, 36, 24, 36));
@@ -117,11 +119,13 @@ public class MessagesPage extends Application {
         Button refreshButton = UiTheme.createSoftButton("Refresh", 110, 42);
         Button sendButton = UiTheme.createPrimaryButton("Send", 120, 42);
 
+        // 每次进入页面、发送消息、点击刷新后，都重新根据 repository 构建 thread 列表。
         Runnable refreshThreads = () -> {
             List<ChatThread> threads = buildThreads(context, userId);
             renderThreadList(context, threads, selectedThread, threadListBox, messageFlow, conversationTitle, messageScroll, statusLabel);
         };
 
+        // 发送动作会校验“是否已选 thread + 文本非空”，然后调用 MessageService 真正保存消息。
         Runnable sendMessageAction = () -> {
             ChatThread active = selectedThread.get();
             if (active == null) {
@@ -212,6 +216,8 @@ public class MessagesPage extends Application {
         return UiTheme.createScene(root);
     }
 
+    // 把原始消息记录聚合成“会话摘要”。
+    // 这里的粒度是：同一个岗位(jobId) + 同一个聊天对象(peerUserId) = 一条 thread。
     private static List<ChatThread> buildThreads(UiAppContext context, String currentUserId) {
         Map<String, ChatThread> threadMap = new HashMap<>();
 
@@ -228,6 +234,7 @@ public class MessagesPage extends Application {
             String peerDisplay = resolveUserDisplay(context, peerUserId);
             String courseName = resolveCourseName(context, message.jobId());
             int unread = (message.receiverUserId().equals(currentUserId) && !message.read()) ? 1 : 0;
+            // 当前用户看见的 thread 预览，需要展示对方名字、课程名、最后一条消息和未读数。
             ChatThread candidate = new ChatThread(
                 message.jobId(),
                 courseName,
@@ -266,6 +273,8 @@ public class MessagesPage extends Application {
             }
         }
 
+        // 如果是从 Job Detail 点“Chat with MO”跳进来，即使还没有历史消息，也先制造一个空 thread，
+        // 这样用户能直接开始发第一条消息。
         String selectedJobId = context.selectedJobId();
         String selectedPeer = context.selectedChatPeerUserId();
         if (selectedJobId != null) {
@@ -292,6 +301,8 @@ public class MessagesPage extends Application {
             .toList();
     }
 
+    // 根据 thread 摘要，渲染左侧 conversation 列表。
+    // 同时负责在第一次进入页面时自动选中第一条会话。
     private static void renderThreadList(
         UiAppContext context,
         List<ChatThread> threads,
@@ -305,6 +316,7 @@ public class MessagesPage extends Application {
         threadListBox.getChildren().clear();
 
         if (threads.isEmpty()) {
+            // 空状态也分 applicant 和 MO 两种文案，避免用户不知道从哪开始聊天。
             String emptyBody = context.session().role() == UserRole.MO
                 ? "Applicants can start a chat from Job Detail. Each job-specific conversation will appear here."
                 : "Open chat from a job card or Job Detail page to start a conversation with the MO.";
@@ -393,6 +405,7 @@ public class MessagesPage extends Application {
         renderConversation(context, context.session().userId(), current, messageFlow, conversationTitle, messageScroll);
     }
 
+    // 右侧聊天窗真正显示的，是当前 job + 当前 peer 下的完整消息流。
     private static void renderConversation(
         UiAppContext context,
         String currentUserId,
@@ -417,6 +430,7 @@ public class MessagesPage extends Application {
         messageScroll.setVvalue(1.0);
     }
 
+    // 左侧每个 thread 按钮会展示课程名、对方、最后一条消息预览和未读数。
     private static Button createThreadButton(ChatThread thread) {
         String unreadSuffix = thread.unreadCount() > 0 ? "  (unread: %d)".formatted(thread.unreadCount()) : "";
         String preview = thread.preview() == null ? "" : thread.preview();
@@ -470,6 +484,7 @@ public class MessagesPage extends Application {
         return button;
     }
 
+    // 一条消息气泡的左右对齐取决于它是不是“我发出去的”。
     private static HBox createBubble(InquiryMessage message, String currentUserId) {
         boolean mine = message.senderUserId().equals(currentUserId);
         Label content = new Label(
@@ -497,6 +512,8 @@ public class MessagesPage extends Application {
             .orElse(userId);
     }
 
+    // 当前没有明确指定聊天对象时，尝试根据 job 推导一个默认 peer：
+    // applicant 默认找 organiser，MO 默认找这个岗位最近的 applicant。
     private static String deriveDefaultPeerByJob(UiAppContext context, String jobId, String currentUserId) {
         return context.services().jobRepository().findByJobId(jobId)
             .map(JobPosting::organiserId)
@@ -514,6 +531,7 @@ public class MessagesPage extends Application {
         return title;
     }
 
+    // 真正去 MessageService 里取“某岗位 + 某对象”的完整消息记录。
     private static List<InquiryMessage> listConversationByPeerAndJob(
         UiAppContext context,
         String userId,
@@ -530,6 +548,7 @@ public class MessagesPage extends Application {
             .toList();
     }
 
+    // 包一层页面调用，避免 UI 直接自己去遍历消息并改 read 状态。
     private static void markConversationAsRead(
         UiAppContext context,
         String userId,
@@ -539,10 +558,13 @@ public class MessagesPage extends Application {
         context.services().messageService().markConversationAsRead(jobId, userId, peerUserId);
     }
 
+    // 用 jobId + peerUserId 组合成唯一 key，确保不同岗位的聊天不会混在一起。
     private static String threadKey(String jobId, String peerUserId) {
         return jobId + "|" + peerUserId;
     }
 
+    // 聊天页左侧列表用的轻量摘要对象：
+    // 只放渲染 thread 列表需要的信息，不直接存所有消息。
     private record ChatThread(
         String jobId,
         String courseName,

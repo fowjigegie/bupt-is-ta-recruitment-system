@@ -36,6 +36,8 @@ public class ResumeDatabasePage extends Application {
         UiLauncher.launch(PageId.RESUME_DATABASE, stage);
     }
 
+    // US02 主页面：
+    // applicant 可以在这里维护 profile 的结构化字段，并创建、查看、更新自己名下的多份 CV。
     static Scene createScene(NavigationManager nav, UiAppContext context) {
         BorderPane centerPane = new BorderPane();
         centerPane.setPadding(new Insets(24, 32, 24, 32));
@@ -116,6 +118,8 @@ public class ResumeDatabasePage extends Application {
         return UiTheme.createScene(root);
     }
 
+    // 根据当前 applicant 已保存的 CV 元数据，重建顶部的“CV 标签栏”。
+    // 选中某一份 CV 时，会把 metadata 和正文一起加载回表单。
     private static void rebuildCvTabs(
         UiAppContext context,
         VBox tabsRow,
@@ -212,6 +216,8 @@ public class ResumeDatabasePage extends Application {
         tabsRow.getChildren().add(tabRow);
     }
 
+    // 左侧是 profile/CV 编辑区，右侧是 avatar、按钮和当前状态提示。
+    // 这里把“保存 profile”和“创建/更新 CV”两条动作都组织到同一个页面里。
     private static HBox createFormSection(
         NavigationManager nav,
         UiAppContext context,
@@ -368,6 +374,8 @@ public class ResumeDatabasePage extends Application {
         return mainRow;
     }
 
+    // 页面首次打开时，先把 applicant 已有的 profile 字段回填到表单里。
+    // 这也是 US05“编辑 profile”的起点。
     private static void prefillProfile(
         UiAppContext context,
         TextField nameField,
@@ -378,6 +386,7 @@ public class ResumeDatabasePage extends Application {
         TextArea skillsArea,
         TextArea positionsArea
     ) {
+        // US01/US05: 如果已有 profile，进入页面时先把字段回填出来
         context.services().profileRepository().findByUserId(context.session().userId()).ifPresent(profile -> {
             nameField.setText(profile.fullName());
             gradeBox.setValue(gradeLabel(profile.yearOfStudy(), profile.educationLevel()));
@@ -389,6 +398,7 @@ public class ResumeDatabasePage extends Application {
         });
     }
 
+    // 用户点击顶部某个 CV 标签后，把该 CV 的 metadata 和正文加载回表单。
     private static void loadCvIntoFields(
         UiAppContext context,
         ApplicantCv cv,
@@ -414,6 +424,8 @@ public class ResumeDatabasePage extends Application {
         }
     }
 
+    // 如果导入的 txt 中带有 Name: / Skills: / Student ID: 这种结构化行，
+    // 就顺手把这些字段回填到表单；如果只是普通纯文本，则只填 CV Text。
     private static void applyCvContent(
         String content,
         TextField nameField,
@@ -428,6 +440,7 @@ public class ResumeDatabasePage extends Application {
             return;
         }
 
+        // 如果 CV 文本里包含 "Name: / Student ID:" 这种结构化行，会自动回填到表单字段
         for (String line : content.split("\\R")) {
             if (line.startsWith("Name: ")) {
                 nameField.setText(line.substring("Name: ".length()).trim());
@@ -447,6 +460,12 @@ public class ResumeDatabasePage extends Application {
         }
     }
 
+    // 这个页面同时承载 US01 和 US05：
+    // 如果当前 user 还没有保存过 profile，就走 create；
+    // 如果已经有 profile，就走 update。
+    // Profile 的保存入口：
+    // 已有 profile 时走 update；还没有 profile 时走 create。
+    // 这就是 US01（创建）和 US05（编辑）共用的一条 UI 提交路径。
     private static ApplicantProfile saveProfile(
         UiAppContext context,
         TextField nameField,
@@ -457,6 +476,7 @@ public class ResumeDatabasePage extends Application {
         TextArea skillsArea,
         TextArea positionsArea
     ) {
+        // 这里把 UI 表单内容统一组装成 ApplicantProfile 对象。
         GradeMapping mapping = mapGrade(gradeBox.getValue());
         ApplicantProfile profile = new ApplicantProfile(
             context.services().profileRepository().findByUserId(context.session().userId())
@@ -474,15 +494,21 @@ public class ResumeDatabasePage extends Application {
         );
 
         if (context.services().profileRepository().findByUserId(context.session().userId()).isPresent()) {
+            // 已有 profile => 走更新
             return context.services().profileService().updateProfile(profile);
         }
+        // 没有 profile => 走新建
         return context.services().profileService().createProfile(profile);
     }
 
+    // 用来判断按钮文案到底应该显示 Create profile 还是 Update profile。
     private static boolean hasSavedProfile(UiAppContext context) {
         return context.services().profileRepository().findByUserId(context.session().userId()).isPresent();
     }
 
+    // 用按钮文案和提示语明确告诉用户：
+    // 当前是在“创建 profile”还是“编辑已有 profile”。
+    // 根据当前是否已有 profile，动态刷新按钮文案和辅助提示。
     private static void refreshProfileActionState(
         UiAppContext context,
         javafx.scene.control.Button saveProfileButton,
@@ -497,6 +523,7 @@ public class ResumeDatabasePage extends Application {
         );
     }
 
+    // 当用户没有直接粘贴整份 CV 文本时，就把表单里的结构化字段拼成一份默认 CV 正文。
     private static String buildCvContent(
         TextField nameField,
         ComboBox<String> gradeBox,
@@ -518,6 +545,8 @@ public class ResumeDatabasePage extends Application {
         );
     }
 
+    // 优先使用用户真正编辑过的 CV Text；
+    // 如果 CV Text 为空，再退回用结构化字段自动拼一份文本。
     private static String resolveCvContent(
         TextArea cvContentArea,
         TextField nameField,
@@ -544,6 +573,9 @@ public class ResumeDatabasePage extends Application {
         );
     }
 
+    // 导入本地 txt：
+    // 主要作用是把全文放进 CV Text，
+    // 同时尝试识别其中是否有结构化字段可以回填到表单。
     private static void importTxtCv(
         TextField cvTitleField,
         TextArea cvContentArea,
@@ -556,6 +588,7 @@ public class ResumeDatabasePage extends Application {
         TextArea positionsArea,
         javafx.scene.control.Label statusLabel
     ) {
+        // 导入 .txt 只会填充 CV Text；如果文本里有结构化字段，会顺带回填表单
         FileChooser chooser = new FileChooser();
         chooser.setTitle("Choose a .txt CV file");
         chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Text files (*.txt)", "*.txt"));
@@ -594,6 +627,7 @@ public class ResumeDatabasePage extends Application {
         }
     }
 
+    // Skills / Desired positions 这种列表字段统一在这里做拆分和清洗。
     private static List<String> splitValueList(String raw) {
         if (raw == null || raw.isBlank()) {
             return List.of();

@@ -18,6 +18,7 @@ public final class AuthConsoleWorkflow {
     }
 
     public void run() {
+        // US00: 控制台版注册/登录流程，便于快速演示账号规则
         output.println("US-00 User Registration and Login Demo");
         output.println("Register with a project userId and role, then log in to verify role recognition.");
         output.println("ID format rules: APPLICANT -> ta..., MO -> mo..., ADMIN -> admin...");
@@ -46,6 +47,7 @@ public final class AuthConsoleWorkflow {
     }
 
     private void register() {
+        // US00: 注册只负责“创建账号”，不做自动登录
         output.println();
         output.println("Register User");
 
@@ -63,6 +65,7 @@ public final class AuthConsoleWorkflow {
     }
 
     private void login() {
+        // US00: 登录用于验证账号是否可用、角色是否正确识别
         output.println();
         output.println("Login");
 
@@ -80,6 +83,7 @@ public final class AuthConsoleWorkflow {
     }
 
     private void viewCurrentUser() {
+        // 查看当前会话用户（如果还没登录会提示为空）
         output.println();
         output.println("Current User");
 
@@ -93,6 +97,7 @@ public final class AuthConsoleWorkflow {
     }
 
     private void logout() {
+        // 清理当前会话
         service.logout();
         output.println("Logged out.");
     }

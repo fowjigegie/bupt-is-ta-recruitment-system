@@ -101,12 +101,15 @@ public final class UiServices {
         JobRepository jobRepository = new TextFileJobRepository(dataDirectory);
         MessageRepository messageRepository = new TextFileMessageRepository(dataDirectory);
 
+        // US01/US05: profile 的创建/编辑服务
         ApplicantProfileService profileService = new ApplicantProfileService(
             profileRepository,
             new ApplicantProfileValidator(),
             userRepository
         );
+        // US01: 生成新的 profileId
         ApplicantProfileIdGenerator profileIdGenerator = new ApplicantProfileIdGenerator(profileRepository);
+        // US02: applicant 自己维护 CV library 的主服务。
         ApplicantCvLibraryService cvLibraryService = new ApplicantCvLibraryService(
             profileRepository,
             cvRepository,
@@ -143,11 +146,13 @@ public final class UiServices {
             jobRepository,
             userRepository
         );
+        // US08: applicant 与 MO 的聊天服务。
         MessageService messageService = new MessageService(messageRepository);
         RecommendationService recommendationService = new RecommendationService(
             profileRepository,
             jobRepository
         );
+        // US10: 计算“已匹配/缺失技能/覆盖率”的反馈服务
         MissingSkillsFeedbackService missingSkillsFeedbackService = new MissingSkillsFeedbackService(
             profileRepository,
             jobRepository

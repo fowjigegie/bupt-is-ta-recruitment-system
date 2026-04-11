@@ -26,6 +26,7 @@ public final class TextFileApplicantCvRepository implements ApplicantCvRepositor
         ensureFileExists();
     }
 
+    // 按 cvId 查 metadata，常用于加载单个 CV、申请时回填当前选中的 CV。
     @Override
     public Optional<ApplicantCv> findByCvId(String cvId) {
         return findAll().stream()
@@ -33,6 +34,7 @@ public final class TextFileApplicantCvRepository implements ApplicantCvRepositor
             .findFirst();
     }
 
+    // 列出某个 applicant 拥有的所有 CV 元数据。
     @Override
     public List<ApplicantCv> findByOwnerUserId(String ownerUserId) {
         return findAll().stream()
@@ -40,6 +42,8 @@ public final class TextFileApplicantCvRepository implements ApplicantCvRepositor
             .toList();
     }
 
+    // 读取 data/cvs.txt 里的全部 metadata。
+    // 注意：这里读出来的是“CV 信息索引”，不包含真正的正文内容。
     @Override
     public List<ApplicantCv> findAll() {
         try {
@@ -59,6 +63,7 @@ public final class TextFileApplicantCvRepository implements ApplicantCvRepositor
         }
     }
 
+    // save 采用“同 cvId 覆盖、否则追加”的策略。
     @Override
     public void save(ApplicantCv applicantCv) {
         List<ApplicantCv> applicantCvs = new ArrayList<>(findAll());
@@ -79,6 +84,7 @@ public final class TextFileApplicantCvRepository implements ApplicantCvRepositor
         writeAll(applicantCvs);
     }
 
+    // data/cvs.txt 每行 6 个字段，顺序必须和 formatLine 完全一致。
     private ApplicantCv parseLine(String line) {
         String[] fields = line.split(FIELD_SEPARATOR, -1);
         if (fields.length != 6) {
@@ -95,6 +101,7 @@ public final class TextFileApplicantCvRepository implements ApplicantCvRepositor
         );
     }
 
+    // 整个 metadata 文件重写一遍，保持 txt 存储实现简单直观。
     private void writeAll(List<ApplicantCv> applicantCvs) {
         List<String> lines = new ArrayList<>();
         lines.add(DataFile.CVS.initialLines().getFirst());
@@ -110,6 +117,7 @@ public final class TextFileApplicantCvRepository implements ApplicantCvRepositor
         }
     }
 
+    // 把 metadata 对象转回文本文件的一行。
     private String formatLine(ApplicantCv applicantCv) {
         return String.join(
             OUTPUT_SEPARATOR,
@@ -122,6 +130,7 @@ public final class TextFileApplicantCvRepository implements ApplicantCvRepositor
         );
     }
 
+    // 第一次启动或测试时，如果 data/cvs.txt 不存在，就自动创建带表头的空文件。
     private void ensureFileExists() {
         try {
             Files.createDirectories(cvsFilePath.getParent());

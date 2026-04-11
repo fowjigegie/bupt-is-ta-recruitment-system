@@ -118,7 +118,7 @@ public class JobDetailPage extends Application {
             @Override
             protected void updateItem(ApplicantCv cv, boolean empty) {
                 super.updateItem(cv, empty);
-                setText(empty || cv == null ? "" : (cv.cvId() + " - " + cv.title()));
+                setText(empty || cv == null ? "" : cv.title());
                 setStyle("-fx-text-fill: #566589; -fx-font-weight: bold;");
             }
         });
@@ -131,7 +131,7 @@ public class JobDetailPage extends Application {
             @Override
             protected void updateItem(ApplicantCv cv, boolean empty) {
                 super.updateItem(cv, empty);
-                setText(empty || cv == null ? "" : (cv.cvId() + " - " + cv.title()));
+                setText(empty || cv == null ? "" : cv.title());
                 updateCellStyle();
             }
 
@@ -155,7 +155,7 @@ public class JobDetailPage extends Application {
                 if (applicantCv == null) {
                     return "";
                 }
-                return applicantCv.cvId() + " - " + applicantCv.title();
+                return applicantCv.title();
             }
 
             @Override
@@ -166,6 +166,7 @@ public class JobDetailPage extends Application {
 
         if (context.session().isAuthenticated()) {
             try {
+                // US02: 申请岗位前，先把当前 applicant 名下可用的 CV 全部列到下拉框里。
                 List<ApplicantCv> cvs = context.services().cvLibraryService()
                     .listCvsByUserId(context.session().userId())
                     .stream()
@@ -196,6 +197,7 @@ public class JobDetailPage extends Application {
 
         var chatButton = UiTheme.createSoftButton("Chat with MO", 170, 56);
         chatButton.setOnAction(event -> {
+            // US08: 从岗位详情直接进入“这个岗位 + 这个 organiser”的聊天上下文。
             context.openChatContext(job.jobId(), job.organiserId());
             nav.goTo(PageId.MESSAGES);
         });
@@ -224,6 +226,8 @@ public class JobDetailPage extends Application {
         );
     }
 
+    // 详情页展示 US10 的完整结果：
+    // 已匹配技能、缺失技能、以及覆盖率都会在这里展开。
     private static VBox createSkillGapFeedbackCard(UiAppContext context, JobPosting job) {
         if (!context.session().isAuthenticated()) {
             return UiTheme.createWhiteCard(

@@ -8,6 +8,7 @@ public final class AuthValidator {
     private static final Pattern ADMIN_ID_PATTERN = Pattern.compile("admin\\d{3,}");
 
     public void validateRegistration(String userId, String password, UserRole role) {
+        // US00: 注册时要求 userId / password / role 都不为空，且 userId 格式符合角色前缀规则
         requireNotBlank(userId, "userId");
         requireNotBlank(password, "password");
         requireRole(role);
@@ -15,6 +16,7 @@ public final class AuthValidator {
     }
 
     public void validateLogin(String userId, String password) {
+        // 登录只要求非空，不检查角色前缀
         requireNotBlank(userId, "userId");
         requireNotBlank(password, "password");
     }
@@ -31,6 +33,7 @@ public final class AuthValidator {
         }
     }
 
+    // US00: 注册时按角色强制 userId 前缀规则（ta### / mo### / admin###）
     private void validateUserIdFormat(String userId, UserRole role) {
         Pattern pattern;
         switch (role) {
@@ -47,6 +50,10 @@ public final class AuthValidator {
                 throw new IllegalArgumentException("Unsupported role: " + role);
         }
 
+        // US00: 注册时按角色强制 userId 前缀规则
+        // APPLICANT -> ta###, MO -> mo###, ADMIN -> admin###
+        // 角色对应的 ID 前缀规则：ta### / mo### / admin###
+        // 比如 ta001 / mo002 / admin001
         if (!pattern.matcher(userId).matches()) {
             throw new IllegalArgumentException(
                 String.format("userId format is invalid for role %s. Expected prefix rule for this project.", role.name())

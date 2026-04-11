@@ -1,7 +1,5 @@
 package com.bupt.tarecruitment.applicant;
 
-import com.bupt.tarecruitment.common.storage.DataFile;
-
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -9,6 +7,8 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+
+import com.bupt.tarecruitment.common.storage.DataFile;
 
 public final class TextFileApplicantProfileRepository implements ApplicantProfileRepository {
     private static final String FIELD_SEPARATOR = "\\|";
@@ -26,6 +26,7 @@ public final class TextFileApplicantProfileRepository implements ApplicantProfil
         ensureFileExists();
     }
 
+    // 按 userId 查 profile。
     @Override
     public Optional<ApplicantProfile> findByUserId(String userId) {
         return findAll().stream()
@@ -33,6 +34,7 @@ public final class TextFileApplicantProfileRepository implements ApplicantProfil
             .findFirst();
     }
 
+    // 按 studentId 查 profile，供 service 做学号唯一性检查。
     @Override
     public Optional<ApplicantProfile> findByStudentId(String studentId) {
         return findAll().stream()
@@ -40,6 +42,7 @@ public final class TextFileApplicantProfileRepository implements ApplicantProfil
             .findFirst();
     }
 
+    // 从 data/profiles.txt 读取全部 profile。
     @Override
     public List<ApplicantProfile> findAll() {
         try {
@@ -50,6 +53,7 @@ public final class TextFileApplicantProfileRepository implements ApplicantProfil
                     continue;
                 }
 
+                // 每一行解析成一个 ApplicantProfile 对象。
                 profiles.add(parseLine(line));
             }
 
@@ -59,6 +63,8 @@ public final class TextFileApplicantProfileRepository implements ApplicantProfil
         }
     }
 
+    // 文本存储实现里，默认按 userId 覆盖保存。
+    // 所以同一个 applicant 最终只会在文件里保留一条 profile 记录。
     @Override
     public void save(ApplicantProfile profile) {
         List<ApplicantProfile> profiles = new ArrayList<>(findAll());
@@ -80,6 +86,7 @@ public final class TextFileApplicantProfileRepository implements ApplicantProfil
     }
 
     private ApplicantProfile parseLine(String line) {
+        // profiles.txt 每一行的字段顺序必须和 formatLine(...) 保持一致。
         String[] fields = line.split(FIELD_SEPARATOR, -1);
         if (fields.length != 10) {
             throw new IllegalStateException("Invalid applicant profile record: " + line);
@@ -104,6 +111,7 @@ public final class TextFileApplicantProfileRepository implements ApplicantProfil
             return List.of();
         }
 
+        // skills / availability / desiredPositions 都用 ";" 做分隔。
         String[] values = fieldValue.split(LIST_SEPARATOR);
         List<String> parsedValues = new ArrayList<>();
         for (String value : values) {
@@ -115,6 +123,7 @@ public final class TextFileApplicantProfileRepository implements ApplicantProfil
     }
 
     private void writeAll(List<ApplicantProfile> profiles) {
+        // 这里采用整文件重写，逻辑简单，适合当前项目的文本存储方式。
         List<String> lines = new ArrayList<>();
         lines.add(DataFile.PROFILES.initialLines().getFirst());
 
@@ -130,6 +139,7 @@ public final class TextFileApplicantProfileRepository implements ApplicantProfil
     }
 
     private String formatLine(ApplicantProfile profile) {
+        // 注意输出字段顺序：必须与 parseLine(...) 一致。
         return String.join(
             OUTPUT_SEPARATOR,
             profile.profileId(),
@@ -149,6 +159,7 @@ public final class TextFileApplicantProfileRepository implements ApplicantProfil
         try {
             Files.createDirectories(profilesFilePath.getParent());
             if (Files.notExists(profilesFilePath)) {
+                // 第一次运行时自动创建空文件并写入表头。
                 Files.write(profilesFilePath, DataFile.PROFILES.initialLines(), StandardCharsets.UTF_8);
             }
         } catch (IOException exception) {

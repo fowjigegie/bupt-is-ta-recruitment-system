@@ -20,6 +20,9 @@ public final class US05SmokeTest {
     private US05SmokeTest() {
     }
 
+    // 这组 smoke test 关注的是 US05 的完整编辑流程：
+    // 先准备已有 profile，再执行 update，
+    // 然后验证“更新后能读回、profileId 必须一致、studentId 不能撞车、非法账号不能更新”。
     public static void main(String[] args) {
         try {
             Path tempDataDirectory = Files.createTempDirectory("us05-smoke");

@@ -24,6 +24,7 @@ public final class SessionState {
         status = null;
     }
 
+    // US00: 只有登录成功且账号 ACTIVE 时，才认为“已认证”
     public boolean isAuthenticated() {
         return userId != null && role != null && status == AccountStatus.ACTIVE;
     }

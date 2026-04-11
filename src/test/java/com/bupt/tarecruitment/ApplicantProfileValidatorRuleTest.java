@@ -9,6 +9,8 @@ public final class ApplicantProfileValidatorRuleTest {
     private ApplicantProfileValidatorRuleTest() {
     }
 
+    // 这组规则测试不关心 repository 或 service，
+    // 只关心 Validator 本身有没有把格式和字段约束守住。
     public static void main(String[] args) {
         ApplicantProfileValidator validator = new ApplicantProfileValidator();
 

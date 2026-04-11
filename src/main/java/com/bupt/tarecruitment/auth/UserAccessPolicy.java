@@ -22,6 +22,8 @@ public final class UserAccessPolicy {
         return NO_OP;
     }
 
+    // US00/US01/US05: 需要确保 userId 对应的账号真实存在、处于 ACTIVE 状态、且角色匹配。
+    // 如果 policy 处于 no-op 模式（enabled=false），就直接跳过校验。
     public void requireActiveUserWithRole(String userId, UserRole requiredRole) {
         if (!enabled) {
             return;

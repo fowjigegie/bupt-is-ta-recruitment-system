@@ -80,6 +80,7 @@ public class AdminDashboardPage extends Application {
         workloadScroll.setPrefViewportHeight(420);
         workloadScroll.setStyle("-fx-background-color: transparent;");
 
+        // US14: 根据管理员设置的周工时上限，刷新 TA 工作量统计
         refreshButton.setOnAction(event -> reloadWorkloads(context, weeklyHourLimitField, workloadCards, statusLabel));
         reloadWorkloads(context, weeklyHourLimitField, workloadCards, statusLabel);
 
@@ -122,6 +123,7 @@ public class AdminDashboardPage extends Application {
 
         final int weeklyHourLimit;
         try {
+            // UI 输入的是字符串，这里先转成 int
             weeklyHourLimit = Integer.parseInt(weeklyHourLimitField.getText().trim());
         } catch (NumberFormatException exception) {
             statusLabel.setText("Weekly hour limit must be an integer.");
@@ -129,6 +131,7 @@ public class AdminDashboardPage extends Application {
         }
 
         try {
+            // 拉取所有 ACCEPTED 记录，按 TA 汇总，并对冲突/超时做排序提示
             List<WorkloadSummary> summaries = context.services().adminWorkloadService()
                 .listAcceptedTaWorkloads(weeklyHourLimit)
                 .stream()
@@ -156,6 +159,7 @@ public class AdminDashboardPage extends Application {
                     .formatted(summaries.size(), flaggedCount)
             );
 
+            // 每个 summary 对应一张卡片
             for (WorkloadSummary summary : summaries) {
                 workloadCards.getChildren().add(createWorkloadCard(summary));
             }
@@ -166,6 +170,7 @@ public class AdminDashboardPage extends Application {
     }
 
     private static VBox createWorkloadCard(WorkloadSummary summary) {
+        // 一张卡片对应一个 TA 的整体工作量情况
         Color accentColor = riskColor(summary);
         String riskText = riskText(summary);
 
@@ -208,6 +213,7 @@ public class AdminDashboardPage extends Application {
 
         VBox assignmentsBox = new VBox(10);
         assignmentsBox.getChildren().add(createSubheading("Accepted assignments"));
+        // 把每个已录用岗位展开列出来，便于管理员核对
         for (AcceptedAssignment assignment : summary.acceptedAssignments()) {
             assignmentsBox.getChildren().add(createAssignmentRow(assignment));
         }
@@ -217,6 +223,7 @@ public class AdminDashboardPage extends Application {
         if (summary.conflicts().isEmpty()) {
             conflictsBox.getChildren().add(UiTheme.createMutedText("No overlapping schedule detected across accepted jobs."));
         } else {
+            // 把每个冲突的岗位对列出来
             for (WorkloadConflict conflict : summary.conflicts()) {
                 conflictsBox.getChildren().add(createConflictRow(conflict));
             }
@@ -227,6 +234,7 @@ public class AdminDashboardPage extends Application {
         if (summary.invalidScheduleEntries().isEmpty()) {
             invalidSchedulesBox.getChildren().add(UiTheme.createMutedText("No invalid schedule slot detected in accepted jobs."));
         } else {
+            // 如果排期格式非法，这里列出原始字符串，方便排查数据源
             for (String invalidEntry : summary.invalidScheduleEntries()) {
                 invalidSchedulesBox.getChildren().add(createInvalidScheduleRow(invalidEntry));
             }

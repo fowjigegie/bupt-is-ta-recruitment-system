@@ -20,6 +20,9 @@ public final class US01SmokeTest {
     private US01SmokeTest() {
     }
 
+    // 这组 smoke test 关注的是 US01 的完整主流程：
+    // 从准备临时数据目录、注册账号，到真正创建 Applicant Profile，
+    // 再验证“创建成功、能读回、重复创建失败、学号冲突失败、非法账号失败”等关键业务结果。
     public static void main(String[] args) {
         try {
             Path tempDataDirectory = Files.createTempDirectory("us01-smoke");

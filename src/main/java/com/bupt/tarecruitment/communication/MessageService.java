@@ -13,11 +13,14 @@ public final class MessageService {
         this.repository = Objects.requireNonNull(repository);
     }
 
+    // US08 的核心服务：
+    // 负责列出某个 job 下的双方聊天记录、发送新消息、统计未读数、标记已读。
     public List<InquiryMessage> listConversation(String jobId, String userA, String userB) {
         requireNonBlank(jobId, "jobId");
         requireNonBlank(userA, "userA");
         requireNonBlank(userB, "userB");
 
+        // 只保留当前这两个人在当前岗位下互相发送的消息，再按时间排序。
         return repository.findByJobId(jobId).stream()
             .filter(message ->
                 (message.senderUserId().equals(userA) && message.receiverUserId().equals(userB))
@@ -27,6 +30,7 @@ public final class MessageService {
             .toList();
     }
 
+    // 发送消息时会生成新的 messageId，并默认把 read 标记为 false。
     public InquiryMessage sendMessage(String jobId, String senderUserId, String receiverUserId, String content) {
         requireNonBlank(jobId, "jobId");
         requireNonBlank(senderUserId, "senderUserId");
@@ -50,6 +54,7 @@ public final class MessageService {
         return message;
     }
 
+    // 首页红点和消息页未读提示都会依赖这个统计。
     public long countUnreadMessagesForUser(String viewerUserId) {
         requireNonBlank(viewerUserId, "viewerUserId");
 
@@ -59,6 +64,7 @@ public final class MessageService {
             .count();
     }
 
+    // 用户打开某个 conversation 后，把“发给我且还没读”的消息批量标记为已读。
     public int markConversationAsRead(String jobId, String viewerUserId, String peerUserId) {
         requireNonBlank(jobId, "jobId");
         requireNonBlank(viewerUserId, "viewerUserId");
@@ -84,6 +90,7 @@ public final class MessageService {
         return updatedCount;
     }
 
+    // 用于 dashboard 等场景快速找到“最近一次聊过的会话”。
     public Optional<ConversationReference> findMostRecentConversationForUser(String viewerUserId) {
         requireNonBlank(viewerUserId, "viewerUserId");
 
@@ -97,6 +104,7 @@ public final class MessageService {
             ));
     }
 
+    // 消息编号是全局递增的 message001 / message002 / ...
     private String nextMessageId() {
         int nextSequence = repository.findAll().stream()
             .map(InquiryMessage::messageId)
