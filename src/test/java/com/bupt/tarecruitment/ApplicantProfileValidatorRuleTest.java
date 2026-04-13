@@ -5,6 +5,9 @@ import com.bupt.tarecruitment.applicant.ApplicantProfileValidator;
 
 import java.util.List;
 
+/**
+ * 验证申请人画像校验器的规则判断。
+ */
 public final class ApplicantProfileValidatorRuleTest {
     private ApplicantProfileValidatorRuleTest() {
     }

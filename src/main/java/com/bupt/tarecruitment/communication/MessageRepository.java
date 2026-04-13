@@ -2,6 +2,9 @@ package com.bupt.tarecruitment.communication;
 
 import java.util.List;
 
+/**
+ * 定义消息数据的持久化接口。
+ */
 public interface MessageRepository {
     // 读取全部消息，消息页会在内存中按 job + peer 重新组 conversation thread。
     List<InquiryMessage> findAll();

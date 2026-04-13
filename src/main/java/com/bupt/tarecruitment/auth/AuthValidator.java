@@ -2,6 +2,9 @@ package com.bupt.tarecruitment.auth;
 
 import java.util.regex.Pattern;
 
+/**
+ * 校验账号注册与登录输入是否合法。
+ */
 public final class AuthValidator {
     private static final Pattern APPLICANT_ID_PATTERN = Pattern.compile("ta\\d{3,}");
     private static final Pattern MO_ID_PATTERN = Pattern.compile("mo\\d{3,}");

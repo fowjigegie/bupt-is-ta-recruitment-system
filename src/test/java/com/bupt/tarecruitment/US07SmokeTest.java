@@ -7,6 +7,9 @@ import com.bupt.tarecruitment.job.JobStatus;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * 覆盖 US07 场景的冒烟测试。
+ */
 public final class US07SmokeTest {
     private US07SmokeTest() {
     }

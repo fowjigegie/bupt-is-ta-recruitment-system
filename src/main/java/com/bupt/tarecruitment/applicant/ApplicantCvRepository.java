@@ -3,6 +3,9 @@ package com.bupt.tarecruitment.applicant;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * 定义申请人简历的持久化接口。
+ */
 public interface ApplicantCvRepository {
     // 按 cvId 查单份 CV 元数据，用于加载、编辑、提交申请时选择指定 CV。
     Optional<ApplicantCv> findByCvId(String cvId);

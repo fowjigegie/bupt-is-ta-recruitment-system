@@ -2,6 +2,9 @@ package com.bupt.tarecruitment.common.storage;
 
 import java.util.List;
 
+/**
+ * 封装数据文件路径与初始化逻辑。
+ */
 public enum DataFile {
     USERS(
         "users.txt",
@@ -65,7 +68,7 @@ public enum DataFile {
         "messages.txt",
         List.of(
             "# Format: messageId|jobId|senderUserId|receiverUserId|sentAt|content|readStatus",
-            "message001|job001|ta001|mo001|2026-03-25T14:10:00|Could you clarify the marking workload?|UNREAD"
+            "message001|job001|ta001|mo001|2026-03-25T14:10:00|Could you clarify the marking workload...|UNREAD"
         )
     );
 

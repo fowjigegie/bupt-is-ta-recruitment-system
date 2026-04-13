@@ -11,6 +11,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * 基于文本文件存储申请人简历。
+ */
 public final class TextFileApplicantCvRepository implements ApplicantCvRepository {
     private static final String FIELD_SEPARATOR = "\\|";
     private static final String OUTPUT_SEPARATOR = "|";
@@ -43,7 +46,7 @@ public final class TextFileApplicantCvRepository implements ApplicantCvRepositor
     }
 
     // 读取 data/cvs.txt 里的全部 metadata。
-    // 注意：这里读出来的是“CV 信息索引”，不包含真正的正文内容。
+    // 注意：这里读出来的是"CV 信息索引"，不包含真正的正文内容。
     @Override
     public List<ApplicantCv> findAll() {
         try {
@@ -63,7 +66,7 @@ public final class TextFileApplicantCvRepository implements ApplicantCvRepositor
         }
     }
 
-    // save 采用“同 cvId 覆盖、否则追加”的策略。
+    // save 采用"同 cvId 覆盖、否则追加"的策略。
     @Override
     public void save(ApplicantCv applicantCv) {
         List<ApplicantCv> applicantCvs = new ArrayList<>(findAll());

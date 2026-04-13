@@ -2,7 +2,9 @@ package com.bupt.tarecruitment.admin;
 
 import java.util.Objects;
 
-// US14: 两个已录用岗位的排期冲突记录。
+/**
+ * 表示两个已录用岗位之间的时间冲突。
+ */
 public record WorkloadConflict(
     String jobIdA,
     String jobTitleA,

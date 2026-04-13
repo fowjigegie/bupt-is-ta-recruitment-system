@@ -2,6 +2,9 @@ package com.bupt.tarecruitment.job;
 
 import java.util.Objects;
 
+/**
+ * 负责生成岗位编号。
+ */
 public final class JobIdGenerator {
     private final JobRepository repository;
 

@@ -6,6 +6,9 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
+/**
+ * 处理会话查询、发送消息和已读标记。
+ */
 public final class MessageService {
     private final MessageRepository repository;
 
@@ -64,7 +67,7 @@ public final class MessageService {
             .count();
     }
 
-    // 用户打开某个 conversation 后，把“发给我且还没读”的消息批量标记为已读。
+    // 用户打开某个 conversation 后，把"发给我且还没读"的消息批量标记为已读。
     public int markConversationAsRead(String jobId, String viewerUserId, String peerUserId) {
         requireNonBlank(jobId, "jobId");
         requireNonBlank(viewerUserId, "viewerUserId");
@@ -90,7 +93,7 @@ public final class MessageService {
         return updatedCount;
     }
 
-    // 用于 dashboard 等场景快速找到“最近一次聊过的会话”。
+    // 用于 dashboard 等场景快速找到"最近一次聊过的会话"。
     public Optional<ConversationReference> findMostRecentConversationForUser(String viewerUserId) {
         requireNonBlank(viewerUserId, "viewerUserId");
 

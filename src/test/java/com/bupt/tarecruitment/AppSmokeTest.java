@@ -40,6 +40,9 @@ import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.util.List;
 
+/**
+ * 覆盖应用主入口的基础冒烟测试。
+ */
 public final class AppSmokeTest {
     private AppSmokeTest() {
     }

@@ -7,7 +7,9 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Scanner;
 
-// US01: 控制台版 profile 创建/查看流程，用于快速演示和手工测试
+/**
+ * 提供申请人画像相关的控制台交互流程。
+ */
 public final class ApplicantProfileConsoleWorkflow {
     private final ApplicantProfileService service;
     private final ApplicantProfileIdGenerator profileIdGenerator;

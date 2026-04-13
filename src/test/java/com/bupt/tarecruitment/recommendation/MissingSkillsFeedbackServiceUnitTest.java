@@ -21,6 +21,10 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
+
+/**
+ * 验证技能差距反馈服务的基础单元行为。
+ */
 class MissingSkillsFeedbackServiceUnitTest {
 
     @Mock
@@ -61,7 +65,7 @@ class MissingSkillsFeedbackServiceUnitTest {
     }
 
     // 如果岗位根本没有有效的 required skills，
-    // 系统会把它视为“没有技能门槛”，因此覆盖率是 100%。
+    // 系统会把它视为"没有技能门槛"，因此覆盖率是 100%。
     @Test
     void shouldTreatJobsWithNoRealRequiredSkillsAsFullyMatched() {
         ApplicantProfile profile = applicantProfile(

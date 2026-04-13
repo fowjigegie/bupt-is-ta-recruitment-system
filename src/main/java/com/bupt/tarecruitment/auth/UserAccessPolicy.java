@@ -2,6 +2,9 @@ package com.bupt.tarecruitment.auth;
 
 import java.util.Objects;
 
+/**
+ * 封装不同角色和账号状态下的访问规则。
+ */
 public final class UserAccessPolicy {
     private static final UserAccessPolicy NO_OP = new UserAccessPolicy();
 

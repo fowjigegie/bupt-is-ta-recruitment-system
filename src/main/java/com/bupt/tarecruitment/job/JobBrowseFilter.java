@@ -5,6 +5,9 @@ import java.util.List;
 import java.util.Locale;
 import java.util.function.Function;
 
+/**
+ * 为岗位浏览页提供筛选和聚合辅助逻辑。
+ */
 public final class JobBrowseFilter {
     private JobBrowseFilter() {
     }

@@ -3,8 +3,9 @@ package com.bupt.tarecruitment.communication;
 import java.time.LocalDateTime;
 import java.util.Objects;
 
-// US08 的消息对象。
-// 一条消息总是属于某个 jobId 下的一次 applicant <-> MO 对话，并记录已读状态。
+/**
+ * 表示一条站内咨询消息。
+ */
 public record InquiryMessage(
     String messageId,
     String jobId,

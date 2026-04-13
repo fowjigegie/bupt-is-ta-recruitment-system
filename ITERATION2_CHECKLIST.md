@@ -28,7 +28,7 @@ Stories that look basically implemented:
 Status: done enough for demo
 
 What exists:
-- applicant status page in `UI/InterviewInvitationPage.java`
+- applicant status page in `src/main/java/com/bupt/tarecruitment/ui/InterviewInvitationPage.java`
 - shows real application records and status values
 - smoke test in `src/test/java/com/bupt/tarecruitment/US06SmokeTest.java`
 
@@ -39,10 +39,10 @@ Notes:
 Status: mostly done
 
 What exists:
-- `UI/MoreJobsPage.java` supports a scrollable job list
-- `UI/MoreJobsPage.java` supports sorting
-- `UI/MoreJobsPage.java` supports keyword search
-- `UI/MoreJobsPage.java` supports module, activity, skill, organiser, and time-slot filters
+- `src/main/java/com/bupt/tarecruitment/ui/MoreJobsPage.java` supports a scrollable job list
+- `src/main/java/com/bupt/tarecruitment/ui/MoreJobsPage.java` supports sorting
+- `src/main/java/com/bupt/tarecruitment/ui/MoreJobsPage.java` supports keyword search
+- `src/main/java/com/bupt/tarecruitment/ui/MoreJobsPage.java` supports module, activity, skill, organiser, and time-slot filters
 - `com/bupt/tarecruitment/job/JobBrowseFilter.java` contains reusable filtering logic
 - keyword search can also match MO display names
 
@@ -54,7 +54,7 @@ Notes:
 Status: mostly done
 
 What exists:
-- messaging page in `UI/MessagesPage.java`
+- messaging page in `src/main/java/com/bupt/tarecruitment/ui/MessagesPage.java`
 - message service in `com/bupt/tarecruitment/communication/MessageService.java`
 - chat can open from jobs pages
 
@@ -80,8 +80,8 @@ Status: mostly done
 
 What exists:
 - `recommendation/MissingSkillsFeedbackService.java`
-- skill-gap preview in `UI/MoreJobsPage.java`
-- detailed skill-gap feedback card in `UI/JobDetailPage.java`
+- skill-gap preview in `src/main/java/com/bupt/tarecruitment/ui/MoreJobsPage.java`
+- detailed skill-gap feedback card in `src/main/java/com/bupt/tarecruitment/ui/JobDetailPage.java`
 
 Notes:
 - applicant can now see matched skills, missing skills, and coverage percentage for a job
@@ -90,8 +90,8 @@ Notes:
 Status: done enough for demo
 
 What exists:
-- job management page in `UI/JobManagementPage.java`
-- edit existing job through `UI/PostVacanciesPage.java`
+- job management page in `src/main/java/com/bupt/tarecruitment/ui/JobManagementPage.java`
+- edit existing job through `src/main/java/com/bupt/tarecruitment/ui/PostVacanciesPage.java`
 - open/close status switching
 - smoke test in `src/test/java/com/bupt/tarecruitment/US12SmokeTest.java`
 
@@ -102,7 +102,7 @@ Notes:
 Status: done enough for demo
 
 What exists:
-- application review page in `UI/ApplicationReviewPage.java`
+- application review page in `src/main/java/com/bupt/tarecruitment/ui/ApplicationReviewPage.java`
 - organiser can set:
   - `SHORTLISTED`
   - `ACCEPTED`
@@ -117,7 +117,7 @@ Notes:
 Status: done enough for demo
 
 What exists:
-- admin workload dashboard in `UI/AdminDashboardPage.java`
+- admin workload dashboard in `src/main/java/com/bupt/tarecruitment/ui/AdminDashboardPage.java`
 - workload calculation in `com/bupt/tarecruitment/admin/AdminWorkloadService.java`
 - smoke test in `src/test/java/com/bupt/tarecruitment/US14SmokeTest.java`
 
@@ -140,7 +140,7 @@ Notes:
 These are not necessarily blockers, but they are visible:
 
 1. `More Jobs` sorting is based on the numeric part of `jobId`, not a real publish timestamp.
-   File: `UI/MoreJobsPage.java`
+   File: `src/main/java/com/bupt/tarecruitment/ui/MoreJobsPage.java`
 
 ## Recommended finish order
 

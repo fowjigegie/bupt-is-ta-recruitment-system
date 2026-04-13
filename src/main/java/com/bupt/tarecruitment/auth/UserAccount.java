@@ -2,6 +2,9 @@ package com.bupt.tarecruitment.auth;
 
 import java.util.Objects;
 
+/**
+ * 表示系统中的用户账号信息。
+ */
 public record UserAccount(
     String userId,
     String passwordHash,

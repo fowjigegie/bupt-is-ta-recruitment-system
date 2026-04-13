@@ -9,6 +9,9 @@ import com.bupt.tarecruitment.job.JobRepository;
 import java.util.Objects;
 import java.util.Set;
 
+/**
+ * 处理 MO 对申请状态的审核决策。
+ */
 public final class ApplicationDecisionService {
     private static final Set<ApplicationStatus> ALLOWED_TARGET_STATUSES = Set.of(
         ApplicationStatus.SHORTLISTED,

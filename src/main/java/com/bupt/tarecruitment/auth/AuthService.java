@@ -3,6 +3,9 @@ package com.bupt.tarecruitment.auth;
 import java.util.Objects;
 import java.util.Optional;
 
+/**
+ * 处理注册、登录和账号状态相关业务。
+ */
 public final class AuthService {
     private final UserRepository repository;
     private final AuthValidator validator;
@@ -15,7 +18,7 @@ public final class AuthService {
     }
 
     public UserAccount register(String userId, String password, UserRole role) {
-        // US00: 注册只负责“创建账号”，不做自动登录
+        // US00: 注册只负责"创建账号"，不做自动登录
         // 这里的 validateRegistration 只做格式/必填校验，不负责查重
         validator.validateRegistration(userId, password, role);
 

@@ -35,7 +35,7 @@
 
 - 上游评审流
   - `src/main/java/com/bupt/tarecruitment/application/ApplicationDecisionService.java`
-  - `src/main/java/UI/ApplicationReviewPage.java`
+  - `src/main/java/com/bupt/tarecruitment/ui/ApplicationReviewPage.java`
 
 - 工作量统计与冲突检测
   - `src/main/java/com/bupt/tarecruitment/admin/AdminWorkloadService.java`
@@ -45,8 +45,8 @@
   - `src/main/java/com/bupt/tarecruitment/common/schedule/ScheduleSlot.java`
 
 - 管理员端界面
-  - `src/main/java/UI/AdminDashboardPage.java`
-  - `src/main/java/UI/UiServices.java`
+  - `src/main/java/com/bupt/tarecruitment/ui/AdminDashboardPage.java`
+  - `src/main/java/com/bupt/tarecruitment/ui/UiServices.java`
 
 - 自动化测试
   - `src/test/java/com/bupt/tarecruitment/US14SmokeTest.java`
@@ -118,14 +118,14 @@ powershell -ExecutionPolicy Bypass -File scripts\run-javafx.ps1
 如果需要直接从某个页面启动，可以使用：
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File scripts\run-javafx.ps1 UI.LoginPage
-powershell -ExecutionPolicy Bypass -File scripts\run-javafx.ps1 UI.ApplicationReviewPage
-powershell -ExecutionPolicy Bypass -File scripts\run-javafx.ps1 UI.AdminDashboardPage
+powershell -ExecutionPolicy Bypass -File scripts\run-javafx.ps1 com.bupt.tarecruitment.ui.LoginPage
+powershell -ExecutionPolicy Bypass -File scripts\run-javafx.ps1 com.bupt.tarecruitment.ui.ApplicationReviewPage
+powershell -ExecutionPolicy Bypass -File scripts\run-javafx.ps1 com.bupt.tarecruitment.ui.AdminDashboardPage
 ```
 
 说明：
 
-- `scripts/run.ps1` 仍然会启动旧的 Swing 入口。
+- `scripts/run.ps1` 现在默认启动 JavaFX 入口。
 - 如果要演示本次 `US-14` 的主要功能，建议直接使用 `run-javafx.ps1`。
 
 ### 3.3 JSP Web 演示版启动方式

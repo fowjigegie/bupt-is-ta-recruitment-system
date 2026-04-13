@@ -1,0 +1,20 @@
+package com.bupt.tarecruitment.ui;
+
+/**
+ * 定义桌面端页面标识。
+ */
+public enum PageId {
+    LOGIN,
+    REGISTER,
+    APPLICANT_DASHBOARD,
+    MORE_JOBS,
+    RESUME_DATABASE,
+    JOB_DETAIL,
+    MESSAGES,
+    INTERVIEW_INVITATION,
+    MO_DASHBOARD,
+    POST_VACANCIES,
+    JOB_MANAGEMENT,
+    APPLICATION_REVIEW,
+    ADMIN_DASHBOARD
+}

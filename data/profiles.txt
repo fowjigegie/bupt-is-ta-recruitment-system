@@ -1,4 +1,4 @@
 # Format: profileId|userId|studentId|fullName|programme|yearOfStudy|educationLevel|skills(;)|availabilitySlots(;)|desiredPositions(;)
-profile001|ta001|231225700|Demo Applicant|Software Engineering|3|Graduated|Java;Communication|MON-09:00-11:00;WED-14:00-16:00|Teaching Assistant;Invigilation
+profile001|ta001|231225700|Demo Applicanttt|Software Engineering|3|Graduated|Java;Communication|MON-09:00-11:00;WED-14:00-16:00;THU-08:00-10:00|Teaching Assistant;Invigilation
 profile002|ta002|231225701|wozaigansha|Computer Science|1|Graduated|Python;Communication|TUE-14:00-16:00;FRI-10:00-12:00|Teaching Assistant;Lab Support
 profile003|ta010|2023213389|Jiang Yuan|python|4|Not Graduated|python;java|MON-09:00-11:00;WED-14:00-16:00|python

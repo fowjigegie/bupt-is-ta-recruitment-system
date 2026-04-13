@@ -20,6 +20,9 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+/**
+ * 统计已录用 TA 的工作量、排期冲突和风险信息。
+ */
 public final class AdminWorkloadService {
     private final ApplicationRepository applicationRepository;
     private final JobRepository jobRepository;

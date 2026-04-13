@@ -6,6 +6,9 @@ import com.bupt.tarecruitment.application.JobApplication;
 import java.util.Objects;
 import java.util.Optional;
 
+/**
+ * 处理申请人简历的创建、更新与查询。
+ */
 public final class ApplicantCvService {
     private final ApplicationRepository applicationRepository;
     private final ApplicantCvRepository cvRepository;
@@ -21,7 +24,7 @@ public final class ApplicantCvService {
         this.cvStorage = Objects.requireNonNull(cvStorage);
     }
 
-    // 这个服务更多是“CV 与 application 的关联”。
+    // 这个服务更多是"CV 与 application 的关联"。
     // 虽然主要用于提交申请后的引用，但它和 US02 的 CV library 紧密相关，
     // 因为 application 最终保存的只是 cvId，而不是整份 CV 文本。
     public JobApplication attachCvToApplication(String applicationId, String cvId) {
@@ -30,7 +33,7 @@ public final class ApplicantCvService {
 
         JobApplication existingApplication = requireExistingApplication(applicationId);
         ApplicantCv applicantCv = requireExistingCv(cvId);
-        // 只允许 applicant 把“自己的 CV”挂到“自己的申请”上，避免串用别人简历。
+        // 只允许 applicant 把"自己的 CV"挂到"自己的申请"上，避免串用别人简历。
         if (!applicantCv.ownerUserId().equals(existingApplication.applicantUserId())) {
             throw new IllegalArgumentException("The selected CV does not belong to applicantUserId: " + existingApplication.applicantUserId());
         }

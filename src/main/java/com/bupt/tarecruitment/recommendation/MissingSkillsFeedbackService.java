@@ -13,6 +13,9 @@ import com.bupt.tarecruitment.applicant.ApplicantProfileRepository;
 import com.bupt.tarecruitment.job.JobPosting;
 import com.bupt.tarecruitment.job.JobRepository;
 
+/**
+ * 根据画像和岗位要求生成技能差距反馈。
+ */
 public final class MissingSkillsFeedbackService {
     private final ApplicantProfileRepository profileRepository;
     private final JobRepository jobRepository;
@@ -31,7 +34,7 @@ public final class MissingSkillsFeedbackService {
 
     // 这是 US10 对外的主入口。
     // 调用方只需要传 applicantUserId 和 jobId，
-    // service 会自动完成“找 profile -> 找 job -> 计算技能差距”。
+    // service 会自动完成"找 profile -> 找 job -> 计算技能差距"。
     public Optional<MissingSkillsFeedback> feedbackForApplicantAndJob(String applicantUserId, String jobId) {
         requireNonBlank(applicantUserId, "applicantUserId");
         requireNonBlank(jobId, "jobId");
@@ -81,7 +84,7 @@ public final class MissingSkillsFeedbackService {
             ? 100
             : (int) Math.round((matchedSkills.size() * 100.0) / totalRequiredSkills);
 
-        // coveragePercent 是 UI 展示“匹配度”的核心数字。
+        // coveragePercent 是 UI 展示"匹配度"的核心数字。
         return new MissingSkillsFeedback(
             job.jobId(),
             matchedSkills,
@@ -93,7 +96,7 @@ public final class MissingSkillsFeedbackService {
     }
 
     // 统一做 trim + lowercase，
-    // 减少“Java”和“ java ”、“COMMUNICATION”和“communication”这种本质一样却匹配失败的情况。
+    // 减少"Java"和" java "、"COMMUNICATION"和"communication"这种本质一样却匹配失败的情况。
     private Set<String> normalizeSet(List<String> rawValues) {
         return rawValues.stream()
             .map(MissingSkillsFeedbackService::normalize)

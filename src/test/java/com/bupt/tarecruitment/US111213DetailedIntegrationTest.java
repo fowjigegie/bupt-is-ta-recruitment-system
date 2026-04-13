@@ -37,6 +37,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 
+/**
+ * 覆盖 US11、US12、US13 场景的集成流程测试。
+ */
 public final class US111213DetailedIntegrationTest {
     private US111213DetailedIntegrationTest() {
     }

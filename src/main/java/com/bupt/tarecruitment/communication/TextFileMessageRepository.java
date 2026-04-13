@@ -1,7 +1,5 @@
 package com.bupt.tarecruitment.communication;
 
-import com.bupt.tarecruitment.common.storage.DataFile;
-
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -10,6 +8,11 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.bupt.tarecruitment.common.storage.DataFile;
+
+/**
+ * 基于文本文件存储站内消息。
+ */
 public final class TextFileMessageRepository implements MessageRepository {
     private static final String FIELD_SEPARATOR = "\\|";
     private static final String OUTPUT_SEPARATOR = "|";
@@ -50,7 +53,7 @@ public final class TextFileMessageRepository implements MessageRepository {
             .toList();
     }
 
-    // save 既负责新增新消息，也负责“同 messageId 覆盖”已读状态等更新。
+    // save 既负责新增新消息，也负责"同 messageId 覆盖"已读状态等更新。
     @Override
     public void save(InquiryMessage message) {
         List<InquiryMessage> messages = new ArrayList<>(findAll());

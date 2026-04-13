@@ -11,6 +11,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+/**
+ * 验证申请人画像服务中的业务规则。
+ */
 public final class ApplicantProfileServiceRuleTest {
     private ApplicantProfileServiceRuleTest() {
     }

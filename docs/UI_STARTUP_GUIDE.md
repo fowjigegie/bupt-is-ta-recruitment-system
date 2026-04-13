@@ -1,8 +1,8 @@
 # UI Startup Guide
 
-This project now uses the JavaFX UI under `src/main/java/UI/` as the main Sprint 1 demo path.
+This project now uses the JavaFX UI under `src/main/java/com/bupt/tarecruitment/ui/` as the main demo path.
 
-Do not switch the demo back to the older Swing pages unless the team explicitly decides to do that.
+The JSP web prototype under `src/main/webapp/` is still kept for later work, but it is not the main desktop demo route.
 
 ## Main UI entry
 
@@ -11,44 +11,37 @@ Use one of these two ways:
 1. In VS Code:
    - Open `Run and Debug`
    - Choose `Run JavaFX LoginPage`
-   - Start from `UI.LoginPage`
+   - Start from `com.bupt.tarecruitment.ui.LoginPage`
 
 2. In PowerShell:
    - Run `powershell -ExecutionPolicy Bypass -File scripts/run-javafx.ps1`
    - To launch a specific page, run for example:
-     - `powershell -ExecutionPolicy Bypass -File scripts/run-javafx.ps1 UI.LoginPage`
-     - `powershell -ExecutionPolicy Bypass -File scripts/run-javafx.ps1 UI.MoreJobsPage`
-     - `powershell -ExecutionPolicy Bypass -File scripts/run-javafx.ps1 UI.PostVacanciesPage`
+     - `powershell -ExecutionPolicy Bypass -File scripts/run-javafx.ps1 com.bupt.tarecruitment.ui.LoginPage`
+     - `powershell -ExecutionPolicy Bypass -File scripts/run-javafx.ps1 com.bupt.tarecruitment.ui.MoreJobsPage`
+     - `powershell -ExecutionPolicy Bypass -File scripts/run-javafx.ps1 com.bupt.tarecruitment.ui.PostVacanciesPage`
 
 ## Current JavaFX pages used in the main demo
 
-- `UI.LoginPage`
-- `UI.RegisterPage`
-- `UI.DashboardPages`
-- `UI.ResumeDatabasePage`
-- `UI.MoreJobsPage`
-- `UI.JobDetailPage`
-- `UI.InterviewInvitationPage`
-- `UI.ModuleOrganizerDashboardPage`
-- `UI.PostVacanciesPage`
-- `UI.JobManagementPage`
-- `UI.ApplicationReviewPage`
-- `UI.AdminDashboardPage`
+- `com.bupt.tarecruitment.ui.LoginPage`
+- `com.bupt.tarecruitment.ui.RegisterPage`
+- `com.bupt.tarecruitment.ui.DashboardPages`
+- `com.bupt.tarecruitment.ui.ResumeDatabasePage`
+- `com.bupt.tarecruitment.ui.MoreJobsPage`
+- `com.bupt.tarecruitment.ui.JobDetailPage`
+- `com.bupt.tarecruitment.ui.InterviewInvitationPage`
+- `com.bupt.tarecruitment.ui.ModuleOrganizerDashboardPage`
+- `com.bupt.tarecruitment.ui.PostVacanciesPage`
+- `com.bupt.tarecruitment.ui.JobManagementPage`
+- `com.bupt.tarecruitment.ui.ApplicationReviewPage`
+- `com.bupt.tarecruitment.ui.AdminDashboardPage`
 
-These pages are connected by `UI.NavigationManager` and use real services through `UI.UiServices`.
+These pages are connected by `com.bupt.tarecruitment.ui.NavigationManager` and use real services through `com.bupt.tarecruitment.ui.UiServices`.
 
-## Old UI that should not be used as the main demo
+## Old desktop UI status
 
-The following code is legacy or auxiliary and is not the main integrated Sprint 1 UI:
+The older Swing demo pages have been removed from `src/main/java` and are no longer the supported main demo path.
 
-- `com/bupt/tarecruitment/MainLauncherSwing`
-- `com/bupt/tarecruitment/auth/AuthSwingDemo`
-- `com/bupt/tarecruitment/applicant/ApplicantProfileSwingDemo`
-- `com/bupt/tarecruitment/applicant/ApplicantCvSwingDemo`
-- `com/bupt/tarecruitment/applicant/ApplicantCvReviewSwingDemo`
-- `com/bupt/tarecruitment/job/JobPostingSwingDemo`
-
-These older Swing pages may still exist for backward compatibility, but they are not the team's primary demo path anymore.
+The separate JSP web resources remain under `src/main/webapp/` for later coursework work.
 
 ## JavaFX environment reminder
 

@@ -3,8 +3,9 @@ package com.bupt.tarecruitment.applicant;
 import java.time.LocalDateTime;
 import java.util.Objects;
 
-// US02: 这是一条 CV 元数据记录。
-// 它不直接保存整份简历正文，而是保存“这份 CV 属于谁、标题是什么、正文存在哪个 txt 文件里”。
+/**
+ * 表示申请人的一份简历记录。
+ */
 public record ApplicantCv(
     String cvId,
     String ownerUserId,

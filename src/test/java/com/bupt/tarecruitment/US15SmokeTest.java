@@ -29,6 +29,9 @@ import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.util.List;
 
+/**
+ * 覆盖 US15 场景的冒烟测试。
+ */
 public final class US15SmokeTest {
     private US15SmokeTest() {
     }

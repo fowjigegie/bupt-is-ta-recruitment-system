@@ -6,6 +6,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Objects;
 
+/**
+ * 基于文本文件存储简历原始文本内容。
+ */
 public final class TextFileCvStorage implements CvTextStorage {
     private final Path dataDirectory;
 

@@ -8,6 +8,9 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 
+/**
+ * 管理申请人简历库的查询、保存和读取。
+ */
 public final class ApplicantCvLibraryService {
     public static final int MAX_CVS_PER_APPLICANT = 10;
 
@@ -51,7 +54,7 @@ public final class ApplicantCvLibraryService {
     }
 
     // US02 的核心服务：
-    // 负责“创建 CV / 更新 CV 正文 / 列出 applicant 名下所有 CV / 按 id 读取 CV”。
+    // 负责"创建 CV / 更新 CV 正文 / 列出 applicant 名下所有 CV / 按 id 读取 CV"。
     // 它要求 applicant 先有 profile，再允许维护自己的 CV library。
     public ApplicantCv createCv(String ownerUserId, String title, String cvContent) {
         userAccessPolicy.requireActiveUserWithRole(ownerUserId, UserRole.APPLICANT);
@@ -77,7 +80,7 @@ public final class ApplicantCvLibraryService {
         return applicantCv;
     }
 
-    // 更新时只替换“正文文件”和 updatedAt，不会改动 cvId、owner、createdAt。
+    // 更新时只替换"正文文件"和 updatedAt，不会改动 cvId、owner、createdAt。
     public ApplicantCv updateCvContent(String cvId, String cvContent) {
         requireNonBlank(cvId, "cvId");
         requireNonBlank(cvContent, "cvContent");
@@ -104,7 +107,7 @@ public final class ApplicantCvLibraryService {
             .orElseThrow(() -> new IllegalArgumentException("No CV exists for cvId: " + cvId));
     }
 
-    // 这是“metadata -> txt 文件正文”的桥接步骤。
+    // 这是"metadata -> txt 文件正文"的桥接步骤。
     public String loadCvContentByCvId(String cvId) {
         ApplicantCv applicantCv = getCvById(cvId);
         return cvStorage.loadCv(applicantCv.fileName());

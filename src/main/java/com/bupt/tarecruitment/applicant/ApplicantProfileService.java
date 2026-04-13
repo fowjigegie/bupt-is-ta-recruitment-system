@@ -7,6 +7,9 @@ import com.bupt.tarecruitment.auth.UserRole;
 import java.util.Objects;
 import java.util.Optional;
 
+/**
+ * 处理申请人画像的创建、更新和查询。
+ */
 public final class ApplicantProfileService {
     private final ApplicantProfileRepository repository;
     private final ApplicantProfileValidator validator;
@@ -35,7 +38,7 @@ public final class ApplicantProfileService {
     }
 
     // US01/US05 的核心服务：
-    // 负责创建 profile、读取 profile、更新 profile，并组合“字段校验 + 用户权限 + 学号唯一性”这几类规则。
+    // 负责创建 profile、读取 profile、更新 profile，并组合"字段校验 + 用户权限 + 学号唯一性"这几类规则。
 
     // US01: 首次创建 applicant profile。
     // 这里既要校验字段，也要确认用户是有效 applicant，
@@ -65,7 +68,7 @@ public final class ApplicantProfileService {
 
     // US05: 编辑已有 profile。
     // 更新时必须先找到旧记录，并要求 profileId 和旧记录一致，
-    // 避免把“编辑”误做成“新建另一条资料”。
+    // 避免把"编辑"误做成"新建另一条资料"。
     public ApplicantProfile updateProfile(ApplicantProfile profile) {
         // 1) 先做字段合法性校验
         validator.validate(profile);
@@ -75,7 +78,7 @@ public final class ApplicantProfileService {
         ApplicantProfile existingProfile = repository.findByUserId(profile.userId())
             .orElseThrow(() -> new IllegalArgumentException("No profile exists for userId: " + profile.userId()));
 
-        // 3) 必须保证更新的是“同一条 profile 记录”
+        // 3) 必须保证更新的是"同一条 profile 记录"
         if (!existingProfile.profileId().equals(profile.profileId())) {
             throw new IllegalArgumentException(
                 "profileId does not match the existing profile for userId: " + profile.userId()

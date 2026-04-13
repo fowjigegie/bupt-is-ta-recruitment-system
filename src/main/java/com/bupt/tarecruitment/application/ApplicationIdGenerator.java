@@ -2,6 +2,9 @@ package com.bupt.tarecruitment.application;
 
 import java.util.Objects;
 
+/**
+ * 负责生成岗位申请编号。
+ */
 public final class ApplicationIdGenerator {
     private final ApplicationRepository repository;
 
