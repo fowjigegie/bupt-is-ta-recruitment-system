@@ -6,6 +6,9 @@ import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+/**
+ * 表示标准化的时间段排期。
+ */
 public record ScheduleSlot(
     String dayCode,
     LocalTime startTime,

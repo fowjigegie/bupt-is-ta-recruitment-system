@@ -3,7 +3,9 @@ package com.bupt.tarecruitment.admin;
 import java.util.List;
 import java.util.Objects;
 
-// US14: 管理员端展示用的汇总对象（每个 TA 一条）。
+/**
+ * 汇总单个 TA 的已录用岗位、总工时和风险状态。
+ */
 public record WorkloadSummary(
     String applicantUserId,
     String applicantDisplayName,

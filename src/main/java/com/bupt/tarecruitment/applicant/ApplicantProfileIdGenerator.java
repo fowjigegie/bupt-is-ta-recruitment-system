@@ -2,6 +2,9 @@ package com.bupt.tarecruitment.applicant;
 
 import java.util.Objects;
 
+/**
+ * 负责生成申请人画像编号。
+ */
 public final class ApplicantProfileIdGenerator {
     private final ApplicantProfileRepository repository;
 
@@ -10,7 +13,7 @@ public final class ApplicantProfileIdGenerator {
     }
 
     // US01: 生成新的 profileId，规则是 profile001 / profile002 / ...
-    // 它是全局递增，而不是“每个用户从 001 开始”。
+    // 它是全局递增，而不是"每个用户从 001 开始"。
     public String nextProfileId() {
         int maxSuffix = repository.findAll().stream()
             .map(ApplicantProfile::profileId)

@@ -3,9 +3,9 @@ package com.bupt.tarecruitment.recommendation;
 import java.util.List;
 import java.util.Objects;
 
-// 这是 US10 的结果对象。
-// 页面不会直接自己去比对 applicant skills 和 required skills，
-// 而是统一读取这里整理好的“已匹配技能 / 缺失技能 / 覆盖率”等信息。
+/**
+ * 表示申请人与岗位要求之间的技能差距反馈。
+ */
 public record MissingSkillsFeedback(
     String jobId,
     List<String> matchedSkills,

@@ -10,6 +10,9 @@ import java.util.Optional;
 
 import com.bupt.tarecruitment.common.storage.DataFile;
 
+/**
+ * 基于文本文件存储申请人画像。
+ */
 public final class TextFileApplicantProfileRepository implements ApplicantProfileRepository {
     private static final String FIELD_SEPARATOR = "\\|";
     private static final String OUTPUT_SEPARATOR = "|";

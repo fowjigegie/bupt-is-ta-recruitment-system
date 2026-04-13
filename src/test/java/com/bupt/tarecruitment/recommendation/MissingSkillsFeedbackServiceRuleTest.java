@@ -9,12 +9,15 @@ import com.bupt.tarecruitment.job.JobStatus;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * 验证技能差距反馈服务的业务规则。
+ */
 public final class MissingSkillsFeedbackServiceRuleTest {
     private MissingSkillsFeedbackServiceRuleTest() {
     }
 
     // 这组规则测试直接测 analyze(...)，
-    // 用来验证 US10 的“规范化 + 缺失技能计算 + 覆盖率计算”是否正确。
+    // 用来验证 US10 的"规范化 + 缺失技能计算 + 覆盖率计算"是否正确。
     public static void main(String[] args) {
         MissingSkillsFeedbackService service = new MissingSkillsFeedbackService(
             new NoOpProfileRepository(),

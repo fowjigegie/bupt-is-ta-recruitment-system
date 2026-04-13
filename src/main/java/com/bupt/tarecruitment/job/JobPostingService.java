@@ -8,6 +8,9 @@ import com.bupt.tarecruitment.common.schedule.ScheduleSlot;
 import java.util.List;
 import java.util.Objects;
 
+/**
+ * 处理岗位发布、更新和状态变更。
+ */
 public final class JobPostingService {
     private final JobRepository jobRepository;
     private final JobIdGenerator jobIdGenerator;

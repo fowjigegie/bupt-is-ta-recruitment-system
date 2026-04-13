@@ -15,6 +15,9 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 
+/**
+ * 根据申请人画像生成岗位推荐列表。
+ */
 public final class RecommendationService {
     private final ApplicantProfileRepository profileRepository;
     private final JobRepository jobRepository;

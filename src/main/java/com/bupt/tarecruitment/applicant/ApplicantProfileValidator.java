@@ -5,6 +5,9 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+/**
+ * 校验申请人画像字段是否满足业务规则。
+ */
 public final class ApplicantProfileValidator {
     // 学号规则：8~12 位数字
     private static final Pattern STUDENT_ID_PATTERN = Pattern.compile("\\d{8,12}");
@@ -17,8 +20,8 @@ public final class ApplicantProfileValidator {
     // 只允许两个值：Graduated / Not Graduated（忽略大小写）
     private static final Set<String> EDUCATION_LEVELS = Set.of("graduated", "not graduated");
 
-    // 这个类只负责“字段内容是否合法”。
-    // 它不负责“这个 user 是否存在”“studentId 是否重复”这种业务规则，
+    // 这个类只负责"字段内容是否合法"。
+    // 它不负责"这个 user 是否存在""studentId 是否重复"这种业务规则，
     // 那些规则在 ApplicantProfileService 里做。
     public void validate(ApplicantProfile profile) {
         // 第一步：必填字段检查。
@@ -76,7 +79,7 @@ public final class ApplicantProfileValidator {
     }
 
     private void validateOptionalLettersOnlyList(java.util.List<String> values, String fieldName) {
-        // skills 允许是可选列表，但只要填了，每一项都必须符合“仅字母和空格”的规则。
+        // skills 允许是可选列表，但只要填了，每一项都必须符合"仅字母和空格"的规则。
         for (String value : values) {
             validateLettersOnlyValue(value, fieldName);
         }

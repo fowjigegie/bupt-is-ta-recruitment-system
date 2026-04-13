@@ -18,9 +18,9 @@ If a change affects shared fields, statuses, IDs, storage format, login flow, or
 ## 2. Current technical decision
 
 - Current starter uses plain Java 21.
-- The project does not depend on Maven, a database, or heavy frameworks.
+- The repo includes Maven metadata in `pom.xml`, but the day-to-day build and run flow still uses the PowerShell scripts, plain Java 21, and text-file storage.
 - Data is stored in UTF-8 text files under `data/`.
-- The current integrated demo UI is JavaFX-based and lives under `src/main/java/UI/`.
+- The current integrated demo UI is JavaFX-based and lives under `src/main/java/com/bupt/tarecruitment/ui/`.
 - This matches the coursework requirement of either a stand-alone Java application or a lightweight Servlet/JSP application using simple text-file storage.
 - The current scaffold is a stand-alone Java starter with separated business modules so the team can keep it as stand-alone or later add a Servlet/JSP UI layer without rewriting the core business modules.
 
@@ -31,13 +31,15 @@ If a change affects shared fields, statuses, IDs, storage format, login flow, or
 |-- data/
 |-- docs/
 |   `-- TEAM_CONVENTIONS.md
+|-- pom.xml
 |-- scripts/
 |   |-- build.ps1
 |   |-- run.ps1
 |   `-- test.ps1
 `-- src/
-    |-- main/java/UI/
     |-- main/java/com/bupt/tarecruitment/
+    |-- main/java/com/bupt/tarecruitment/ui/
+    |-- main/webapp/
     `-- test/java/com/bupt/tarecruitment/
 ```
 
@@ -45,6 +47,8 @@ If a change affects shared fields, statuses, IDs, storage format, login flow, or
 
 - `src/main/java/`
   - main source code
+- `src/main/webapp/`
+  - JSP web prototype kept for later work
 - `src/test/java/`
   - test code
 - `data/`
@@ -65,7 +69,7 @@ The codebase stays organised by business module, even if ownership is discussed 
 
 Current module folders:
 
-- `UI/`
+- `ui/`
 - `auth/`
 - `applicant/`
 - `job/`

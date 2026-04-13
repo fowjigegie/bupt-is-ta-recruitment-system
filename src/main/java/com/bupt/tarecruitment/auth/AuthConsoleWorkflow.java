@@ -6,6 +6,9 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Scanner;
 
+/**
+ * 提供登录注册相关的控制台交互流程。
+ */
 public final class AuthConsoleWorkflow {
     private final AuthService service;
     private final Scanner scanner;
@@ -47,7 +50,7 @@ public final class AuthConsoleWorkflow {
     }
 
     private void register() {
-        // US00: 注册只负责“创建账号”，不做自动登录
+        // US00: 注册只负责"创建账号"，不做自动登录
         output.println();
         output.println("Register User");
 

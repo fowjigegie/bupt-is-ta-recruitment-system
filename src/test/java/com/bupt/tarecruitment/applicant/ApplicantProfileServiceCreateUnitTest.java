@@ -21,6 +21,10 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
+
+/**
+ * 验证申请人画像创建流程的单元行为。
+ */
 class ApplicantProfileServiceCreateUnitTest {
 
     @Mock

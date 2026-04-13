@@ -3,6 +3,9 @@ package com.bupt.tarecruitment.application;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * 定义岗位申请数据的持久化接口。
+ */
 public interface ApplicationRepository {
     // 按 applicationId 取单条申请，适合详情、审核、更新状态等场景。
     Optional<JobApplication> findByApplicationId(String applicationId);

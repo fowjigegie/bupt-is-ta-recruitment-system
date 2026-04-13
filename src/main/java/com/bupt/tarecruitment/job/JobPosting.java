@@ -3,6 +3,9 @@ package com.bupt.tarecruitment.job;
 import java.util.List;
 import java.util.Objects;
 
+/**
+ * 表示一条助教岗位发布信息。
+ */
 public record JobPosting(
     String jobId,
     String organiserId,

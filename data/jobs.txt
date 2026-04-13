@@ -12,3 +12,4 @@ job010|mo005|TA for Computer Networks|COMP260|Assist network configuration labs|
 job011|mo005|TA for Information Security|COMP360|Support cryptography tutorials and lab guidance|Security;Python;Analytical Thinking|2|THU-14:00-16:00|OPEN
 job012|mo006|TA for Mobile App Development|COMP330|Mentor Android studio practices and demos|Java;Android;UI Design|2|FRI-14:00-16:00|OPEN
 job013|mo001|1|1|1|1|1|MON-09:00-11:00|OPEN
+job014|mo001|IOT|EBU6011|111|java|4|MON-11:00-12:00|OPEN

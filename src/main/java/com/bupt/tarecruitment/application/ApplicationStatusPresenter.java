@@ -1,5 +1,8 @@
 package com.bupt.tarecruitment.application;
 
+/**
+ * 将申请状态转换为界面友好的展示文本。
+ */
 public final class ApplicationStatusPresenter {
     private ApplicationStatusPresenter() {
     }

@@ -40,6 +40,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 
+/**
+ * 覆盖 US02、US06、US08 场景的集成流程测试。
+ */
 public final class US020608DetailedIntegrationTest {
     private US020608DetailedIntegrationTest() {
     }
@@ -177,13 +180,13 @@ public final class US020608DetailedIntegrationTest {
                 "job100",
                 "ta101",
                 "mo101",
-                "Hi MO, can you clarify expected weekly workload?"
+                "Hi MO, can you clarify expected weekly workload..."
             );
             InquiryMessage m2 = messageService.sendMessage(
                 "job100",
                 "ta101",
                 "mo101",
-                "Also, does this include grading duties?"
+                "Also, does this include grading duties..."
             );
             InquiryMessage m3 = messageService.sendMessage(
                 "job100",

@@ -1,5 +1,5 @@
 param(
-    [string]$MainClass = "UI.LoginPage",
+    [string]$MainClass = "com.bupt.tarecruitment.ui.LoginPage",
 
     [Parameter(ValueFromRemainingArguments = $true)]
     [string[]]$AppArgs

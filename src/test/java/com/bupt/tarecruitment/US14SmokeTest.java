@@ -27,6 +27,9 @@ import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.util.List;
 
+/**
+ * 覆盖 US14 场景的冒烟测试。
+ */
 public final class US14SmokeTest {
     private US14SmokeTest() {
     }

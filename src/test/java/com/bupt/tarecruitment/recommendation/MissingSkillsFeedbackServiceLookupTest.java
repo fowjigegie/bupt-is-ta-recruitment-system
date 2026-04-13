@@ -11,6 +11,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+/**
+ * 验证技能差距反馈的查询与匹配逻辑。
+ */
 public final class MissingSkillsFeedbackServiceLookupTest {
     private MissingSkillsFeedbackServiceLookupTest() {
     }

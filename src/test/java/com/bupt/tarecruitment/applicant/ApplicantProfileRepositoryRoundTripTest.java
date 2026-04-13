@@ -7,6 +7,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 
+/**
+ * 验证申请人画像仓库的文本读写往返行为。
+ */
 public final class ApplicantProfileRepositoryRoundTripTest {
     private ApplicantProfileRepositoryRoundTripTest() {
     }

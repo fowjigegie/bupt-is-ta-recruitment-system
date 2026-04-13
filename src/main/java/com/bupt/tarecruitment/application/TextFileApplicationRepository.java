@@ -11,6 +11,9 @@ import java.util.Base64;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * 基于文本文件存储岗位申请。
+ */
 public final class TextFileApplicationRepository implements ApplicationRepository {
     private static final String FIELD_SEPARATOR = "\\|";
     private static final String OUTPUT_SEPARATOR = "|";
@@ -63,7 +66,7 @@ public final class TextFileApplicationRepository implements ApplicationRepositor
         }
     }
 
-    // save 采用“同 applicationId 覆盖，否则追加”的模式。
+    // save 采用"同 applicationId 覆盖，否则追加"的模式。
     @Override
     public void save(JobApplication application) {
         List<JobApplication> applications = new ArrayList<>(findAll());
@@ -106,7 +109,7 @@ public final class TextFileApplicationRepository implements ApplicationRepositor
     // 重新写出整份 applications.txt，保证文本存储和内存对象保持一致。
     private void writeAll(List<JobApplication> applications) {
         List<String> lines = new ArrayList<>();
-        lines.add(DataFile.APPLICATIONS.initialLines().get(0));
+        lines.add(DataFile.APPLICATIONS.initialLines().getFirst());
 
         for (JobApplication application : applications) {
             lines.add(formatLine(application));

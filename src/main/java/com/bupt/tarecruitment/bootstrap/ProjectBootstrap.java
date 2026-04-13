@@ -9,6 +9,9 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * 负责组装仓库、服务和启动上下文。
+ */
 public final class ProjectBootstrap {
     private static final List<String> SAMPLE_CV_ONE_LINES = List.of(
         "Demo Applicant",

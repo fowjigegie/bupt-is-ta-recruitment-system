@@ -26,6 +26,10 @@ import com.bupt.tarecruitment.job.JobRepository;
 import com.bupt.tarecruitment.job.JobStatus;
 
 @ExtendWith(MockitoExtension.class)
+
+/**
+ * 验证岗位申请服务的核心业务行为。
+ */
 class JobApplicationServiceTest {
 
     @Mock

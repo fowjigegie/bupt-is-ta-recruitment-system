@@ -3,8 +3,9 @@ package com.bupt.tarecruitment.applicant;
 import java.util.List;
 import java.util.Objects;
 
-// US01/US05: Applicant 的基础资料模型。
-// 创建 profile、编辑 profile，以及后续基于 skills 做推荐/技能反馈时，都会围绕这份对象展开。
+/**
+ * 表示申请人的个人画像、技能和求职偏好。
+ */
 public record ApplicantProfile(
     String profileId,
     String userId,

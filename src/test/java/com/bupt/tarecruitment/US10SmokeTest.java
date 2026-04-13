@@ -18,6 +18,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 
+/**
+ * 覆盖 US10 场景的冒烟测试。
+ */
 public final class US10SmokeTest {
     private US10SmokeTest() {
     }

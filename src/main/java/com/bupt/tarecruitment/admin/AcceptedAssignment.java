@@ -3,7 +3,9 @@ package com.bupt.tarecruitment.admin;
 import java.util.List;
 import java.util.Objects;
 
-// US14: 每条 ACCEPTED 申请会展开成一个可展示的 assignment（岗位信息 + 排期）
+/**
+ * 表示管理员工作量视图中的已录用岗位摘要。
+ */
 public record AcceptedAssignment(
     String jobId,
     String title,

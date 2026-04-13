@@ -5,6 +5,9 @@ import com.bupt.tarecruitment.application.JobApplication;
 
 import java.util.Objects;
 
+/**
+ * 为申请审核页加载简历、画像和原始文本内容。
+ */
 public final class ApplicantCvReviewService {
     private final ApplicationRepository applicationRepository;
     private final ApplicantCvRepository cvRepository;

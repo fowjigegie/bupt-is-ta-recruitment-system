@@ -14,15 +14,7 @@ import com.bupt.tarecruitment.job.JobRepository;
 import com.bupt.tarecruitment.job.JobStatus;
 
 /**
- * JobApplicationService
- *
- * Service layer class responsible for handling job application logic.
- *
- * Responsibilities:
- * - Apply to a job using a CV
- * - Withdraw an existing application
- *
- * This class coordinates multiple repositories and enforces business rules.
+ * 处理投递、撤回和查询等申请业务。
  */
 public final class JobApplicationService {
 

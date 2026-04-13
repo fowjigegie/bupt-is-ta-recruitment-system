@@ -8,6 +8,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+/**
+ * 检查申请人与岗位排期之间的时间冲突。
+ */
 public final class ScheduleConflictGuard {
     private final ApplicationRepository applicationRepository;
     private final JobRepository jobRepository;

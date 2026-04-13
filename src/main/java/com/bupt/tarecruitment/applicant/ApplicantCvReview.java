@@ -2,6 +2,9 @@ package com.bupt.tarecruitment.applicant;
 
 import java.util.Objects;
 
+/**
+ * 封装申请审核时需要展示的简历与画像快照。
+ */
 public record ApplicantCvReview(
     com.bupt.tarecruitment.application.JobApplication application,
     ApplicantCv cv,

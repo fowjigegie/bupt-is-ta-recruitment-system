@@ -35,6 +35,9 @@ import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.util.List;
 
+/**
+ * 覆盖 US02、US04 场景的冒烟测试。
+ */
 public final class US0204SmokeTest {
     private US0204SmokeTest() {
     }

@@ -3,8 +3,9 @@ package com.bupt.tarecruitment.applicant;
 import java.util.List;
 import java.util.Optional;
 
-// US01/US05: profile 的数据存取接口。
-// 当前项目用文本文件实现，但接口先抽出来，后面要换数据库也只需要换实现类。
+/**
+ * 定义申请人画像的持久化接口。
+ */
 public interface ApplicantProfileRepository {
     // 按 userId 查 profile。
     // 当前设计里一个 applicant 只允许有一条 profile 记录。
@@ -18,6 +19,6 @@ public interface ApplicantProfileRepository {
     List<ApplicantProfile> findAll();
 
     // 保存或更新 profile。
-    // “同 userId 覆盖还是追加”由具体实现决定。
+    // "同 userId 覆盖还是追加"由具体实现决定。
     void save(ApplicantProfile profile);
 }
