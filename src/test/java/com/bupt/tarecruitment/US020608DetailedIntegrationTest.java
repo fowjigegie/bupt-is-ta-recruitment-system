@@ -269,7 +269,7 @@ public final class US020608DetailedIntegrationTest {
             3,
             "Not Graduated",
             List.of("Java", "Communication"),
-            List.of("MON-10:00-12:00"),
+            List.of("MON-10:00-12:00", "WED-14:00-16:00"),
             List.of("Teaching Assistant")
         );
     }

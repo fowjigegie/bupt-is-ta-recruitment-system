@@ -57,8 +57,10 @@ class MissingSkillsFeedbackServiceUnitTest {
 
         assertEquals("job981", feedback.jobId());
         assertEquals(List.of("Java", "communication"), feedback.matchedSkills());
+        assertEquals(List.of(), feedback.weaklyMatchedSkills());
         assertEquals(List.of("SQL"), feedback.missingSkills());
         assertEquals(2, feedback.matchedRequiredSkillCount());
+        assertEquals(0, feedback.weaklyMatchedRequiredSkillCount());
         assertEquals(3, feedback.totalRequiredSkillCount());
         assertEquals(67, feedback.coveragePercent());
         assertFalse(feedback.fullyMatched());
@@ -80,10 +82,34 @@ class MissingSkillsFeedbackServiceUnitTest {
         MissingSkillsFeedback feedback = service.analyze(profile, job);
 
         assertEquals(List.of(), feedback.matchedSkills());
+        assertEquals(List.of(), feedback.weaklyMatchedSkills());
         assertEquals(List.of(), feedback.missingSkills());
         assertEquals(0, feedback.totalRequiredSkillCount());
         assertEquals(100, feedback.coveragePercent());
         assertTrue(feedback.fullyMatched());
+    }
+
+    @Test
+    void shouldClassifyRelatedSkillsAsWeakMatches() {
+        ApplicantProfile profile = applicantProfile(
+            "ta987",
+            List.of("Java", "Presentation", "JUnit")
+        );
+        JobPosting job = jobPosting(
+            "job987",
+            List.of("Programming", "Communication", "Testing", "SQL")
+        );
+
+        MissingSkillsFeedback feedback = service.analyze(profile, job);
+
+        assertEquals(List.of(), feedback.matchedSkills());
+        assertEquals(List.of("Programming", "Communication", "Testing"), feedback.weaklyMatchedSkills());
+        assertEquals(List.of("SQL"), feedback.missingSkills());
+        assertEquals(0, feedback.matchedRequiredSkillCount());
+        assertEquals(3, feedback.weaklyMatchedRequiredSkillCount());
+        assertEquals(4, feedback.totalRequiredSkillCount());
+        assertEquals(38, feedback.coveragePercent());
+        assertFalse(feedback.fullyMatched());
     }
 
     // 对外入口方法在 applicant 没有 profile 时应返回空，
@@ -117,6 +143,7 @@ class MissingSkillsFeedbackServiceUnitTest {
 
         assertEquals("job984", feedback.jobId());
         assertEquals(List.of("Java"), feedback.matchedSkills());
+        assertEquals(List.of(), feedback.weaklyMatchedSkills());
         assertEquals(List.of("SQL"), feedback.missingSkills());
         assertEquals(50, feedback.coveragePercent());
     }

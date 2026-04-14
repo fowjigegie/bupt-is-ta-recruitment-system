@@ -531,6 +531,10 @@ final class UiTheme {
     }
 
     static VBox createWhiteCard(String title, String body) {
+        return createWhiteCard(title, body, Color.web("#333333"));
+    }
+
+    static VBox createWhiteCard(String title, String body, Color bodyColor) {
         VBox box = new VBox(10);
         box.setPadding(new Insets(24));
         box.setBackground(new Background(new BackgroundFill(
@@ -550,7 +554,7 @@ final class UiTheme {
 
         Label content = new Label(body);
         content.setFont(Font.font("Arial", 17));
-        content.setTextFill(Color.web("#333333"));
+        content.setTextFill(bodyColor);
         content.setWrapText(true);
 
         box.getChildren().addAll(heading, content);

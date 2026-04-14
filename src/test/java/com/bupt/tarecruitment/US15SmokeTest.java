@@ -56,7 +56,7 @@ public final class US15SmokeTest {
                 2,
                 "Not Graduated",
                 List.of("Java", "Communication"),
-                List.of("MON-09:00-12:00"),
+                List.of("MON-09:00-12:00", "TUE-14:00-16:00"),
                 List.of("Teaching Assistant")
             ));
 

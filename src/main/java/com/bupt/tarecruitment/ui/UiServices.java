@@ -4,6 +4,7 @@ import com.bupt.tarecruitment.applicant.ApplicantCvIdGenerator;
 import com.bupt.tarecruitment.applicant.ApplicantCvLibraryService;
 import com.bupt.tarecruitment.applicant.ApplicantCvRepository;
 import com.bupt.tarecruitment.applicant.ApplicantCvReviewService;
+import com.bupt.tarecruitment.applicant.ApplicantAvatarStorageService;
 import com.bupt.tarecruitment.applicant.ApplicantProfileIdGenerator;
 import com.bupt.tarecruitment.applicant.ApplicantProfileRepository;
 import com.bupt.tarecruitment.applicant.ApplicantProfileService;
@@ -14,6 +15,7 @@ import com.bupt.tarecruitment.applicant.TextFileApplicantProfileRepository;
 import com.bupt.tarecruitment.applicant.TextFileCvStorage;
 import com.bupt.tarecruitment.admin.AdminWorkloadService;
 import com.bupt.tarecruitment.application.ApplicationIdGenerator;
+import com.bupt.tarecruitment.application.ApplicantAvailabilityService;
 import com.bupt.tarecruitment.application.ApplicationDecisionService;
 import com.bupt.tarecruitment.application.ApplicationRepository;
 import com.bupt.tarecruitment.application.JobApplicationService;
@@ -54,6 +56,8 @@ public final class UiServices {
     private final MessageService messageService;
     private final RecommendationService recommendationService;
     private final MissingSkillsFeedbackService missingSkillsFeedbackService;
+    private final ApplicantAvailabilityService applicantAvailabilityService;
+    private final ApplicantAvatarStorageService applicantAvatarStorageService;
 
     private UiServices(
         UserRepository userRepository,
@@ -73,7 +77,9 @@ public final class UiServices {
         AdminWorkloadService adminWorkloadService,
         MessageService messageService,
         RecommendationService recommendationService,
-        MissingSkillsFeedbackService missingSkillsFeedbackService
+        MissingSkillsFeedbackService missingSkillsFeedbackService,
+        ApplicantAvailabilityService applicantAvailabilityService,
+        ApplicantAvatarStorageService applicantAvatarStorageService
     ) {
         this.userRepository = userRepository;
         this.profileRepository = profileRepository;
@@ -93,6 +99,8 @@ public final class UiServices {
         this.messageService = messageService;
         this.recommendationService = recommendationService;
         this.missingSkillsFeedbackService = missingSkillsFeedbackService;
+        this.applicantAvailabilityService = applicantAvailabilityService;
+        this.applicantAvatarStorageService = applicantAvatarStorageService;
     }
 
     public static UiServices create(Path dataDirectory) {
@@ -160,6 +168,11 @@ public final class UiServices {
             profileRepository,
             jobRepository
         );
+        ApplicantAvailabilityService applicantAvailabilityService = new ApplicantAvailabilityService(
+            profileRepository,
+            jobRepository
+        );
+        ApplicantAvatarStorageService applicantAvatarStorageService = new ApplicantAvatarStorageService(dataDirectory);
 
         return new UiServices(
             userRepository,
@@ -179,7 +192,9 @@ public final class UiServices {
             adminWorkloadService,
             messageService,
             recommendationService,
-            missingSkillsFeedbackService
+            missingSkillsFeedbackService,
+            applicantAvailabilityService,
+            applicantAvatarStorageService
         );
     }
 
@@ -253,5 +268,13 @@ public final class UiServices {
 
     public MissingSkillsFeedbackService missingSkillsFeedbackService() {
         return missingSkillsFeedbackService;
+    }
+
+    public ApplicantAvailabilityService applicantAvailabilityService() {
+        return applicantAvailabilityService;
+    }
+
+    public ApplicantAvatarStorageService applicantAvatarStorageService() {
+        return applicantAvatarStorageService;
     }
 }

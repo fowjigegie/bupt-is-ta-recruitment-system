@@ -93,6 +93,7 @@ public final class NavigationManager {
             case APPLICANT_DASHBOARD -> DashboardPages.createScene(this, context);
             case MORE_JOBS -> MoreJobsPage.createScene(this, context);
             case RESUME_DATABASE -> ResumeDatabasePage.createScene(this, context);
+            case SKILL_SELECTOR -> SkillSelectionPage.createScene(this, context);
             case JOB_DETAIL -> JobDetailPage.createScene(this, context);
             case MESSAGES -> MessagesPage.createScene(this, context);
             case INTERVIEW_INVITATION -> InterviewInvitationPage.createScene(this, context);
@@ -173,7 +174,7 @@ public final class NavigationManager {
     private UserRole requiredRole(PageId pageId) {
         // 页面与角色的映射规则：用于统一权限拦截
         return switch (pageId) {
-            case APPLICANT_DASHBOARD, MORE_JOBS, RESUME_DATABASE, JOB_DETAIL, INTERVIEW_INVITATION ->
+            case APPLICANT_DASHBOARD, MORE_JOBS, RESUME_DATABASE, SKILL_SELECTOR, JOB_DETAIL, INTERVIEW_INVITATION ->
                 UserRole.APPLICANT;
             case MO_DASHBOARD, POST_VACANCIES, JOB_MANAGEMENT, APPLICATION_REVIEW -> UserRole.MO;
             case ADMIN_DASHBOARD -> UserRole.ADMIN;
@@ -196,6 +197,7 @@ public final class NavigationManager {
             case APPLICANT_DASHBOARD -> "BUPT-TA Applicant Dashboard";
             case MORE_JOBS -> "BUPT-TA More Jobs";
             case RESUME_DATABASE -> "BUPT-TA Resume Database";
+            case SKILL_SELECTOR -> "BUPT-TA Skill Selection";
             case JOB_DETAIL -> "BUPT-TA Job Detail";
             case MESSAGES -> "BUPT-TA Messages";
             case INTERVIEW_INVITATION -> "BUPT-TA Application Status";

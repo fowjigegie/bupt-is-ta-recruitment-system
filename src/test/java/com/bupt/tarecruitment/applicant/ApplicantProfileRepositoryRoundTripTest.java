@@ -37,7 +37,8 @@ public final class ApplicantProfileRepositoryRoundTripTest {
                 "Not Graduated",
                 List.of("Java", "Communication"),
                 List.of("MON-09:00-11:00", "WED-14:00-16:00"),
-                List.of("Teaching Assistant", "Lab Support")
+                List.of("Teaching Assistant", "Lab Support"),
+                "avatars/ta801/profile.png"
             );
             repository.save(created);
 
@@ -55,7 +56,8 @@ public final class ApplicantProfileRepositoryRoundTripTest {
                 "Graduated",
                 List.of("Python", "Leadership"),
                 List.of("TUE-10:00-12:00"),
-                List.of("Lab Support")
+                List.of("Lab Support"),
+                "avatars/ta801/profile.jpg"
             );
             repository.save(updated);
 

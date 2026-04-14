@@ -1,6 +1,7 @@
 package com.bupt.tarecruitment.ui;
 
 import com.bupt.tarecruitment.applicant.ApplicantCv;
+import com.bupt.tarecruitment.application.AvailabilityCheckResult;
 import com.bupt.tarecruitment.application.ApplicationStatus;
 import com.bupt.tarecruitment.application.JobApplication;
 import com.bupt.tarecruitment.job.JobPosting;
@@ -11,7 +12,12 @@ import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
+import javafx.scene.layout.Border;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.BorderStroke;
+import javafx.scene.layout.BorderStrokeStyle;
+import javafx.scene.layout.BorderWidths;
+import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
@@ -86,15 +92,18 @@ public class JobDetailPage extends Application {
                     System.lineSeparator() +
                     "Schedule: " + (job.scheduleSlots().isEmpty() ? "(none listed)" : String.join(", ", job.scheduleSlots()))
             ),
+            createAvailabilityFeedbackCard(context, job),
             createSkillGapFeedbackCard(context, job)
         );
 
         JobApplication currentApplication = resolveActiveApplicationForCurrentJob(context, job);
+        String applyBlockedReason = resolveAvailabilityBlockedReason(context, job);
         JobApplicationPanel applicationPanel = JobApplicationPanel.create(
             nav,
             context,
             job,
             currentApplication,
+            applyBlockedReason,
             (selectedCv, statusLabel) -> applyToJob(nav, context, job, selectedCv, statusLabel),
             statusLabel -> {
                 if (currentApplication != null) {
@@ -112,6 +121,74 @@ public class JobDetailPage extends Application {
             details,
             applicationPanel.container()
         );
+    }
+
+    private static VBox createAvailabilityFeedbackCard(UiAppContext context, JobPosting job) {
+        if (!context.session().isAuthenticated()) {
+            return createAvailabilityStatusCard(
+                "Log in as an applicant and create your profile to compare this job with your available time.",
+                "#8b7fa0"
+            );
+        }
+
+        Optional<AvailabilityCheckResult> availability = context.services().applicantAvailabilityService()
+            .availabilityForApplicantAndJob(context.session().userId(), job.jobId());
+
+        if (availability.isEmpty()) {
+            return createAvailabilityStatusCard(
+                "Create or update your profile in Resume Database to see whether this job fits your available time.",
+                "#8b7fa0"
+            );
+        }
+
+        if (job.scheduleSlots().isEmpty()) {
+            return createAvailabilityStatusCard(
+                "This job does not list schedule slots, so there is no availability conflict to report.",
+                "#8b7fa0"
+            );
+        }
+
+        AvailabilityCheckResult result = availability.get();
+        if (result.fitsAvailability()) {
+            return createAvailabilityStatusCard(
+                "All listed job slots are covered by your current profile availability.",
+                "#2e7d32"
+            );
+        }
+
+        return createAvailabilityStatusCard(
+            "Your current availability does not cover: "
+                + String.join(", ", result.uncoveredJobSlots())
+                + System.lineSeparator()
+                + System.lineSeparator()
+                + "Update your availability in Resume Database before applying.",
+            "#b00020"
+        );
+    }
+
+    private static VBox createAvailabilityStatusCard(String body, String accentColor) {
+        VBox card = UiTheme.createWhiteCard("Availability check", body);
+        Label heading = (Label) card.getChildren().get(0);
+        Label content = (Label) card.getChildren().get(1);
+
+        heading.setStyle(
+            "-fx-font-family: Arial;" +
+                "-fx-font-size: 22px;" +
+                "-fx-font-weight: bold;" +
+                "-fx-text-fill: " + accentColor + ";"
+        );
+        content.setStyle(
+            "-fx-font-family: Arial;" +
+                "-fx-font-size: 17px;" +
+                "-fx-text-fill: " + accentColor + ";"
+        );
+        card.setBorder(new Border(new BorderStroke(
+            Color.web(accentColor),
+            BorderStrokeStyle.SOLID,
+            new CornerRadii(24),
+            new BorderWidths(2)
+        )));
+        return card;
     }
 
     private static VBox createSkillGapFeedbackCard(UiAppContext context, JobPosting job) {
@@ -143,15 +220,22 @@ public class JobDetailPage extends Application {
         StringBuilder body = new StringBuilder();
         body.append("Coverage: ")
             .append(skillFeedback.coveragePercent())
-            .append("% of listed required skills matched.")
+            .append("% overall readiness across listed required skills.")
             .append(System.lineSeparator())
             .append(System.lineSeparator())
             .append("Matched skills: ")
             .append(skillFeedback.matchedSkills().isEmpty() ? "(none yet)" : String.join(", ", skillFeedback.matchedSkills()))
             .append(System.lineSeparator())
             .append(System.lineSeparator())
+            .append("Weakly matched skills: ")
+            .append(skillFeedback.weaklyMatchedSkills().isEmpty() ? "(none)" : String.join(", ", skillFeedback.weaklyMatchedSkills()))
+            .append(System.lineSeparator())
+            .append(System.lineSeparator())
             .append("Missing skills to improve: ")
-            .append(skillFeedback.missingSkills().isEmpty() ? "(none)" : String.join(", ", skillFeedback.missingSkills()));
+            .append(skillFeedback.missingSkills().isEmpty() ? "(none)" : String.join(", ", skillFeedback.missingSkills()))
+            .append(System.lineSeparator())
+            .append(System.lineSeparator())
+            .append("Weakly matched skills mean your profile shows related experience, but not a direct skill-by-skill match yet.");
 
         return UiTheme.createWhiteCard("Missing skills feedback", body.toString());
     }
@@ -207,6 +291,20 @@ public class JobDetailPage extends Application {
 
             statusLabel.setTextFill(Color.web("#b00020"));
         }
+    }
+
+    private static String resolveAvailabilityBlockedReason(UiAppContext context, JobPosting job) {
+        if (!context.session().isAuthenticated()) {
+            return null;
+        }
+
+        Optional<AvailabilityCheckResult> availability = context.services().applicantAvailabilityService()
+            .availabilityForApplicantAndJob(context.session().userId(), job.jobId());
+
+        if (availability.isPresent() && !availability.get().fitsAvailability()) {
+            return "This job is outside your current availability. Update your profile in Resume Database before applying.";
+        }
+        return null;
     }
 
     private static void withdrawApplication(

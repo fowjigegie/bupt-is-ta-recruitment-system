@@ -53,6 +53,13 @@ public record ScheduleSlot(
             && other.startTime.isBefore(endTime);
     }
 
+    public boolean covers(ScheduleSlot other) {
+        Objects.requireNonNull(other);
+        return dayCode.equals(other.dayCode)
+            && !startTime.isAfter(other.startTime)
+            && !endTime.isBefore(other.endTime);
+    }
+
     public ScheduleSlot overlapWith(ScheduleSlot other) {
         if (!overlaps(other)) {
             throw new IllegalArgumentException("Schedule slots do not overlap.");

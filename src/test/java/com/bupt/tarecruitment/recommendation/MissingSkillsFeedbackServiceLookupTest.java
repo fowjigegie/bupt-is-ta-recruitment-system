@@ -54,6 +54,7 @@ public final class MissingSkillsFeedbackServiceLookupTest {
             .orElseThrow(() -> new IllegalStateException("Expected feedback for existing applicant/job."));
         assertEquals("job961", feedback.jobId(), "Lookup should return feedback for the requested job.");
         assertEquals(List.of("Java"), feedback.matchedSkills(), "Lookup should return matched skills.");
+        assertEquals(List.of(), feedback.weaklyMatchedSkills(), "Lookup should not report weak matches for exact-only input.");
         assertEquals(List.of("SQL"), feedback.missingSkills(), "Lookup should return missing skills.");
 
         assertTrue(
