@@ -18,6 +18,7 @@ public final class ApplicantProfileValidatorRuleTest {
         ApplicantProfileValidator validator = new ApplicantProfileValidator();
 
         validator.validate(validProfile());
+        validator.validate(profileWithStructuredSkills());
 
         expectValidationFailure(
             validator,
@@ -80,11 +81,11 @@ public final class ApplicantProfileValidatorRuleTest {
                 "Computer Science",
                 2,
                 "Not Graduated",
-                List.of("Java3"),
+                List.of("Java@"),
                 List.of("MON-09:00-11:00"),
                 List.of("Teaching Assistant")
             ),
-            "skills must contain letters and spaces only."
+            "skills must use letters, numbers, spaces, +, #, . or - only."
         );
 
         expectValidationFailure(
@@ -119,6 +120,21 @@ public final class ApplicantProfileValidatorRuleTest {
             List.of("Java", "Communication"),
             List.of("MON-09:00-11:00", "WED-14:00-16:00"),
             List.of("Teaching Assistant", "Lab Support")
+        );
+    }
+
+    private static ApplicantProfile profileWithStructuredSkills() {
+        return new ApplicantProfile(
+            "profile902",
+            "ta902",
+            "231229902",
+            "Structured Skill Applicant",
+            "Computer Science",
+            2,
+            "Not Graduated",
+            List.of("C++", "QA", "Node.js", "React-Native"),
+            List.of("MON-09:00-11:00"),
+            List.of("Teaching Assistant")
         );
     }
 

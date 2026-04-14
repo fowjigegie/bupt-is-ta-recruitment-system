@@ -24,9 +24,9 @@ public enum DataFile {
     PROFILES(
         "profiles.txt",
         List.of(
-            "# Format: profileId|userId|studentId|fullName|programme|yearOfStudy|educationLevel|skills(;)|availabilitySlots(;)|desiredPositions(;)",
-            "profile001|ta001|231225700|Demo Applicant|Software Engineering|3|Not Graduated|Java;Communication|MON-09:00-11:00;WED-14:00-16:00|Teaching Assistant;Invigilation",
-            "profile002|ta002|231225701|Apply Demo Applicant|Computer Science|2|Not Graduated|Python;Communication|TUE-14:00-16:00;FRI-10:00-12:00|Teaching Assistant;Lab Support"
+            "# Format: profileId|userId|studentId|fullName|programme|yearOfStudy|educationLevel|skills(;)|availabilitySlots(;)|desiredPositions(;)|avatarPath",
+            "profile001|ta001|231225700|Demo Applicant|Software Engineering|3|Not Graduated|Java;Communication|MON-09:00-11:00;WED-14:00-16:00|Teaching Assistant;Invigilation|",
+            "profile002|ta002|231225701|Apply Demo Applicant|Computer Science|2|Not Graduated|Python;Communication|TUE-14:00-16:00;FRI-10:00-12:00|Teaching Assistant;Lab Support|"
         )
     ),
     CVS(

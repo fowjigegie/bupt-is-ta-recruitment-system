@@ -19,6 +19,7 @@ import static org.mockito.Mockito.when;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.bupt.tarecruitment.applicant.ApplicantCv;
+import com.bupt.tarecruitment.applicant.ApplicantProfile;
 import com.bupt.tarecruitment.applicant.ApplicantCvRepository;
 import com.bupt.tarecruitment.applicant.ApplicantProfileRepository;
 import com.bupt.tarecruitment.job.JobPosting;
@@ -71,6 +72,7 @@ class JobApplicationServiceTest {
 
         when(profileRepository.findByUserId(applicantUserId)).thenReturn(existingProfile());
         when(jobRepository.findByJobId(jobId)).thenReturn(Optional.of(job));
+        when(job.jobId()).thenReturn(jobId);
         when(job.status()).thenReturn(JobStatus.OPEN);
         when(job.scheduleSlots()).thenReturn(List.of());
         when(applicationRepository.findByApplicantUserId(applicantUserId)).thenReturn(List.of());
@@ -218,6 +220,7 @@ class JobApplicationServiceTest {
 
         when(profileRepository.findByUserId(applicantUserId)).thenReturn(existingProfile());
         when(jobRepository.findByJobId(jobId)).thenReturn(Optional.of(job));
+        when(job.jobId()).thenReturn(jobId);
         when(job.status()).thenReturn(JobStatus.OPEN);
         when(job.scheduleSlots()).thenReturn(List.of());
         when(applicationRepository.findByApplicantUserId(applicantUserId))
@@ -230,6 +233,31 @@ class JobApplicationServiceTest {
 
         assertEquals("application002", result.applicationId());
         verify(applicationRepository).save(any(JobApplication.class));
+    }
+
+    @Test
+    void shouldThrowWhenJobFallsOutsideApplicantAvailability() {
+        JobPosting job = mock(JobPosting.class);
+        ApplicantCv cv = mock(ApplicantCv.class);
+
+        when(profileRepository.findByUserId(applicantUserId)).thenReturn(existingProfile());
+        when(jobRepository.findByJobId(jobId)).thenReturn(Optional.of(job));
+        when(job.jobId()).thenReturn(jobId);
+        when(job.status()).thenReturn(JobStatus.OPEN);
+        when(job.scheduleSlots()).thenReturn(List.of("MON-10:00-12:00"));
+        when(applicationRepository.findByApplicantUserId(applicantUserId)).thenReturn(List.of());
+        when(cvRepository.findByCvId(cvId)).thenReturn(Optional.of(cv));
+        when(cv.ownerUserId()).thenReturn(applicantUserId);
+
+        IllegalArgumentException ex = assertThrows(
+            IllegalArgumentException.class,
+            () -> service.applyToJobWithCv(applicantUserId, jobId, cvId)
+        );
+
+        assertEquals(
+            "Job schedule is outside your current availability: MON-10:00-12:00. Update your profile in Resume Database before applying.",
+            ex.getMessage()
+        );
     }
 
     @Test
@@ -363,6 +391,17 @@ class JobApplicationServiceTest {
 
     @SuppressWarnings({"rawtypes", "unchecked"})
     private Optional existingProfile() {
-        return (Optional) Optional.of(new Object());
+        return (Optional) Optional.of(new ApplicantProfile(
+            "profile001",
+            applicantUserId,
+            "231225001",
+            "Test Applicant",
+            "Software Engineering",
+            3,
+            "Not Graduated",
+            List.of("Java"),
+            List.of("MON-09:00-11:00"),
+            List.of("Teaching Assistant")
+        ));
     }
 }

@@ -38,6 +38,7 @@ final class JobApplicationPanel {
         UiAppContext context,
         JobPosting job,
         JobApplication currentApplication,
+        String applyBlockedReason,
         BiConsumer<ApplicantCv, Label> applyAction,
         Consumer<Label> withdrawAction,
         Runnable chatAction
@@ -54,7 +55,8 @@ final class JobApplicationPanel {
         loadCvs(context, cvBox, statusLabel);
 
         var applyButton = UiTheme.createPrimaryButton("Apply now", 190, 56);
-        applyButton.setDisable(job.status() != JobStatus.OPEN || currentApplication != null);
+        boolean blockedByAvailability = applyBlockedReason != null && !applyBlockedReason.isBlank();
+        applyButton.setDisable(job.status() != JobStatus.OPEN || currentApplication != null || blockedByAvailability);
         applyButton.setOnAction(event -> applyAction.accept(cvBox.getValue(), statusLabel));
 
         var withdrawButton = UiTheme.createOutlineButton("Withdraw application", 220, 56);
@@ -80,6 +82,9 @@ final class JobApplicationPanel {
             statusLabel.setTextFill(Color.web("#4664a8"));
             statusLabel.setText("Current application: " + currentApplication.applicationId()
                 + " (" + currentApplication.status().name() + ")");
+        } else if (blockedByAvailability) {
+            statusLabel.setTextFill(Color.web("#b00020"));
+            statusLabel.setText(applyBlockedReason);
         }
 
         return new JobApplicationPanel(

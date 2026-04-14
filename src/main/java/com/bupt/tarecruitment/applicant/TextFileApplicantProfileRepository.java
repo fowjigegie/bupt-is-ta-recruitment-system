@@ -91,7 +91,7 @@ public final class TextFileApplicantProfileRepository implements ApplicantProfil
     private ApplicantProfile parseLine(String line) {
         // profiles.txt 每一行的字段顺序必须和 formatLine(...) 保持一致。
         String[] fields = line.split(FIELD_SEPARATOR, -1);
-        if (fields.length != 10) {
+        if (fields.length != 10 && fields.length != 11) {
             throw new IllegalStateException("Invalid applicant profile record: " + line);
         }
 
@@ -105,7 +105,8 @@ public final class TextFileApplicantProfileRepository implements ApplicantProfil
             fields[6],
             parseList(fields[7]),
             parseList(fields[8]),
-            parseList(fields[9])
+            parseList(fields[9]),
+            fields.length == 11 ? fields[10] : ""
         );
     }
 
@@ -154,7 +155,8 @@ public final class TextFileApplicantProfileRepository implements ApplicantProfil
             profile.educationLevel(),
             String.join(LIST_SEPARATOR, profile.skills()),
             String.join(LIST_SEPARATOR, profile.availabilitySlots()),
-            String.join(LIST_SEPARATOR, profile.desiredPositions())
+            String.join(LIST_SEPARATOR, profile.desiredPositions()),
+            profile.avatarPath()
         );
     }
 

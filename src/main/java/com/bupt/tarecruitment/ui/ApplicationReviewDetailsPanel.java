@@ -11,14 +11,22 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
+import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 
+import java.nio.file.Path;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * 封装申请审核页右侧的简历详情展示与状态更新操作。
@@ -58,35 +66,14 @@ final class ApplicationReviewDetailsPanel {
         Runnable refreshList
     ) {
         ApplicantProfile profile = review.profile();
-        Map<String, String> parsed = parseCvContent(review.cvContent());
 
-        TextField nameField = createReadonlyRoundedField("Full Name", valueOrFallback(parsed.get("Name"), profile.fullName()), 280);
-        TextField gradeField = createReadonlyRoundedField(
-            "Grade",
-            valueOrFallback(parsed.get("Grade"), "%d-year %s".formatted(profile.yearOfStudy(), profile.educationLevel().toLowerCase())),
-            280
-        );
-        TextField programmeField = createReadonlyRoundedField("Programme", valueOrFallback(parsed.get("Programme"), profile.programme()), 280);
-        TextField studentIdField = createReadonlyRoundedField("Student ID", valueOrFallback(parsed.get("Student ID"), profile.studentId()), 280);
-        TextField availabilityField = createReadonlyRoundedField(
-            "Availability",
-            valueOrFallback(parsed.get("Availability"), String.join("; ", profile.availabilitySlots())),
-            572
-        );
+        TextField nameField = createReadonlyRoundedField("Full Name", profile.fullName(), 280);
+        TextField gradeField = createReadonlyRoundedField("Grade", formatGrade(profile), 280);
+        TextField programmeField = createReadonlyRoundedField("Programme", profile.programme(), 280);
+        TextField studentIdField = createReadonlyRoundedField("Student ID", profile.studentId(), 280);
         TextField titleField = createReadonlyRoundedField("CV Title", review.cv().title(), 572);
 
-        TextArea cvTextArea = createReadonlyLargeArea(valueOrFallback(parsed.get("CV Text"), review.cvContent()), 170);
-        TextArea skillsArea = createReadonlyLargeArea(
-            valueOrFallback(parsed.get("Skills"), String.join(System.lineSeparator(), profile.skills()).replace(", ", System.lineSeparator())),
-            120
-        );
-        TextArea positionsArea = createReadonlyLargeArea(
-            valueOrFallback(
-                parsed.get("Desired Positions"),
-                String.join(System.lineSeparator(), profile.desiredPositions()).replace(", ", System.lineSeparator())
-            ),
-            120
-        );
+        TextArea cvTextArea = createReadonlyLargeArea(resolveCvBodyText(review.cvContent()), 190);
 
         Label statusTag = new Label("Current Status: " + ApplicationStatusPresenter.toDisplayText(review.application().status()));
         statusTag.setStyle(
@@ -146,19 +133,104 @@ final class ApplicationReviewDetailsPanel {
         HBox row1 = new HBox(12, nameField, gradeField);
         HBox row2 = new HBox(12, programmeField, studentIdField);
 
-        VBox form = new VBox(12,
+        VBox form = new VBox(
+            12,
+            createApplicantAvatarPreview(context, profile),
             row1,
             row2,
-            availabilityField,
             titleField,
             createLabeledBlock("CV Text", cvTextArea),
-            createLabeledBlock("Skills", skillsArea),
-            createLabeledBlock("Desired Positions", positionsArea),
+            createTagListBlock("Profile Skills", profile.skills(), "No skills selected in the applicant profile."),
+            createTagListBlock("Desired Positions", profile.desiredPositions(), "No desired positions listed in the applicant profile."),
             statusTag,
             actionRow
         );
         form.setPadding(new Insets(4, 6, 12, 6));
         return form;
+    }
+
+    private static VBox createApplicantAvatarPreview(UiAppContext context, ApplicantProfile profile) {
+        Label title = new Label("Applicant Avatar");
+        title.setFont(Font.font("Arial", FontWeight.BOLD, 17));
+        title.setTextFill(Color.web("#4664a8"));
+
+        StackPane previewPane = new StackPane();
+        previewPane.setPrefSize(132, 132);
+        previewPane.setStyle(
+            "-fx-background-color: white;" +
+                "-fx-background-radius: 20;" +
+                "-fx-border-color: #f3b2df;" +
+                "-fx-border-width: 2;" +
+                "-fx-border-radius: 20;" +
+                "-fx-padding: 12;"
+        );
+
+        Optional<Path> avatarPath = context.services().applicantAvatarStorageService().resolveAvatarForUser(profile.userId());
+        if (avatarPath.isEmpty() && !profile.avatarPath().isBlank()) {
+            avatarPath = context.services().applicantAvatarStorageService().resolveAvatar(profile.avatarPath());
+        }
+        if (avatarPath.isPresent()) {
+            try {
+                Image image = new Image(avatarPath.get().toUri().toString(), 96, 96, true, true, true);
+                if (!image.isError()) {
+                    ImageView imageView = new ImageView(image);
+                    imageView.setFitWidth(96);
+                    imageView.setFitHeight(96);
+                    imageView.setPreserveRatio(true);
+                    previewPane.getChildren().add(imageView);
+                    return new VBox(6, title, previewPane);
+                }
+            } catch (Exception ignored) {
+            }
+        }
+
+        Rectangle placeholder = new Rectangle(84, 96);
+        placeholder.setArcWidth(24);
+        placeholder.setArcHeight(24);
+        placeholder.setFill(Color.TRANSPARENT);
+        placeholder.setStroke(Color.web("#db4b87"));
+        placeholder.setStrokeWidth(3);
+        previewPane.getChildren().add(new VBox(6, new StackPane(placeholder), UiTheme.createMutedText("No avatar")));
+        return new VBox(6, title, previewPane);
+    }
+
+    private static VBox createTagListBlock(String title, List<String> values, String emptyMessage) {
+        Label label = new Label(title);
+        label.setFont(Font.font("Arial", FontWeight.BOLD, 17));
+        label.setTextFill(Color.web("#4664a8"));
+
+        FlowPane tags = new FlowPane();
+        tags.setHgap(8);
+        tags.setVgap(8);
+        tags.setPrefWrapLength(560);
+        tags.setPadding(new Insets(10));
+        tags.setStyle(
+            "-fx-background-color: white;" +
+                "-fx-border-color: #f3b2df;" +
+                "-fx-border-width: 3;" +
+                "-fx-border-radius: 2;"
+        );
+
+        if (values == null || values.isEmpty()) {
+            tags.getChildren().add(UiTheme.createMutedText(emptyMessage));
+        } else {
+            for (String value : values) {
+                Label tag = new Label(value);
+                tag.setFont(Font.font("Arial", FontWeight.BOLD, 14));
+                tag.setTextFill(Color.web("#5c3f6b"));
+                tag.setPadding(new Insets(6, 10, 6, 10));
+                tag.setStyle(
+                    "-fx-background-color: #ffe6f2;" +
+                        "-fx-background-radius: 18;" +
+                        "-fx-border-color: #f3b2df;" +
+                        "-fx-border-radius: 18;" +
+                        "-fx-border-width: 1.2;"
+                );
+                tags.getChildren().add(tag);
+            }
+        }
+
+        return new VBox(6, label, tags);
     }
 
     private static void updateReviewStatus(
@@ -211,13 +283,6 @@ final class ApplicationReviewDetailsPanel {
             actionStatus.setTextFill(Color.web("#b00020"));
             actionStatus.setText(exception.getMessage());
         }
-    }
-
-    private static String valueOrFallback(String first, String fallback) {
-        if (first != null && !first.isBlank()) {
-            return first;
-        }
-        return fallback == null ? "" : fallback;
     }
 
     private static TextField createReadonlyRoundedField(String prompt, String value, double width) {
@@ -273,6 +338,22 @@ final class ApplicationReviewDetailsPanel {
         };
     }
 
+    private static String formatGrade(ApplicantProfile profile) {
+        return "%d-year %s".formatted(profile.yearOfStudy(), profile.educationLevel().toLowerCase());
+    }
+
+    private static String resolveCvBodyText(String content) {
+        Map<String, String> parsed = parseCvContent(content);
+        String body = parsed.get("CV Text");
+        if (body != null && !body.isBlank()) {
+            return body;
+        }
+        if (parsed.isEmpty()) {
+            return content == null ? "" : content.trim();
+        }
+        return "No free-form CV text provided. This CV currently only stores structured profile fields.";
+    }
+
     private static Map<String, String> parseCvContent(String content) {
         Map<String, String> result = new LinkedHashMap<>();
         if (content == null || content.isBlank()) {
@@ -295,7 +376,7 @@ final class ApplicationReviewDetailsPanel {
 
         String bodyText = cvBody.toString().trim();
         if (!bodyText.isBlank()) {
-            result.putIfAbsent("CV Text", bodyText);
+            result.put("CV Text", bodyText);
         }
         return result;
     }

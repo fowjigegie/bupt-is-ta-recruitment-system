@@ -51,10 +51,35 @@ public final class MissingSkillsFeedbackServiceRuleTest {
 
         MissingSkillsFeedback feedback = service.analyze(applicantProfile, mixedSkillJob);
         assertEquals(List.of("Java", "communication"), feedback.matchedSkills(), "Matched skills should be normalized.");
+        assertEquals(List.of(), feedback.weaklyMatchedSkills(), "Exact-match scenario should not report weak matches.");
         assertEquals(List.of("SQL"), feedback.missingSkills(), "Only real unmatched skills should remain.");
         assertEquals(2, feedback.matchedRequiredSkillCount(), "Matched required skill count is incorrect.");
+        assertEquals(0, feedback.weaklyMatchedRequiredSkillCount(), "Weak match count should be zero.");
         assertEquals(3, feedback.totalRequiredSkillCount(), "Blank required skills should be ignored.");
         assertEquals(67, feedback.coveragePercent(), "Coverage percentage is incorrect.");
+
+        JobPosting weakSkillJob = new JobPosting(
+            "job953",
+            "mo951",
+            "Intro Programming Support",
+            "COMP953",
+            "Support beginner practicals.",
+            List.of("Programming", "Presentation", "Testing", "SQL"),
+            2,
+            List.of("THU-14:00-16:00"),
+            JobStatus.OPEN
+        );
+
+        MissingSkillsFeedback weakFeedback = service.analyze(applicantProfile, weakSkillJob);
+        assertEquals(List.of(), weakFeedback.matchedSkills(), "Weak-match scenario should not report exact matches.");
+        assertEquals(
+            List.of("Programming", "Presentation"),
+            weakFeedback.weaklyMatchedSkills(),
+            "Related skill families should be reported as weak matches."
+        );
+        assertEquals(List.of("Testing", "SQL"), weakFeedback.missingSkills(), "Unrelated skills should still be missing.");
+        assertEquals(2, weakFeedback.weaklyMatchedRequiredSkillCount(), "Weak match count is incorrect.");
+        assertEquals(25, weakFeedback.coveragePercent(), "Weighted coverage percentage is incorrect.");
 
         JobPosting noSkillJob = new JobPosting(
             "job952",
@@ -70,6 +95,7 @@ public final class MissingSkillsFeedbackServiceRuleTest {
 
         MissingSkillsFeedback noSkillFeedback = service.analyze(applicantProfile, noSkillJob);
         assertEquals(List.of(), noSkillFeedback.matchedSkills(), "Jobs with blank required skills should not list matches.");
+        assertEquals(List.of(), noSkillFeedback.weaklyMatchedSkills(), "Jobs with blank required skills should not list weak matches.");
         assertEquals(List.of(), noSkillFeedback.missingSkills(), "Jobs with blank required skills should not list missing skills.");
         assertEquals(0, noSkillFeedback.totalRequiredSkillCount(), "Blank required skills should not count.");
         assertEquals(100, noSkillFeedback.coveragePercent(), "No-skill jobs should report full coverage.");

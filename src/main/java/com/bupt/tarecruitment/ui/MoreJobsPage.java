@@ -1,5 +1,6 @@
 package com.bupt.tarecruitment.ui;
 
+import com.bupt.tarecruitment.application.AvailabilityCheckResult;
 import com.bupt.tarecruitment.job.JobBrowseFilter;
 import com.bupt.tarecruitment.job.JobPosting;
 import com.bupt.tarecruitment.job.JobStatus;
@@ -151,9 +152,10 @@ public class MoreJobsPage extends Application {
         timeLabel.setFont(Font.font("Arial", 15));
         timeLabel.setTextFill(Color.web("#666666"));
 
+        Label availabilityLabel = createAvailabilityPreview(context, job);
         Label skillGapLabel = createSkillGapPreview(context, job);
 
-        textBox.getChildren().addAll(courseLabel, idLabel, teacherLabel, classLabel, timeLabel, skillGapLabel);
+        textBox.getChildren().addAll(courseLabel, idLabel, teacherLabel, classLabel, timeLabel, availabilityLabel, skillGapLabel);
 
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
@@ -173,6 +175,53 @@ public class MoreJobsPage extends Application {
 
     public static void main(String[] args) {
         launch(args);
+    }
+
+    private static Label createAvailabilityPreview(UiAppContext context, JobPosting job) {
+        Label label = new Label();
+        label.setWrapText(true);
+        label.setFont(Font.font("Arial", FontWeight.BOLD, 14));
+
+        if (!context.session().isAuthenticated()) {
+            label.setText("Log in as an applicant to compare this job with your availability.");
+            applyStatusLabelStyle(label, "#8b7fa0");
+            return label;
+        }
+
+        Optional<AvailabilityCheckResult> availability = context.services().applicantAvailabilityService()
+            .availabilityForApplicantAndJob(context.session().userId(), job.jobId());
+
+        if (availability.isEmpty()) {
+            label.setText("Create or update your profile availability to check whether this job fits your time.");
+            applyStatusLabelStyle(label, "#8b7fa0");
+            return label;
+        }
+
+        if (job.scheduleSlots().isEmpty()) {
+            label.setText("This job does not list schedule slots.");
+            applyStatusLabelStyle(label, "#8b7fa0");
+            return label;
+        }
+
+        AvailabilityCheckResult result = availability.get();
+        if (result.fitsAvailability()) {
+            label.setText("Availability fit: all listed job slots are covered by your current profile.");
+            applyStatusLabelStyle(label, "#2e7d32");
+            return label;
+        }
+
+        label.setText("Availability conflict: update your profile to cover " + String.join(", ", result.uncoveredJobSlots()));
+        applyStatusLabelStyle(label, "#b00020");
+        return label;
+    }
+
+    private static void applyStatusLabelStyle(Label label, String color) {
+        label.setStyle(
+            "-fx-font-family: Arial;" +
+                "-fx-font-size: 14px;" +
+                "-fx-font-weight: bold;" +
+                "-fx-text-fill: " + color + ";"
+        );
     }
 
     private static Label createSkillGapPreview(UiAppContext context, JobPosting job) {
@@ -205,12 +254,22 @@ public class MoreJobsPage extends Application {
         label.setText(
             "Skill match: "
                 + skillFeedback.coveragePercent()
-                + "%  |  Missing: "
+                + "%  |  Weak: "
+                + (skillFeedback.weaklyMatchedSkills().isEmpty()
+                    ? "none"
+                    : String.join(", ", skillFeedback.weaklyMatchedSkills()))
+                + "  |  Missing: "
                 + (skillFeedback.missingSkills().isEmpty()
                     ? "none"
                     : String.join(", ", skillFeedback.missingSkills()))
         );
-        label.setTextFill(skillFeedback.missingSkills().isEmpty() ? Color.web("#2e7d32") : Color.web("#8a4f7a"));
+        if (skillFeedback.missingSkills().isEmpty() && skillFeedback.weaklyMatchedSkills().isEmpty()) {
+            label.setTextFill(Color.web("#2e7d32"));
+        } else if (skillFeedback.missingSkills().isEmpty()) {
+            label.setTextFill(Color.web("#c77800"));
+        } else {
+            label.setTextFill(Color.web("#8a4f7a"));
+        }
         return label;
     }
 }

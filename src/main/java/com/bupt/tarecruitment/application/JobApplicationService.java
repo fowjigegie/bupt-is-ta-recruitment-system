@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.util.Objects;
 
 import com.bupt.tarecruitment.applicant.ApplicantCv;
+import com.bupt.tarecruitment.applicant.ApplicantProfile;
 import com.bupt.tarecruitment.applicant.ApplicantCvRepository;
 import com.bupt.tarecruitment.applicant.ApplicantProfileRepository;
 import com.bupt.tarecruitment.auth.UserAccessPolicy;
@@ -38,6 +39,9 @@ public final class JobApplicationService {
 
     /** Guard to prevent schedule conflicts */
     private final ScheduleConflictGuard scheduleConflictGuard;
+
+    /** Service to verify applicant availability covers the selected job */
+    private final ApplicantAvailabilityService applicantAvailabilityService;
 
     /**
      * Constructor without user repository (uses no-op access policy)
@@ -100,6 +104,7 @@ public final class JobApplicationService {
 
         // Initialize schedule conflict guard
         this.scheduleConflictGuard = new ScheduleConflictGuard(applicationRepository, jobRepository);
+        this.applicantAvailabilityService = new ApplicantAvailabilityService(profileRepository, jobRepository);
     }
 
     /**
@@ -126,7 +131,7 @@ public final class JobApplicationService {
         userAccessPolicy.requireActiveUserWithRole(applicantUserId, UserRole.APPLICANT);
 
         // Check if applicant profile exists
-        profileRepository.findByUserId(applicantUserId)
+        ApplicantProfile profile = profileRepository.findByUserId(applicantUserId)
             .orElseThrow(() -> new IllegalArgumentException("No applicant profile exists for userId: " + applicantUserId));
 
         // Retrieve job and validate existence
@@ -154,6 +159,9 @@ public final class JobApplicationService {
         if (!cv.ownerUserId().equals(applicantUserId)) {
             throw new IllegalArgumentException("The selected CV does not belong to applicantUserId: " + applicantUserId);
         }
+
+        // Ensure the job fits within the applicant's declared availability
+        applicantAvailabilityService.requireApplicantAvailability(profile, job);
 
         // Check for schedule conflicts with accepted jobs
         scheduleConflictGuard.requireNoConflictWithAcceptedJobs(applicantUserId, jobId);

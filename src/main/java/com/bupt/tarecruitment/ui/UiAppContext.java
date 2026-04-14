@@ -20,6 +20,7 @@ public final class UiAppContext {
     private String editingJobId;
     private String selectedApplicationId;
     private String selectedChatPeerUserId;
+    private ResumeDraftState resumeDraftState;
 
     private UiAppContext(StartupReport startupReport, AuthService authService, UiServices services) {
         this.startupReport = startupReport;
@@ -131,6 +132,19 @@ public final class UiAppContext {
         editingJobId = null;
         selectedApplicationId = null;
         selectedChatPeerUserId = null;
+        resumeDraftState = null;
+    }
+
+    public void saveResumeDraft(ResumeDraftState draftState) {
+        resumeDraftState = draftState;
+    }
+
+    public ResumeDraftState resumeDraft() {
+        return resumeDraftState;
+    }
+
+    public void clearResumeDraft() {
+        resumeDraftState = null;
     }
 
     private String blankToNull(String value) {

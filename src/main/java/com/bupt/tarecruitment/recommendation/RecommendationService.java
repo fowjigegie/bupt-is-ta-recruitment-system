@@ -2,6 +2,7 @@ package com.bupt.tarecruitment.recommendation;
 
 import com.bupt.tarecruitment.applicant.ApplicantProfile;
 import com.bupt.tarecruitment.applicant.ApplicantProfileRepository;
+import com.bupt.tarecruitment.common.skill.SkillCatalog;
 import com.bupt.tarecruitment.job.JobPosting;
 import com.bupt.tarecruitment.job.JobRepository;
 import com.bupt.tarecruitment.job.JobStatus;
@@ -57,18 +58,27 @@ public final class RecommendationService {
     private ScoredJob scoreJob(ApplicantProfile profile, JobPosting job) {
         Set<String> applicantSkills = normalizeSet(profile.skills());
         Set<String> matchedSkills = new LinkedHashSet<>();
+        Set<String> relatedSkills = new LinkedHashSet<>();
         List<String> reasons = new ArrayList<>();
         int score = 0;
 
         for (String requiredSkill : job.requiredSkills()) {
-            if (applicantSkills.contains(normalize(requiredSkill))) {
+            String normalizedRequiredSkill = normalize(requiredSkill);
+            if (applicantSkills.contains(normalizedRequiredSkill)) {
                 matchedSkills.add(requiredSkill.trim());
+            } else if (applicantSkills.stream().anyMatch(skill -> SkillCatalog.areRelatedSkills(normalizedRequiredSkill, skill))) {
+                relatedSkills.add(requiredSkill.trim());
             }
         }
 
         if (!matchedSkills.isEmpty()) {
             score += matchedSkills.size() * 3;
             reasons.add("Matches skill: " + String.join(", ", matchedSkills));
+        }
+
+        if (!relatedSkills.isEmpty()) {
+            score += relatedSkills.size();
+            reasons.add("Related skill match: " + String.join(", ", relatedSkills));
         }
 
         String jobText = (job.title() + " " + job.moduleOrActivity() + " " + job.description()).toLowerCase(Locale.ROOT);

@@ -114,6 +114,17 @@ public final class US10SmokeTest {
                 List.of("THU-10:00-12:00"),
                 JobStatus.OPEN
             ));
+            jobRepository.save(new JobPosting(
+                "job404",
+                "mo402",
+                "Foundation Lab Support",
+                "COMP404",
+                "Support beginner practicals and walkthroughs.",
+                List.of("Programming", "Presentation", "Testing", "SQL"),
+                2,
+                List.of("FRI-10:00-12:00"),
+                JobStatus.OPEN
+            ));
 
             MissingSkillsFeedbackService feedbackService = new MissingSkillsFeedbackService(
                 profileRepository,
@@ -123,6 +134,7 @@ public final class US10SmokeTest {
             MissingSkillsFeedback partialFeedback = feedbackService.feedbackForApplicantAndJob("ta401", "job401")
                 .orElseThrow(() -> new IllegalStateException("Expected skill-gap feedback for ta401 / job401."));
             assertEquals(List.of("Java", "Communication"), partialFeedback.matchedSkills(), "Matched skills did not line up.");
+            assertEquals(List.of(), partialFeedback.weaklyMatchedSkills(), "Exact-match scenario should not report weak matches.");
             assertEquals(List.of("SQL"), partialFeedback.missingSkills(), "Missing skills did not line up.");
             assertEquals(67, partialFeedback.coveragePercent(), "Unexpected coverage percentage.");
             assertTrue(!partialFeedback.fullyMatched(), "job401 should still have a skill gap.");
@@ -130,6 +142,7 @@ public final class US10SmokeTest {
             MissingSkillsFeedback noGapFeedback = feedbackService.feedbackForApplicantAndJob("ta401", "job402")
                 .orElseThrow(() -> new IllegalStateException("Expected feedback for job402."));
             assertEquals(List.of(), noGapFeedback.matchedSkills(), "Jobs with no required skills should not list matches.");
+            assertEquals(List.of(), noGapFeedback.weaklyMatchedSkills(), "Jobs with no required skills should not list weak matches.");
             assertEquals(List.of(), noGapFeedback.missingSkills(), "Jobs with no required skills should not list missing items.");
             assertEquals(100, noGapFeedback.coveragePercent(), "Jobs with no required skills should show 100% coverage.");
             assertTrue(noGapFeedback.fullyMatched(), "Jobs with no required skills should count as fully matched.");
@@ -141,8 +154,20 @@ public final class US10SmokeTest {
                 normalizedFeedback.matchedSkills(),
                 "Skill matching should ignore case and surrounding spaces."
             );
+            assertEquals(List.of(), normalizedFeedback.weaklyMatchedSkills(), "Normalized exact matches should not become weak matches.");
             assertEquals(List.of("SQL"), normalizedFeedback.missingSkills(), "Only unmatched normalized skills should remain.");
             assertEquals(67, normalizedFeedback.coveragePercent(), "Normalized feedback coverage percentage is incorrect.");
+
+            MissingSkillsFeedback weakFeedback = feedbackService.feedbackForApplicantAndJob("ta402", "job404")
+                .orElseThrow(() -> new IllegalStateException("Expected weak-match feedback for ta402 / job404."));
+            assertEquals(List.of(), weakFeedback.matchedSkills(), "Weak-match scenario should not report direct matches.");
+            assertEquals(
+                List.of("Programming", "Presentation"),
+                weakFeedback.weaklyMatchedSkills(),
+                "Related skills should be surfaced as weak matches."
+            );
+            assertEquals(List.of("Testing", "SQL"), weakFeedback.missingSkills(), "Unrelated requirements should remain missing.");
+            assertEquals(25, weakFeedback.coveragePercent(), "Weighted weak-match coverage percentage is incorrect.");
 
             expectFeedbackFailure(
                 feedbackService,
