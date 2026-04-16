@@ -1,5 +1,6 @@
 package com.bupt.tarecruitment.job;
 
+import com.bupt.tarecruitment.common.text.DisplayFormats;
 import com.bupt.tarecruitment.common.storage.DataFile;
 
 import java.io.IOException;
@@ -85,7 +86,7 @@ public final class TextFileJobRepository implements JobRepository {
             fields[3],
             fields[4],
             parseList(fields[5]),
-            Integer.parseInt(fields[6]),
+            Double.parseDouble(fields[6]),
             parseList(fields[7]),
             JobStatus.valueOf(fields[8])
         );
@@ -130,7 +131,7 @@ public final class TextFileJobRepository implements JobRepository {
             job.moduleOrActivity(),
             job.description(),
             String.join(LIST_SEPARATOR, job.requiredSkills()),
-            Integer.toString(job.weeklyHours()),
+            DisplayFormats.formatDecimal(job.weeklyHours()),
             String.join(LIST_SEPARATOR, job.scheduleSlots()),
             job.status().name()
         );

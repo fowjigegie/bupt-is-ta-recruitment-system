@@ -18,16 +18,16 @@ public final class SkillCatalog {
 
     private static final List<Set<String>> WEAK_MATCH_FAMILIES = List.of(
         skillFamily("programming", "algorithms", "data structures", "object-oriented programming", "java", "python", "c", "c++", "javascript", "typescript"),
-        skillFamily("software engineering", "git", "debugging", "linux"),
-        skillFamily("web development", "html", "css", "javascript", "typescript", "frontend", "react", "vue", "ui design", "ux design", "android", "mobile development"),
-        skillFamily("machine learning", "deep learning", "pytorch", "tensorflow", "python", "data analysis", "data mining"),
-        skillFamily("database design", "sql", "database", "data modeling", "data analysis", "data visualization", "excel", "statistics"),
+        skillFamily("software engineering", "git", "debugging", "linux", "backend development", "rest api", "api design", "software architecture"),
+        skillFamily("web development", "html", "css", "javascript", "typescript", "frontend", "react", "vue", "ui design", "ux design", "android", "mobile development", "node.js"),
+        skillFamily("machine learning", "deep learning", "pytorch", "tensorflow", "python", "data analysis", "data mining", "big data"),
+        skillFamily("database design", "sql", "database", "data modeling", "data analysis", "data visualization", "excel", "statistics", "data engineering", "etl", "big data", "hadoop", "spark"),
         skillFamily("testing", "unit testing", "integration testing", "junit", "test design", "quality assurance", "qa", "debugging"),
-        skillFamily("communication", "presentation", "writing", "speaking", "public speaking", "teaching", "tutoring", "mentoring", "teamwork"),
+        skillFamily("communication", "presentation", "writing", "speaking", "public speaking", "teaching", "tutoring", "mentoring", "teamwork", "patience"),
         skillFamily("networking", "computer networks", "wireshark", "network analysis", "operating systems"),
-        skillFamily("security", "cryptography", "network security", "information security"),
+        skillFamily("security", "cryptography", "network security", "information security", "cloud computing", "aws", "docker", "devops"),
         skillFamily("hardware", "embedded systems", "microcontrollers", "digital logic", "fpga", "computer architecture"),
-        skillFamily("analytical thinking", "problem solving", "research", "academic writing", "critical thinking", "literature review")
+        skillFamily("analytical thinking", "problem solving", "research", "academic writing", "critical thinking", "literature review", "mathematics", "detail orientation")
     );
 
     private static final LinkedHashMap<String, LinkedHashSet<String>> BASE_CATEGORIES = buildBaseCategories();
@@ -100,25 +100,25 @@ public final class SkillCatalog {
     private static LinkedHashMap<String, LinkedHashSet<String>> buildBaseCategories() {
         LinkedHashMap<String, LinkedHashSet<String>> categories = new LinkedHashMap<>();
         categories.put("Programming & Software", normalizedSet(
-            "Programming", "Algorithms", "Data Structures", "Object-Oriented Programming", "Java", "Python", "C", "C++", "JavaScript", "TypeScript", "Git", "Linux", "Debugging", "Software Engineering"
+            "Programming", "Algorithms", "Data Structures", "Object-Oriented Programming", "Java", "Python", "C", "C++", "JavaScript", "TypeScript", "Git", "Linux", "Debugging", "Software Engineering", "Backend Development", "REST API", "API Design", "Software Architecture"
         ));
         categories.put("Web, UI & Mobile", normalizedSet(
-            "Web Development", "HTML", "CSS", "Frontend", "React", "Vue", "UI Design", "UX Design", "Android", "Mobile Development"
+            "Web Development", "HTML", "CSS", "Frontend", "React", "Vue", "UI Design", "UX Design", "Android", "Mobile Development", "Node.js"
         ));
         categories.put("AI & Machine Learning", normalizedSet(
-            "Machine Learning", "Deep Learning", "PyTorch", "TensorFlow", "Data Mining"
+            "Machine Learning", "Deep Learning", "PyTorch", "TensorFlow", "Data Mining", "Big Data"
         ));
         categories.put("Data & Databases", normalizedSet(
-            "Data Analysis", "Statistics", "Excel", "SQL", "Database", "Database Design", "Data Modeling", "Data Visualization"
+            "Data Analysis", "Statistics", "Excel", "SQL", "Database", "Database Design", "Data Modeling", "Data Visualization", "Data Engineering", "ETL", "Hadoop", "Spark", "Mathematics"
         ));
         categories.put("Testing & Quality", normalizedSet(
-            "Testing", "Unit Testing", "Integration Testing", "JUnit", "Test Design", "Quality Assurance", "QA"
+            "Testing", "Unit Testing", "Integration Testing", "JUnit", "Test Design", "Quality Assurance", "QA", "Detail Orientation"
         ));
         categories.put("Communication & Teaching", normalizedSet(
-            "Communication", "Presentation", "Public Speaking", "Speaking", "Writing", "Teaching", "Tutoring", "Mentoring", "Teamwork"
+            "Communication", "Presentation", "Public Speaking", "Speaking", "Writing", "Teaching", "Tutoring", "Mentoring", "Teamwork", "Patience"
         ));
         categories.put("Networks, Systems & Security", normalizedSet(
-            "Networking", "Computer Networks", "Network Analysis", "Wireshark", "Security", "Network Security", "Information Security", "Cryptography", "Operating Systems"
+            "Networking", "Computer Networks", "Network Analysis", "Wireshark", "Security", "Network Security", "Information Security", "Cryptography", "Operating Systems", "Cloud Computing", "AWS", "Docker", "DevOps"
         ));
         categories.put("Hardware & Embedded", normalizedSet(
             "Hardware", "Embedded Systems", "Digital Logic", "Microcontrollers", "FPGA", "Computer Architecture"
@@ -170,25 +170,25 @@ public final class SkillCatalog {
             }
         }
 
-        if (containsAny(normalizedSkill, "java", "python", "program", "script", "c++", "algorithm", "git", "linux", "debug")) {
+        if (containsAny(normalizedSkill, "java", "python", "program", "script", "c++", "algorithm", "git", "linux", "debug", "backend", "api", "architecture")) {
             return "Programming & Software";
         }
-        if (containsAny(normalizedSkill, "html", "css", "frontend", "web", "android", "ui", "mobile", "react", "vue", "ux")) {
+        if (containsAny(normalizedSkill, "html", "css", "frontend", "web", "android", "ui", "mobile", "react", "vue", "ux", "node")) {
             return "Web, UI & Mobile";
         }
-        if (containsAny(normalizedSkill, "machine learning", "deep learning", "pytorch", "tensorflow", "data mining")) {
+        if (containsAny(normalizedSkill, "machine learning", "deep learning", "pytorch", "tensorflow", "data mining", "big data")) {
             return "AI & Machine Learning";
         }
-        if (containsAny(normalizedSkill, "data", "sql", "database", "statistics", "excel", "model", "visualization")) {
+        if (containsAny(normalizedSkill, "data", "sql", "database", "statistics", "excel", "model", "visualization", "etl", "hadoop", "spark", "math")) {
             return "Data & Databases";
         }
-        if (containsAny(normalizedSkill, "test", "quality", "qa", "junit")) {
+        if (containsAny(normalizedSkill, "test", "quality", "qa", "junit", "detail")) {
             return "Testing & Quality";
         }
-        if (containsAny(normalizedSkill, "communication", "presentation", "teaching", "tutoring", "writing", "speaking", "teamwork", "mentor")) {
+        if (containsAny(normalizedSkill, "communication", "presentation", "teaching", "tutoring", "writing", "speaking", "teamwork", "mentor", "patience")) {
             return "Communication & Teaching";
         }
-        if (containsAny(normalizedSkill, "network", "security", "crypt", "system", "wireshark")) {
+        if (containsAny(normalizedSkill, "network", "security", "crypt", "system", "wireshark", "cloud", "docker", "aws", "devops")) {
             return "Networks, Systems & Security";
         }
         if (containsAny(normalizedSkill, "hardware", "embedded", "microcontroller", "logic", "architecture", "fpga")) {

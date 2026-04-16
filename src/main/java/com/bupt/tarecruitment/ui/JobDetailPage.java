@@ -4,12 +4,14 @@ import com.bupt.tarecruitment.applicant.ApplicantCv;
 import com.bupt.tarecruitment.application.AvailabilityCheckResult;
 import com.bupt.tarecruitment.application.ApplicationStatus;
 import com.bupt.tarecruitment.application.JobApplication;
+import com.bupt.tarecruitment.common.text.DisplayFormats;
 import com.bupt.tarecruitment.job.JobPosting;
 import com.bupt.tarecruitment.job.JobStatus;
 import com.bupt.tarecruitment.recommendation.MissingSkillsFeedback;
 import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.Border;
@@ -75,7 +77,7 @@ public class JobDetailPage extends Application {
         var courseTag = UiTheme.createTag("Course Title : " + job.title(), 500);
         var teacherTag = UiTheme.createTag("Organised By : " + context.formatUserLabel(job.organiserId()), 400);
         var classTag = UiTheme.createTag("Module / Activity : " + job.moduleOrActivity(), 420);
-        var hoursTag = UiTheme.createTag("Weekly Hours : " + job.weeklyHours(), 260);
+        var hoursTag = UiTheme.createTag("Weekly Hours : " + DisplayFormats.formatDecimal(job.weeklyHours()), 260);
         var statusTag = UiTheme.createTag("Status : " + job.status().name(), 220);
 
         VBox details = new VBox(16,
@@ -90,7 +92,7 @@ public class JobDetailPage extends Application {
                 "Required skills: " + (job.requiredSkills().isEmpty() ? "(none listed)" : String.join(", ", job.requiredSkills())) +
                     System.lineSeparator() +
                     System.lineSeparator() +
-                    "Schedule: " + (job.scheduleSlots().isEmpty() ? "(none listed)" : String.join(", ", job.scheduleSlots()))
+                    "Schedule: " + FixedScheduleBands.formatScheduleList(job.scheduleSlots())
             ),
             createAvailabilityFeedbackCard(context, job),
             createSkillGapFeedbackCard(context, job)
@@ -158,7 +160,10 @@ public class JobDetailPage extends Application {
 
         return createAvailabilityStatusCard(
             "Your current availability does not cover: "
-                + String.join(", ", result.uncoveredJobSlots())
+                + result.uncoveredJobSlots().stream()
+                    .map(FixedScheduleBands::formatSlotForDisplay)
+                    .reduce((left, right) -> left + ", " + right)
+                    .orElse("(schedule not listed)")
                 + System.lineSeparator()
                 + System.lineSeparator()
                 + "Update your availability in Resume Database before applying.",
@@ -237,7 +242,16 @@ public class JobDetailPage extends Application {
             .append(System.lineSeparator())
             .append("Weakly matched skills mean your profile shows related experience, but not a direct skill-by-skill match yet.");
 
-        return UiTheme.createWhiteCard("Missing skills feedback", body.toString());
+        VBox card = UiTheme.createWhiteCard("Missing skills feedback", body.toString());
+        Button analysisButton = UiTheme.createOutlineButton("View detailed analysis", 240, 44);
+        analysisButton.setOnAction(event ->
+            SkillGapInsightsDialog.show(analysisButton.getScene().getWindow(), context, job)
+        );
+        Button aiButton = UiTheme.createOutlineButton("Ask AI Assistant", 220, 44);
+        aiButton.setOnAction(event -> FakeAiAssistantDialog.show(aiButton.getScene().getWindow(), context));
+        HBox actionRow = new HBox(12, analysisButton, aiButton);
+        card.getChildren().add(actionRow);
+        return card;
     }
 
     private static void applyToJob(

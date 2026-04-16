@@ -13,7 +13,7 @@ public record JobPosting(
     String moduleOrActivity,
     String description,
     List<String> requiredSkills,
-    int weeklyHours,
+    double weeklyHours,
     List<String> scheduleSlots,
     JobStatus status
 ) {

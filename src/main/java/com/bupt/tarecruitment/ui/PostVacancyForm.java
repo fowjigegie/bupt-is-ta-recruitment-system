@@ -1,8 +1,12 @@
 package com.bupt.tarecruitment.ui;
 
+import com.bupt.tarecruitment.common.skill.SkillCatalog;
+import com.bupt.tarecruitment.common.schedule.ScheduleSlot;
+import com.bupt.tarecruitment.common.text.DisplayFormats;
 import com.bupt.tarecruitment.job.JobPosting;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
@@ -14,7 +18,10 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 /**
  * 封装岗位发布页的表单控件和排期选择状态。
@@ -25,8 +32,13 @@ final class PostVacancyForm {
     private final TextField moduleField;
     private final TextField weeklyHoursField;
     private final TextArea descriptionArea;
-    private final TextArea requirementArea;
     private final ObservableList<String> selectedScheduleSlots;
+    private final LinkedHashSet<String> selectedSkills;
+    private final Map<String, List<String>> categorizedSkillSuggestions;
+    private ComboBox<String> dayBox;
+    private ComboBox<String> timeBandBox;
+    private FlowPane selectedSkillsPane;
+    private Label skillsHelperLabel;
 
     private PostVacancyForm(
         TextField titleField,
@@ -34,19 +46,21 @@ final class PostVacancyForm {
         TextField moduleField,
         TextField weeklyHoursField,
         TextArea descriptionArea,
-        TextArea requirementArea,
-        ObservableList<String> selectedScheduleSlots
+        ObservableList<String> selectedScheduleSlots,
+        LinkedHashSet<String> selectedSkills,
+        Map<String, List<String>> categorizedSkillSuggestions
     ) {
         this.titleField = titleField;
         this.organiserField = organiserField;
         this.moduleField = moduleField;
         this.weeklyHoursField = weeklyHoursField;
         this.descriptionArea = descriptionArea;
-        this.requirementArea = requirementArea;
         this.selectedScheduleSlots = selectedScheduleSlots;
+        this.selectedSkills = selectedSkills;
+        this.categorizedSkillSuggestions = categorizedSkillSuggestions;
     }
 
-    static PostVacancyForm create(String organiserUserId) {
+    static PostVacancyForm create(String organiserUserId, Map<String, List<String>> categorizedSkillSuggestions) {
         TextField titleField = createField();
         TextField organiserField = createField();
         organiserField.setText(organiserUserId);
@@ -58,18 +72,20 @@ final class PostVacancyForm {
             createField(),
             createField(),
             createArea(),
-            createArea(),
-            FXCollections.observableArrayList()
+            FXCollections.observableArrayList(),
+            new LinkedHashSet<>(),
+            categorizedSkillSuggestions
         );
     }
 
     void load(JobPosting job) {
         titleField.setText(job.title());
         moduleField.setText(job.moduleOrActivity());
-        weeklyHoursField.setText(Integer.toString(job.weeklyHours()));
+        weeklyHoursField.setText(DisplayFormats.formatDecimal(job.weeklyHours()));
         descriptionArea.setText(job.description());
-        requirementArea.setText(String.join("; ", job.requiredSkills()));
         selectedScheduleSlots.setAll(job.scheduleSlots());
+        setSkills(job.requiredSkills());
+        clearPendingScheduleSelection();
     }
 
     void clearForCreate() {
@@ -77,8 +93,10 @@ final class PostVacancyForm {
         moduleField.clear();
         weeklyHoursField.clear();
         descriptionArea.clear();
-        requirementArea.clear();
         selectedScheduleSlots.clear();
+        selectedSkills.clear();
+        refreshSelectedSkillsPane();
+        clearPendingScheduleSelection();
     }
 
     String organiserId() {
@@ -98,15 +116,21 @@ final class PostVacancyForm {
     }
 
     List<String> requiredSkills() {
-        return splitList(requirementArea.getText());
+        return List.copyOf(selectedSkills);
     }
 
-    int parseWeeklyHours() {
-        return Integer.parseInt(weeklyHoursField.getText().trim());
+    double parseWeeklyHours() {
+        return Double.parseDouble(weeklyHoursField.getText().trim());
     }
 
     List<String> scheduleSlots() {
-        return List.copyOf(selectedScheduleSlots);
+        List<String> slots = FXCollections.observableArrayList(selectedScheduleSlots);
+        pendingScheduleSlot().ifPresent(slot -> {
+            if (!slots.contains(slot) && !hasScheduleOverlap(slots, slot)) {
+                slots.add(slot);
+            }
+        });
+        return List.copyOf(slots);
     }
 
     HBox createFirstRow() {
@@ -125,13 +149,64 @@ final class PostVacancyForm {
 
     HBox createDetailRow() {
         VBox descriptionBox = createLabeledAreaBox("Job Description", descriptionArea, 430, 250);
-        VBox requirementBox = createLabeledAreaBox("Job Requirements", requirementArea, 430, 250);
+        VBox requirementBox = createRequiredSkillsSection();
         HBox.setHgrow(descriptionBox, Priority.ALWAYS);
         HBox.setHgrow(requirementBox, Priority.ALWAYS);
         HBox detailRow = new HBox(18, descriptionBox, requirementBox);
         detailRow.setAlignment(Pos.CENTER);
         detailRow.setFillHeight(true);
         return detailRow;
+    }
+
+    private VBox createRequiredSkillsSection() {
+        Label label = new Label("Required Skills :");
+        label.setStyle(
+            "-fx-font-size: 18px;" +
+                "-fx-font-weight: bold;" +
+                "-fx-text-fill: #4664a8;"
+        );
+
+        skillsHelperLabel = new Label(
+            selectedSkills.isEmpty()
+                ? "Choose the skills applicants should have for this job."
+                : "Selected required skills are shown below. Open the selector to search, edit, or add more."
+        );
+        skillsHelperLabel.setStyle("-fx-font-size: 13px; -fx-text-fill: #8b7fa0;");
+        skillsHelperLabel.setWrapText(true);
+
+        selectedSkillsPane = new FlowPane();
+        selectedSkillsPane.setHgap(8);
+        selectedSkillsPane.setVgap(8);
+        selectedSkillsPane.setPrefWrapLength(380);
+
+        Button chooseSkillsButton = UiTheme.createOutlineButton("Choose required skills", 220, 46);
+        chooseSkillsButton.setOnAction(event -> {
+            List<String> chosenSkills = SkillPickerDialog.chooseSkills(
+                chooseSkillsButton.getScene() == null ? null : chooseSkillsButton.getScene().getWindow(),
+                "Required Skills",
+                "Required Skills",
+                "Search across all categories, expand any category you want, or type a custom skill to add it as a requirement for this job.",
+                "Use selected skills",
+                categorizedSkillSuggestions,
+                requiredSkills()
+            );
+            setSkills(chosenSkills);
+        });
+
+        refreshSelectedSkillsPane();
+
+        VBox box = new VBox(10, label, skillsHelperLabel, selectedSkillsPane, chooseSkillsButton);
+        box.setPadding(new Insets(12));
+        box.setStyle(
+            "-fx-background-color: white;" +
+                "-fx-background-radius: 20;" +
+                "-fx-border-color: #f3b2df;" +
+                "-fx-border-width: 2;" +
+                "-fx-border-radius: 20;"
+        );
+        box.setPrefWidth(430);
+        box.setMinHeight(250);
+        return box;
     }
 
     VBox createScheduleSelectorBox() {
@@ -144,29 +219,18 @@ final class PostVacancyForm {
                 "-fx-text-fill: #4664a8;"
         );
 
-        ComboBox<String> dayBox = new ComboBox<>();
-        dayBox.getItems().addAll("MON", "TUE", "WED", "THU", "FRI");
+        dayBox = new ComboBox<>();
+        dayBox.getItems().addAll(FixedScheduleBands.WEEKDAY_CODES);
         dayBox.setPromptText("Weekday");
-        dayBox.setPrefWidth(130);
+        dayBox.setPrefWidth(150);
 
-        ComboBox<String> startBox = new ComboBox<>();
-        startBox.getItems().addAll(
-            "08:00", "09:00", "10:00", "11:00", "12:00",
-            "13:00", "14:00", "15:00", "16:00", "17:00"
-        );
-        startBox.setPromptText("Start");
-        startBox.setPrefWidth(130);
-
-        ComboBox<String> endBox = new ComboBox<>();
-        endBox.getItems().addAll(
-            "09:00", "10:00", "11:00", "12:00", "13:00",
-            "14:00", "15:00", "16:00", "17:00", "18:00"
-        );
-        endBox.setPromptText("End");
-        endBox.setPrefWidth(130);
+        timeBandBox = new ComboBox<>();
+        timeBandBox.getItems().addAll(FixedScheduleBands.timeBandLabels());
+        timeBandBox.setPromptText("Time slot");
+        timeBandBox.setPrefWidth(210);
 
         Button addSlotButton = UiTheme.createSoftButton("Add Slot", 110, 42);
-        Label helperText = new Label("You can add up to 5 slots.");
+        Label helperText = new Label("Choose a weekday and one of the fixed teaching time bands. You can add up to 5 slots.");
         helperText.setStyle("-fx-font-size: 13px; -fx-text-fill: #8b7fa0;");
 
         FlowPane tagsPane = new FlowPane();
@@ -186,7 +250,7 @@ final class PostVacancyForm {
         refreshTagsRef[0] = () -> {
             tagsPane.getChildren().clear();
             for (String slot : selectedScheduleSlots) {
-                Label chipText = new Label(slot);
+                Label chipText = new Label(FixedScheduleBands.formatSlotForDisplay(slot));
                 chipText.setStyle("-fx-text-fill: #4664a8; -fx-font-weight: bold; -fx-font-size: 13px;");
 
                 Button removeBtn = new Button("脳");
@@ -219,36 +283,31 @@ final class PostVacancyForm {
         };
 
         addSlotButton.setOnAction(event -> {
-            String day = dayBox.getValue();
-            String start = startBox.getValue();
-            String end = endBox.getValue();
-            if (day == null || start == null || end == null) {
-                helperText.setText("Please choose weekday, start and end time first.");
-                return;
-            }
-            if (end.compareTo(start) <= 0) {
-                helperText.setText("End time must be later than start time.");
+            Optional<String> pendingSlot = pendingScheduleSlot();
+            if (pendingSlot.isEmpty()) {
+                helperText.setText("Please choose weekday and time slot first.");
                 return;
             }
             if (selectedScheduleSlots.size() >= 5) {
                 helperText.setText("At most 5 schedule slots are allowed.");
                 return;
             }
-            if (hasScheduleOverlap(selectedScheduleSlots, day, start, end)) {
+            String slot = pendingSlot.get();
+            if (hasScheduleOverlap(selectedScheduleSlots, slot)) {
                 helperText.setText("Invalid slot: overlaps with an existing schedule.");
                 return;
             }
-            String slot = day + "-" + start + "-" + end;
             if (!selectedScheduleSlots.contains(slot)) {
                 selectedScheduleSlots.add(slot);
+                clearPendingScheduleSelection();
                 refreshTagsRef[0].run();
-                helperText.setText("You can add up to 5 slots.");
+                helperText.setText("Choose a weekday and one of the fixed teaching time bands. You can add up to 5 slots. A currently selected slot will also be saved when you publish.");
             } else {
                 helperText.setText("This slot already exists.");
             }
         });
 
-        HBox selectorRow = new HBox(12, dayBox, startBox, endBox, addSlotButton);
+        HBox selectorRow = new HBox(12, dayBox, timeBandBox, addSlotButton);
         selectorRow.setAlignment(Pos.CENTER_LEFT);
         refreshTagsRef[0].run();
 
@@ -265,6 +324,66 @@ final class PostVacancyForm {
             .map(String::trim)
             .filter(value -> !value.isBlank())
             .toList();
+    }
+
+    private void setSkills(List<String> skills) {
+        selectedSkills.clear();
+        for (String skill : skills) {
+            String normalized = normalizeDisplaySkill(skill);
+            if (!normalized.isBlank()) {
+                selectedSkills.add(normalized);
+            }
+        }
+        refreshSelectedSkillsPane();
+    }
+
+    private void refreshSelectedSkillsPane() {
+        if (selectedSkillsPane == null) {
+            return;
+        }
+        selectedSkillsPane.getChildren().clear();
+        if (selectedSkills.isEmpty()) {
+            selectedSkillsPane.getChildren().add(UiTheme.createMutedText("No required skills selected yet."));
+        } else {
+            for (String skill : selectedSkills) {
+                Label tag = new Label(skill);
+                tag.setPadding(new Insets(6, 10, 6, 10));
+                tag.setStyle(
+                    "-fx-background-color: #ffe6f2;" +
+                        "-fx-background-radius: 18;" +
+                        "-fx-border-color: #f3b2df;" +
+                        "-fx-border-radius: 18;" +
+                        "-fx-font-weight: bold;" +
+                        "-fx-text-fill: #5c3f6b;"
+                );
+                selectedSkillsPane.getChildren().add(tag);
+            }
+        }
+
+        if (skillsHelperLabel != null) {
+            skillsHelperLabel.setText(
+                selectedSkills.isEmpty()
+                    ? "Choose the skills applicants should have for this job."
+                    : "Selected required skills are shown below. Open the selector to search, edit, or add more."
+            );
+        }
+    }
+
+    private static String normalizeDisplaySkill(String rawSkill) {
+        if (rawSkill == null || rawSkill.isBlank()) {
+            return "";
+        }
+        String normalized = SkillCatalog.normalize(rawSkill);
+        if (normalized.isBlank()) {
+            return "";
+        }
+        return List.of(normalized.split(" ")).stream()
+            .filter(part -> !part.isBlank())
+            .map(part -> part.length() <= 2
+                ? part.toUpperCase()
+                : Character.toUpperCase(part.charAt(0)) + part.substring(1).toLowerCase())
+            .reduce((left, right) -> left + " " + right)
+            .orElse("");
     }
 
     private static VBox createLabeledFieldBox(String labelText, TextField field, double width) {
@@ -300,22 +419,44 @@ final class PostVacancyForm {
         return box;
     }
 
-    private static boolean hasScheduleOverlap(List<String> existingSlots, String day, String start, String end) {
-        for (String slot : existingSlots) {
-            String[] parts = slot.split("-");
-            if (parts.length != 3) {
-                continue;
+    private static boolean hasScheduleOverlap(List<String> existingSlots, String candidateSlot) {
+        try {
+            ScheduleSlot candidate = ScheduleSlot.parse(candidateSlot);
+            for (String slot : existingSlots) {
+                try {
+                    if (candidate.overlaps(ScheduleSlot.parse(slot))) {
+                        return true;
+                    }
+                } catch (IllegalArgumentException ignored) {
+                    // Ignore malformed historic schedule strings in overlap checks.
+                }
             }
-            if (!day.equals(parts[0])) {
-                continue;
-            }
-            String existingStart = parts[1];
-            String existingEnd = parts[2];
-            if (start.compareTo(existingEnd) < 0 && existingStart.compareTo(end) < 0) {
-                return true;
-            }
+            return false;
+        } catch (IllegalArgumentException exception) {
+            return true;
         }
-        return false;
+    }
+
+    private Optional<String> pendingScheduleSlot() {
+        if (dayBox == null || timeBandBox == null) {
+            return Optional.empty();
+        }
+        String day = dayBox.getValue();
+        String bandLabel = timeBandBox.getValue();
+        if (day == null || bandLabel == null) {
+            return Optional.empty();
+        }
+        return FixedScheduleBands.bandForLabel(bandLabel)
+            .map(band -> FixedScheduleBands.toSlotValue(day, band));
+    }
+
+    private void clearPendingScheduleSelection() {
+        if (dayBox != null) {
+            dayBox.getSelectionModel().clearSelection();
+        }
+        if (timeBandBox != null) {
+            timeBandBox.getSelectionModel().clearSelection();
+        }
     }
 
     private static TextField createField() {

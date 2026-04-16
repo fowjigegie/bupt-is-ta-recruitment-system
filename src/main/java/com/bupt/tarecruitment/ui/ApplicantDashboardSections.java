@@ -61,7 +61,10 @@ final class ApplicantDashboardSections {
             nav.goTo(PageId.MESSAGES);
         });
 
-        HBox featureButtons = new HBox(30, invitationButton, createChatBadge(chatButton, unreadMessages));
+        Button aiButton = UiTheme.createPrimaryButton("AI\nAssistant", 220, 110);
+        aiButton.setOnAction(event -> FakeAiAssistantDialog.show(aiButton.getScene().getWindow(), context));
+
+        HBox featureButtons = new HBox(30, invitationButton, createChatBadge(chatButton, unreadMessages), aiButton);
         featureButtons.setAlignment(Pos.CENTER_LEFT);
         return featureButtons;
     }

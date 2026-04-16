@@ -43,12 +43,6 @@ public class InterviewInvitationPage extends Application {
     // US06 主页面：
     // applicant 登录后会在这里看到自己所有申请的状态卡片，按提交时间从新到旧排序。
     static Scene createScene(NavigationManager nav, UiAppContext context) {
-        List<JobApplication> applications = context.services().applicationRepository()
-            .findByApplicantUserId(context.session().userId())
-            .stream()
-            .sorted(Comparator.comparing(JobApplication::submittedAt).reversed())
-            .toList();
-
         VBox center = new VBox(24);
         center.setPadding(new Insets(35, 40, 28, 40));
         Label title = new Label("My Application Status");
@@ -56,12 +50,28 @@ public class InterviewInvitationPage extends Application {
         title.setTextFill(Color.web("#4969ad"));
         center.getChildren().add(title);
 
-        if (applications.isEmpty()) {
-            center.getChildren().add(UiTheme.createWhiteCard("No applications yet", "Apply for a job from the More Jobs page and the status will appear here."));
-        } else {
-            for (JobApplication application : applications) {
-                center.getChildren().add(createStatusCard(nav, context, application));
+        try {
+            List<JobApplication> applications = context.services().applicationRepository()
+                .findByApplicantUserId(context.session().userId())
+                .stream()
+                .sorted(Comparator.comparing(JobApplication::submittedAt).reversed())
+                .toList();
+
+            if (applications.isEmpty()) {
+                center.getChildren().add(UiTheme.createWhiteCard("No applications yet", "Apply for a job from the More Jobs page and the status will appear here."));
+            } else {
+                for (JobApplication application : applications) {
+                    center.getChildren().add(createStatusCard(nav, context, application));
+                }
             }
+        } catch (RuntimeException exception) {
+            center.getChildren().add(
+                UiTheme.createWhiteCard(
+                    "Application data temporarily unavailable",
+                    "We could not load one or more application records just now. Please check the latest saved job/application data and try again.",
+                    Color.web("#b00020")
+                )
+            );
         }
 
         center.getChildren().add(new HBox(UiTheme.createBackButton(nav)));
@@ -87,12 +97,10 @@ public class InterviewInvitationPage extends Application {
     // 一张卡片对应一条申请。
     // 左侧显示岗位基本信息和时间，右侧显示状态 chip、applicationId 和查看详情按钮。
     private static VBox createStatusCard(NavigationManager nav, UiAppContext context, JobApplication application) {
-        JobPosting job = context.services().jobRepository().findByJobId(application.jobId()).orElse(null);
+        JobPosting job = findJobSafely(context, application.jobId());
         String title = job == null ? application.jobId() : job.title();
-        String organiser = job == null ? "(unknown organiser)" : context.formatUserLabel(job.organiserId());
-        String schedule = job == null || job.scheduleSlots().isEmpty()
-            ? "(schedule not listed)"
-            : String.join(", ", job.scheduleSlots());
+        String organiser = formatOrganiserSafely(context, job);
+        String schedule = formatScheduleSafely(job);
         Color accentColor = statusColor(application.status());
 
         VBox wrapper = new VBox();
@@ -134,6 +142,7 @@ public class InterviewInvitationPage extends Application {
             context.selectJob(application.jobId());
             nav.goTo(PageId.JOB_DETAIL);
         });
+        detailsButton.setDisable(job == null);
 
         Label applicationIdLabel = new Label("Application ID: " + application.applicationId());
         applicationIdLabel.setFont(Font.font("Arial", FontWeight.BOLD, 14));
@@ -145,6 +154,36 @@ public class InterviewInvitationPage extends Application {
         card.getChildren().addAll(leftInfo, spacer, rightInfo);
         wrapper.getChildren().add(card);
         return wrapper;
+    }
+
+    private static JobPosting findJobSafely(UiAppContext context, String jobId) {
+        try {
+            return context.services().jobRepository().findByJobId(jobId).orElse(null);
+        } catch (RuntimeException exception) {
+            return null;
+        }
+    }
+
+    private static String formatOrganiserSafely(UiAppContext context, JobPosting job) {
+        if (job == null) {
+            return "(unknown organiser)";
+        }
+        try {
+            return context.formatUserLabel(job.organiserId());
+        } catch (RuntimeException exception) {
+            return job.organiserId();
+        }
+    }
+
+    private static String formatScheduleSafely(JobPosting job) {
+        if (job == null || job.scheduleSlots().isEmpty()) {
+            return "(schedule not listed)";
+        }
+        try {
+            return FixedScheduleBands.formatScheduleList(job.scheduleSlots());
+        } catch (RuntimeException exception) {
+            return String.join(", ", job.scheduleSlots());
+        }
     }
 
     private static Label createHeadline(String value) {

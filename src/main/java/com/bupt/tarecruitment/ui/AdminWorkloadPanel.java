@@ -3,6 +3,7 @@ package com.bupt.tarecruitment.ui;
 import com.bupt.tarecruitment.admin.AcceptedAssignment;
 import com.bupt.tarecruitment.admin.WorkloadConflict;
 import com.bupt.tarecruitment.admin.WorkloadSummary;
+import com.bupt.tarecruitment.common.text.DisplayFormats;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Label;
@@ -182,7 +183,7 @@ final class AdminWorkloadPanel {
 
         HBox summaryRow = new HBox(18,
             createSummaryPill("Accepted jobs", Integer.toString(summary.acceptedAssignments().size())),
-            createSummaryPill("Weekly hours", Integer.toString(summary.totalWeeklyHours())),
+            createSummaryPill("Weekly hours", DisplayFormats.formatDecimal(summary.totalWeeklyHours())),
             createSummaryPill("Schedule conflicts", Integer.toString(summary.conflicts().size())),
             createSummaryPill("Invalid slots", Integer.toString(summary.invalidScheduleEntries().size()))
         );
@@ -236,9 +237,9 @@ final class AdminWorkloadPanel {
         Label meta = UiTheme.createMutedText(
             assignment.moduleOrActivity()
                 + " | "
-                + assignment.weeklyHours()
+                + DisplayFormats.formatDecimal(assignment.weeklyHours())
                 + "h/week | Schedule: "
-                + (assignment.scheduleSlots().isEmpty() ? "(none listed)" : String.join(", ", assignment.scheduleSlots()))
+                + FixedScheduleBands.formatScheduleList(assignment.scheduleSlots())
         );
 
         row.getChildren().addAll(title, meta);

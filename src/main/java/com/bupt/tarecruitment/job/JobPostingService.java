@@ -36,7 +36,7 @@ public final class JobPostingService {
         String moduleOrActivity,
         String description,
         List<String> requiredSkills,
-        int weeklyHours,
+        double weeklyHours,
         List<String> scheduleSlots
     ) {
         requireNonBlank(organiserId, "organiserId");
@@ -80,6 +80,11 @@ public final class JobPostingService {
 
         userAccessPolicy.requireActiveUserWithRole(posting.organiserId(), UserRole.MO);
 
+        List<String> normalizedScheduleSlots = normalizeScheduleSlots(
+            posting.scheduleSlots(),
+            posting.status() != JobStatus.CLOSED
+        );
+
         JobPosting normalizedPosting = new JobPosting(
             posting.jobId(),
             posting.organiserId().trim(),
@@ -88,7 +93,7 @@ public final class JobPostingService {
             posting.description().trim(),
             normalizeList(posting.requiredSkills()),
             posting.weeklyHours(),
-            normalizeScheduleSlots(posting.scheduleSlots()),
+            normalizedScheduleSlots,
             posting.status()
         );
         jobRepository.save(normalizedPosting);
@@ -108,7 +113,14 @@ public final class JobPostingService {
     }
 
     private List<String> normalizeScheduleSlots(List<String> rawValues) {
+        return normalizeScheduleSlots(rawValues, true);
+    }
+
+    private List<String> normalizeScheduleSlots(List<String> rawValues, boolean required) {
         List<String> normalizedScheduleSlots = normalizeList(rawValues);
+        if (required && normalizedScheduleSlots.isEmpty()) {
+            throw new IllegalArgumentException("At least one schedule slot is required.");
+        }
         for (String scheduleSlot : normalizedScheduleSlots) {
             ScheduleSlot.parse(scheduleSlot);
         }

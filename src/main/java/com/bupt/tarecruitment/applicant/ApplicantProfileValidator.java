@@ -96,7 +96,7 @@ public final class ApplicantProfileValidator {
             Matcher matcher = TIME_SLOT_PATTERN.matcher(availabilitySlot);
             if (!matcher.matches()) {
                 throw new IllegalArgumentException(
-                    "availabilitySlots must use the format DAY-HH:MM-HH:MM, for example MON-09:00-11:00."
+                    "availabilitySlots must use the format DAY-HH:MM-HH:MM, for example MON-09:50-11:25."
                 );
             }
 

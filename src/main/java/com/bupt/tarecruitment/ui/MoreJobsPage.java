@@ -1,6 +1,7 @@
 package com.bupt.tarecruitment.ui;
 
 import com.bupt.tarecruitment.application.AvailabilityCheckResult;
+import com.bupt.tarecruitment.common.text.DisplayFormats;
 import com.bupt.tarecruitment.job.JobBrowseFilter;
 import com.bupt.tarecruitment.job.JobPosting;
 import com.bupt.tarecruitment.job.JobStatus;
@@ -146,8 +147,8 @@ public class MoreJobsPage extends Application {
         classLabel.setTextFill(Color.web("#333333"));
 
         Label timeLabel = new Label(
-            "Weekly hours : " + job.weeklyHours() + "    |    Schedule : "
-                + (job.scheduleSlots().isEmpty() ? "-" : String.join(", ", job.scheduleSlots()))
+            "Weekly hours : " + DisplayFormats.formatDecimal(job.weeklyHours()) + "    |    Schedule : "
+                + FixedScheduleBands.formatScheduleList(job.scheduleSlots())
         );
         timeLabel.setFont(Font.font("Arial", 15));
         timeLabel.setTextFill(Color.web("#666666"));
@@ -210,7 +211,13 @@ public class MoreJobsPage extends Application {
             return label;
         }
 
-        label.setText("Availability conflict: update your profile to cover " + String.join(", ", result.uncoveredJobSlots()));
+        label.setText(
+            "Availability conflict: update your profile to cover "
+                + result.uncoveredJobSlots().stream()
+                    .map(FixedScheduleBands::formatSlotForDisplay)
+                    .reduce((left, right) -> left + ", " + right)
+                    .orElse("(schedule not listed)")
+        );
         applyStatusLabelStyle(label, "#b00020");
         return label;
     }

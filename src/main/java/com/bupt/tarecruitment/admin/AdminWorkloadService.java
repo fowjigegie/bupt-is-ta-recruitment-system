@@ -79,8 +79,8 @@ public final class AdminWorkloadService {
             .toList();
 
         // 汇总每个 TA 的总周工时
-        int totalWeeklyHours = acceptedAssignments.stream()
-            .mapToInt(AcceptedAssignment::weeklyHours)
+        double totalWeeklyHours = acceptedAssignments.stream()
+            .mapToDouble(AcceptedAssignment::weeklyHours)
             .sum();
 
         // 解析排期，找出冲突或格式非法的数据

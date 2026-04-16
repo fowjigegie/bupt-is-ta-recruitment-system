@@ -161,7 +161,7 @@ final class SkillPicker {
             return;
         }
         if (selectedSkills.add(value)) {
-            helperText.setText("Skill added to your current selection. Click Use selected skills to bring it back to the Resume page.");
+            helperText.setText("Skill added to your current selection. Click the confirm button to apply these selected skills.");
             helperText.setTextFill(Color.web("#2e7d32"));
         } else {
             helperText.setText("That skill is already in your current selection.");
@@ -240,7 +240,7 @@ final class SkillPicker {
                 skillButton.setOnAction(event -> {
                     selectedSkills.add(skill);
                     searchField.clear();
-                    helperText.setText("Skill added to your current selection. Click Use selected skills to bring it back to the Resume page.");
+                    helperText.setText("Skill added to your current selection. Click the confirm button to apply these selected skills.");
                     helperText.setTextFill(Color.web("#2e7d32"));
                     refreshSelectedTags();
                     refreshCategories();

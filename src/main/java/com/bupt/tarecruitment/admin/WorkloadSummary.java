@@ -9,7 +9,7 @@ import java.util.Objects;
 public record WorkloadSummary(
     String applicantUserId,
     String applicantDisplayName,
-    int totalWeeklyHours,
+    double totalWeeklyHours,
     List<AcceptedAssignment> acceptedAssignments,
     List<WorkloadConflict> conflicts,
     List<String> invalidScheduleEntries,

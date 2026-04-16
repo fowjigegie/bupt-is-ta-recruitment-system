@@ -11,30 +11,20 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 
 import java.util.List;
-import java.util.Objects;
+import java.util.Optional;
 
 /**
- * 提供按工作日和整点选择时间槽的 UI 组件。
+ * 提供 applicant availability 的固定时间段选择器。
  */
 final class ScheduleSlotPicker {
-    private static final int MAX_SLOT_COUNT = 5;
-    private static final List<String> WEEKDAYS = List.of("MON", "TUE", "WED", "THU", "FRI");
-    private static final List<String> START_TIMES = List.of(
-        "08:00", "09:00", "10:00", "11:00", "12:00",
-        "13:00", "14:00", "15:00", "16:00", "17:00"
-    );
-    private static final List<String> END_TIMES = List.of(
-        "09:00", "10:00", "11:00", "12:00", "13:00",
-        "14:00", "15:00", "16:00", "17:00", "18:00"
-    );
+    private static final int MAX_SLOT_COUNT = FixedScheduleBands.WEEKDAY_CODES.size() * FixedScheduleBands.timeBands().size();
 
     private final ObservableList<String> selectedSlots;
     private final VBox container;
     private final Label helperText;
     private final FlowPane tagsPane;
     private final ComboBox<String> dayBox;
-    private final ComboBox<String> startBox;
-    private final ComboBox<String> endBox;
+    private final ComboBox<String> timeBandBox;
     private final String defaultHelperText;
 
     private ScheduleSlotPicker(
@@ -43,8 +33,7 @@ final class ScheduleSlotPicker {
         Label helperText,
         FlowPane tagsPane,
         ComboBox<String> dayBox,
-        ComboBox<String> startBox,
-        ComboBox<String> endBox,
+        ComboBox<String> timeBandBox,
         String defaultHelperText
     ) {
         this.selectedSlots = selectedSlots;
@@ -52,8 +41,7 @@ final class ScheduleSlotPicker {
         this.helperText = helperText;
         this.tagsPane = tagsPane;
         this.dayBox = dayBox;
-        this.startBox = startBox;
-        this.endBox = endBox;
+        this.timeBandBox = timeBandBox;
         this.defaultHelperText = defaultHelperText;
     }
 
@@ -66,19 +54,14 @@ final class ScheduleSlotPicker {
         );
 
         ComboBox<String> dayBox = new ComboBox<>();
-        dayBox.getItems().addAll(WEEKDAYS);
+        dayBox.getItems().addAll(FixedScheduleBands.WEEKDAY_CODES);
         dayBox.setPromptText("Weekday");
         dayBox.setPrefWidth(130);
 
-        ComboBox<String> startBox = new ComboBox<>();
-        startBox.getItems().addAll(START_TIMES);
-        startBox.setPromptText("Start");
-        startBox.setPrefWidth(130);
-
-        ComboBox<String> endBox = new ComboBox<>();
-        endBox.getItems().addAll(END_TIMES);
-        endBox.setPromptText("End");
-        endBox.setPrefWidth(130);
+        ComboBox<String> timeBandBox = new ComboBox<>();
+        timeBandBox.getItems().addAll(FixedScheduleBands.timeBandLabels());
+        timeBandBox.setPromptText("Time slot");
+        timeBandBox.setPrefWidth(180);
 
         Button addSlotButton = UiTheme.createSoftButton("Add Slot", 110, 42);
         Label helperText = new Label(defaultHelperText);
@@ -97,7 +80,7 @@ final class ScheduleSlotPicker {
                 "-fx-padding: 10;"
         );
 
-        HBox selectorRow = new HBox(12, dayBox, startBox, endBox, addSlotButton);
+        HBox selectorRow = new HBox(12, dayBox, timeBandBox, addSlotButton);
         selectorRow.setAlignment(Pos.CENTER_LEFT);
 
         VBox container = new VBox(8, label, selectorRow, helperText, tagsPane);
@@ -108,8 +91,7 @@ final class ScheduleSlotPicker {
             helperText,
             tagsPane,
             dayBox,
-            startBox,
-            endBox,
+            timeBandBox,
             defaultHelperText
         );
         addSlotButton.setOnAction(event -> picker.addSelectedSlot());
@@ -126,54 +108,48 @@ final class ScheduleSlotPicker {
     }
 
     String formattedSlots() {
-        return String.join("; ", selectedSlots);
+        return selectedSlots.stream()
+            .map(FixedScheduleBands::formatSlotForDisplay)
+            .reduce((left, right) -> left + "; " + right)
+            .orElse("");
     }
 
     void setSlots(List<String> slots) {
-        selectedSlots.setAll(
-            slots.stream()
-                .filter(Objects::nonNull)
-                .map(String::trim)
-                .filter(value -> !value.isBlank())
-                .distinct()
-                .toList()
-        );
+        selectedSlots.setAll(FixedScheduleBands.normalizeToFixedBandSlots(slots));
         refreshTags();
         helperText.setText(defaultHelperText);
     }
 
     private void addSelectedSlot() {
         String day = dayBox.getValue();
-        String start = startBox.getValue();
-        String end = endBox.getValue();
+        String bandLabel = timeBandBox.getValue();
 
-        if (day == null || start == null || end == null) {
-            helperText.setText("Please choose weekday, start and end time first.");
+        if (day == null || bandLabel == null) {
+            helperText.setText("Please choose weekday and time slot first.");
             return;
         }
-        if (end.compareTo(start) <= 0) {
-            helperText.setText("End time must be later than start time.");
-            return;
-        }
+
         if (selectedSlots.size() >= MAX_SLOT_COUNT) {
-            helperText.setText("At most 5 availability slots are allowed.");
-            return;
-        }
-        if (hasScheduleOverlap(selectedSlots, day, start, end)) {
-            helperText.setText("Invalid slot: overlaps with an existing availability slot.");
+            helperText.setText("All fixed teaching time bands are already selected.");
             return;
         }
 
-        String slot = day + "-" + start + "-" + end;
+        Optional<FixedScheduleBands.TimeBand> selectedBand = FixedScheduleBands.bandForLabel(bandLabel);
+        if (selectedBand.isEmpty()) {
+            helperText.setText("This time slot is not supported.");
+            return;
+        }
+
+        String slot = FixedScheduleBands.toSlotValue(day, selectedBand.get());
         if (selectedSlots.contains(slot)) {
             helperText.setText("This slot already exists.");
             return;
         }
 
         selectedSlots.add(slot);
-        dayBox.setValue(null);
-        startBox.setValue(null);
-        endBox.setValue(null);
+        selectedSlots.setAll(FixedScheduleBands.normalizeToFixedBandSlots(selectedSlots));
+        dayBox.getSelectionModel().clearSelection();
+        timeBandBox.getSelectionModel().clearSelection();
         helperText.setText(defaultHelperText);
         refreshTags();
     }
@@ -181,7 +157,7 @@ final class ScheduleSlotPicker {
     private void refreshTags() {
         tagsPane.getChildren().clear();
         for (String slot : selectedSlots) {
-            Label chipText = new Label(slot);
+            Label chipText = new Label(FixedScheduleBands.formatSlotForDisplay(slot));
             chipText.setStyle("-fx-text-fill: #4664a8; -fx-font-weight: bold; -fx-font-size: 13px;");
 
             Button removeButton = new Button("x");
@@ -211,24 +187,5 @@ final class ScheduleSlotPicker {
             );
             tagsPane.getChildren().add(chip);
         }
-    }
-
-    private static boolean hasScheduleOverlap(List<String> existingSlots, String day, String start, String end) {
-        for (String slot : existingSlots) {
-            String[] parts = slot.split("-");
-            if (parts.length != 3) {
-                continue;
-            }
-            if (!day.equals(parts[0])) {
-                continue;
-            }
-
-            String existingStart = parts[1];
-            String existingEnd = parts[2];
-            if (start.compareTo(existingEnd) < 0 && existingStart.compareTo(end) < 0) {
-                return true;
-            }
-        }
-        return false;
     }
 }

@@ -13,6 +13,7 @@ import com.bupt.tarecruitment.applicant.CvTextStorage;
 import com.bupt.tarecruitment.applicant.TextFileApplicantCvRepository;
 import com.bupt.tarecruitment.applicant.TextFileApplicantProfileRepository;
 import com.bupt.tarecruitment.applicant.TextFileCvStorage;
+import com.bupt.tarecruitment.assistant.FakeAiAssistantService;
 import com.bupt.tarecruitment.admin.AdminWorkloadService;
 import com.bupt.tarecruitment.application.ApplicationIdGenerator;
 import com.bupt.tarecruitment.application.ApplicantAvailabilityService;
@@ -31,6 +32,7 @@ import com.bupt.tarecruitment.job.JobRepository;
 import com.bupt.tarecruitment.job.TextFileJobRepository;
 import com.bupt.tarecruitment.recommendation.MissingSkillsFeedbackService;
 import com.bupt.tarecruitment.recommendation.RecommendationService;
+import com.bupt.tarecruitment.recommendation.SkillGapAnalysisService;
 
 import java.nio.file.Path;
 
@@ -56,8 +58,10 @@ public final class UiServices {
     private final MessageService messageService;
     private final RecommendationService recommendationService;
     private final MissingSkillsFeedbackService missingSkillsFeedbackService;
+    private final SkillGapAnalysisService skillGapAnalysisService;
     private final ApplicantAvailabilityService applicantAvailabilityService;
     private final ApplicantAvatarStorageService applicantAvatarStorageService;
+    private final FakeAiAssistantService fakeAiAssistantService;
 
     private UiServices(
         UserRepository userRepository,
@@ -78,8 +82,10 @@ public final class UiServices {
         MessageService messageService,
         RecommendationService recommendationService,
         MissingSkillsFeedbackService missingSkillsFeedbackService,
+        SkillGapAnalysisService skillGapAnalysisService,
         ApplicantAvailabilityService applicantAvailabilityService,
-        ApplicantAvatarStorageService applicantAvatarStorageService
+        ApplicantAvatarStorageService applicantAvatarStorageService,
+        FakeAiAssistantService fakeAiAssistantService
     ) {
         this.userRepository = userRepository;
         this.profileRepository = profileRepository;
@@ -99,8 +105,10 @@ public final class UiServices {
         this.messageService = messageService;
         this.recommendationService = recommendationService;
         this.missingSkillsFeedbackService = missingSkillsFeedbackService;
+        this.skillGapAnalysisService = skillGapAnalysisService;
         this.applicantAvailabilityService = applicantAvailabilityService;
         this.applicantAvatarStorageService = applicantAvatarStorageService;
+        this.fakeAiAssistantService = fakeAiAssistantService;
     }
 
     public static UiServices create(Path dataDirectory) {
@@ -168,11 +176,22 @@ public final class UiServices {
             profileRepository,
             jobRepository
         );
+        SkillGapAnalysisService skillGapAnalysisService = new SkillGapAnalysisService(
+            profileRepository,
+            jobRepository
+        );
         ApplicantAvailabilityService applicantAvailabilityService = new ApplicantAvailabilityService(
             profileRepository,
             jobRepository
         );
         ApplicantAvatarStorageService applicantAvatarStorageService = new ApplicantAvatarStorageService(dataDirectory);
+        FakeAiAssistantService fakeAiAssistantService = new FakeAiAssistantService(
+            dataDirectory,
+            recommendationService,
+            skillGapAnalysisService,
+            applicantAvailabilityService,
+            jobRepository
+        );
 
         return new UiServices(
             userRepository,
@@ -193,8 +212,10 @@ public final class UiServices {
             messageService,
             recommendationService,
             missingSkillsFeedbackService,
+            skillGapAnalysisService,
             applicantAvailabilityService,
-            applicantAvatarStorageService
+            applicantAvatarStorageService,
+            fakeAiAssistantService
         );
     }
 
@@ -270,11 +291,19 @@ public final class UiServices {
         return missingSkillsFeedbackService;
     }
 
+    public SkillGapAnalysisService skillGapAnalysisService() {
+        return skillGapAnalysisService;
+    }
+
     public ApplicantAvailabilityService applicantAvailabilityService() {
         return applicantAvailabilityService;
     }
 
     public ApplicantAvatarStorageService applicantAvatarStorageService() {
         return applicantAvatarStorageService;
+    }
+
+    public FakeAiAssistantService fakeAiAssistantService() {
+        return fakeAiAssistantService;
     }
 }

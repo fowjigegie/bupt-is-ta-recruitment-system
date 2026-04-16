@@ -33,7 +33,7 @@ public final class ApplicantProfileConsoleWorkflow {
         output.println("This flow uses a mocked applicant context and text-file storage.");
         output.println("Use a new applicant userId such as ta002 if ta001 already has a profile.");
         output.println("Rules: studentId must be 8-12 digits, yearOfStudy must be 1-4, and educationLevel must be Graduated or Not Graduated.");
-        output.println("Availability must use DAY-HH:MM-HH:MM, for example MON-09:00-11:00.");
+        output.println("Availability must use DAY-HH:MM-HH:MM, for example MON-09:50-11:25.");
 
         boolean running = true;
         while (running) {
