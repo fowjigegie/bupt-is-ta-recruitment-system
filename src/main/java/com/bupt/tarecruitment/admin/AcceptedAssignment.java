@@ -10,7 +10,7 @@ public record AcceptedAssignment(
     String jobId,
     String title,
     String moduleOrActivity,
-    int weeklyHours,
+    double weeklyHours,
     List<String> scheduleSlots
 ) {
     public AcceptedAssignment {

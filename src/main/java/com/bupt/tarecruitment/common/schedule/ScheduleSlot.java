@@ -37,7 +37,7 @@ public record ScheduleSlot(
         Matcher matcher = SLOT_PATTERN.matcher(rawValue.trim());
         if (!matcher.matches()) {
             throw new IllegalArgumentException(
-                "scheduleSlot must use the format DAY-HH:MM-HH:MM, for example MON-09:00-11:00."
+                "scheduleSlot must use the format DAY-HH:MM-HH:MM, for example MON-09:50-11:25."
             );
         }
 

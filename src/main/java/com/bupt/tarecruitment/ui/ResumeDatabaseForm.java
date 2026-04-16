@@ -68,7 +68,7 @@ final class ResumeDatabaseForm {
         TextField studentIdField = createRoundedField("Student ID", 280);
         ScheduleSlotPicker availabilityPicker = ScheduleSlotPicker.create(
             "Availability",
-            "Weekdays only. Whole-hour slots only. You can add up to 5 slots."
+            "Weekdays only. Choose from the fixed teaching time bands used across the system."
         );
         TextField cvTitleField = createRoundedField("CV Title", 600);
         TextArea cvContentArea = createLargeTextArea("Paste CV text here or import a local .txt file");

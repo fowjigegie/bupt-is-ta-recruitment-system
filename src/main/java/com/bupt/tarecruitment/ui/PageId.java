@@ -7,6 +7,7 @@ public enum PageId {
     LOGIN,
     REGISTER,
     APPLICANT_DASHBOARD,
+    TA_WORKLOAD,
     MORE_JOBS,
     RESUME_DATABASE,
     SKILL_SELECTOR,

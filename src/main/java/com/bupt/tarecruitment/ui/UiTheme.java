@@ -348,6 +348,7 @@ final class UiTheme {
             selectedPage,
             List.of(
                 new NavEntry("Dashboard", PageId.APPLICANT_DASHBOARD),
+                new NavEntry("TA\nWorkload", PageId.TA_WORKLOAD),
                 new NavEntry("More Jobs", PageId.MORE_JOBS),
                 new NavEntry("Resume\nDatabase", PageId.RESUME_DATABASE),
                 new NavEntry("Application\nStatus", PageId.INTERVIEW_INVITATION)

@@ -2,6 +2,7 @@ package com.bupt.tarecruitment.ui;
 
 import com.bupt.tarecruitment.job.JobPosting;
 import com.bupt.tarecruitment.job.JobStatus;
+import com.bupt.tarecruitment.common.skill.SkillCatalog;
 import javafx.application.Application;
 import javafx.beans.binding.Bindings;
 import javafx.geometry.Insets;
@@ -23,6 +24,8 @@ import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -40,7 +43,10 @@ public class PostVacanciesPage extends Application {
 
         Optional<JobPosting> editJob = resolveEditJob(context);
         boolean isEditMode = editJob.isPresent();
-        PostVacancyForm form = PostVacancyForm.create(context.session().userId());
+        PostVacancyForm form = PostVacancyForm.create(
+            context.session().userId(),
+            resolveSkillSuggestions(context)
+        );
         editJob.ifPresent(form::load);
 
         Label statusLabel = new Label();
@@ -133,6 +139,13 @@ public class PostVacanciesPage extends Application {
             });
     }
 
+    private static Map<String, List<String>> resolveSkillSuggestions(UiAppContext context) {
+        List<String> jobSkills = context.services().jobRepository().findAll().stream()
+            .flatMap(job -> job.requiredSkills().stream())
+            .toList();
+        return SkillCatalog.mergeSuggestedSkillCategories(jobSkills);
+    }
+
     private static void publish(
         UiAppContext context,
         PostVacancyForm form,
@@ -141,11 +154,11 @@ public class PostVacanciesPage extends Application {
         statusLabel.setTextFill(Color.web("#b00020"));
         statusLabel.setText("");
 
-        final int weeklyHours;
+        final double weeklyHours;
         try {
             weeklyHours = form.parseWeeklyHours();
         } catch (NumberFormatException exception) {
-            statusLabel.setText("Weekly hours must be an integer.");
+            statusLabel.setText("Weekly hours must be a positive number.");
             return;
         }
 
@@ -176,11 +189,11 @@ public class PostVacanciesPage extends Application {
         statusLabel.setTextFill(Color.web("#b00020"));
         statusLabel.setText("");
 
-        final int weeklyHours;
+        final double weeklyHours;
         try {
             weeklyHours = form.parseWeeklyHours();
         } catch (NumberFormatException exception) {
-            statusLabel.setText("Weekly hours must be an integer.");
+            statusLabel.setText("Weekly hours must be a positive number.");
             return;
         }
 

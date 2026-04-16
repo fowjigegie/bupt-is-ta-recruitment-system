@@ -13,3 +13,11 @@ job011|mo005|TA for Information Security|COMP360|Support cryptography tutorials 
 job012|mo006|TA for Mobile App Development|COMP330|Mentor Android studio practices and demos|Java;Android;UI Design|2|FRI-14:00-16:00|OPEN
 job013|mo001|1|1|1|1|1|MON-09:00-11:00|OPEN
 job014|mo001|IOT|EBU6011|111|java|4|MON-11:00-12:00|OPEN
+job900|mo001|US10 Perfect Fit Demo|COMP900|Deliberately designed to show a full direct match for the detailed skill analysis dialog.|Java;Communication;Teamwork;JUnit|2|MON-09:00-11:00|OPEN
+job901|mo001|US10 Weak Match Demo|COMP901|Deliberately designed to highlight transferable skills and weak-match explanations.|Programming;Presentation;Testing|2|TUE-10:00-12:00|OPEN
+job902|mo002|US10 Mixed Gap Demo|COMP902|Deliberately designed to show direct match, weak match, and missing skills at the same time.|Java;Programming;SQL;Docker|3|WED-13:00-16:00|OPEN
+job903|mo005|US10 Full Gap Demo|COMP903|Deliberately designed to show a very low-fit case with strong next-step suggestions.|Big Data;Spark;Cloud Computing;AWS|3|THU-09:00-12:00|OPEN
+job904|mo006|US10 Cross Domain Demo|COMP904|Deliberately designed to show one direct match, one weak match, and several missing skills across categories.|Python;Big Data;Statistics;Communication|2|FRI-15:00-17:00|OPEN
+job905|mo001|RFID|1|You need to be careful||2||OPEN
+job906|mo001|Soft engineer|1|You need to be careful||1.5|WED-08:00-09:35|OPEN
+job907|mo001|Medium|CBU5566|You need to be careful|Linux;Software Engineering;Machine Learning;C|1.5|TUE-11:40-12:25|OPEN
