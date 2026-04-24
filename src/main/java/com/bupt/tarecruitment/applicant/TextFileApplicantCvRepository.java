@@ -88,6 +88,29 @@ public final class TextFileApplicantCvRepository implements ApplicantCvRepositor
     }
 
     // data/cvs.txt 每行 6 个字段，顺序必须和 formatLine 完全一致。
+    @Override
+    public boolean deleteByCvId(String cvId) {
+        if (cvId == null || cvId.isBlank()) {
+            throw new IllegalArgumentException("cvId must not be blank.");
+        }
+
+        List<ApplicantCv> remainingCvs = new ArrayList<>();
+        boolean deleted = false;
+
+        for (ApplicantCv applicantCv : findAll()) {
+            if (applicantCv.cvId().equals(cvId.trim())) {
+                deleted = true;
+                continue;
+            }
+            remainingCvs.add(applicantCv);
+        }
+
+        if (deleted) {
+            writeAll(remainingCvs);
+        }
+        return deleted;
+    }
+
     private ApplicantCv parseLine(String line) {
         String[] fields = line.split(FIELD_SEPARATOR, -1);
         if (fields.length != 6) {

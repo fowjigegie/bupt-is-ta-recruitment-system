@@ -134,6 +134,11 @@ final class ResumeDatabaseForm {
         }
     }
 
+    void clearCvFields() {
+        cvTitleField.clear();
+        cvContentArea.clear();
+    }
+
     ApplicantProfile toApplicantProfile(UiAppContext context, String avatarPath) {
         GradeMapping mapping = mapGrade(gradeBox.getValue());
         return new ApplicantProfile(

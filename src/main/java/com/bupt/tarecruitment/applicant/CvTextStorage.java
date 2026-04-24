@@ -9,4 +9,6 @@ public interface CvTextStorage {
 
     // 根据 metadata 里保存的相对路径，把完整 CV 正文重新读出来。
     String loadCv(String relativePath);
+
+    boolean deleteCv(String relativePath);
 }

@@ -217,10 +217,11 @@ public class ResumeDatabasePage extends Application {
         );
         HBox.setHgrow(leftScroll, Priority.ALWAYS);
 
-        VBox rightPanel = new VBox(18);
+        VBox rightPanel = new VBox(14);
         rightPanel.setAlignment(Pos.TOP_CENTER);
         rightPanel.setPrefWidth(300);
         rightPanel.setMinWidth(300);
+        rightPanel.setTranslateY(-46);
 
         StackPane avatarPane = new StackPane();
         Button uploadAvatarButton = UiTheme.createOutlineButton("Upload avatar", 180, 46);
@@ -318,18 +319,61 @@ public class ResumeDatabasePage extends Application {
             }
         });
 
+        var deleteCvButton = UiTheme.createOutlineButton("Delete selected CV", 180, 46);
+        deleteCvButton.setStyle(
+            "-fx-background-color: #fde2e2;" +
+                "-fx-background-radius: 23;" +
+                "-fx-border-color: #f3a6a6;" +
+                "-fx-border-width: 1.5;" +
+                "-fx-border-radius: 23;" +
+                "-fx-text-fill: #b00020;" +
+                "-fx-font-size: 14px;" +
+                "-fx-font-weight: bold;" +
+                "-fx-cursor: hand;"
+        );
+        deleteCvButton.setOnAction(event -> {
+            ApplicantCv selectedCv = selectedCvRef.get();
+            if (selectedCv == null) {
+                statusLabel.setTextFill(Color.web("#b00020"));
+                statusLabel.setText("Please select a CV before deleting.");
+                return;
+            }
+            if (!confirmDeleteCv(selectedCv)) {
+                return;
+            }
+
+            try {
+                context.services().cvLibraryService().deleteCv(context.session().userId(), selectedCv.cvId());
+                selectedCvRef.set(null);
+                keepDraftUnselectedRef.set(false);
+                form.clearCvFields();
+                context.clearResumeDraft();
+                statusLabel.setTextFill(Color.web("#2e7d32"));
+                statusLabel.setText("CV deleted successfully: " + selectedCv.title());
+                refreshCvTabs.run();
+            } catch (RuntimeException exception) {
+                statusLabel.setTextFill(Color.web("#b00020"));
+                statusLabel.setText(exception.getMessage());
+            }
+        });
+
         var importButton = UiTheme.createOutlineButton("Import .txt CV", 180, 46);
         importButton.setOnAction(event -> form.importTxtCv(statusLabel));
 
         var chatButton = UiTheme.createOutlineButton("Open messages", 180, 46);
         chatButton.setOnAction(event -> nav.goTo(PageId.MESSAGES));
 
+        var avatarHint = UiTheme.createMutedText("JPG/PNG avatar.");
+        avatarHint.setMaxWidth(260);
+        var cvHint = UiTheme.createMutedText("Save profile before CV edits.");
+        cvHint.setMaxWidth(260);
+
         rightPanel.getChildren().addAll(
             avatarPane,
-            UiTheme.createMutedText("Upload a JPG or PNG avatar to copy it into the profile avatar folder."),
+            avatarHint,
             uploadAvatarButton,
             removeAvatarButton,
-            UiTheme.createMutedText("Save your profile first, then import, create, or update CVs here."),
+            cvHint,
             progressBar,
             UiTheme.createTag("Profile + CV", 220),
             profileStateLabel,
@@ -337,11 +381,28 @@ public class ResumeDatabasePage extends Application {
             importButton,
             saveNewCvButton,
             updateCvButton,
+            deleteCvButton,
             chatButton
         );
 
         mainRow.getChildren().addAll(leftScroll, rightPanel);
         return mainRow;
+    }
+
+    private static boolean confirmDeleteCv(ApplicantCv selectedCv) {
+        javafx.scene.control.Alert alert = new javafx.scene.control.Alert(
+            javafx.scene.control.Alert.AlertType.CONFIRMATION
+        );
+        alert.setTitle("Delete CV");
+        alert.setHeaderText("Delete this CV?");
+        alert.setContentText(
+            "CV: " + selectedCv.title()
+                + System.lineSeparator()
+                + System.lineSeparator()
+                + "This will remove the CV from your library and delete its stored text file."
+        );
+        Optional<javafx.scene.control.ButtonType> choice = alert.showAndWait();
+        return choice.isPresent() && choice.get() == javafx.scene.control.ButtonType.OK;
     }
 
     private static ApplicantProfile saveProfile(UiAppContext context, ResumeDatabaseForm form) {
@@ -373,8 +434,8 @@ public class ResumeDatabasePage extends Application {
         saveProfileButton.setText(hasExistingProfile ? "Update profile" : "Create profile");
         profileStateLabel.setText(
             hasExistingProfile
-                ? "Editing existing applicant profile. Required fields are validated before saving."
-                : "No saved profile yet. Fill the required fields to create your applicant profile."
+                ? "Editing saved profile."
+                : "Create your profile first."
         );
     }
 

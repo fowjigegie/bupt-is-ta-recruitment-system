@@ -3,6 +3,8 @@ package com.bupt.tarecruitment.applicant;
 import com.bupt.tarecruitment.auth.UserAccessPolicy;
 import com.bupt.tarecruitment.auth.UserRepository;
 import com.bupt.tarecruitment.auth.UserRole;
+import com.bupt.tarecruitment.application.ApplicationRepository;
+import com.bupt.tarecruitment.application.ApplicationStatus;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -19,6 +21,7 @@ public final class ApplicantCvLibraryService {
     private final ApplicantCvIdGenerator cvIdGenerator;
     private final CvTextStorage cvStorage;
     private final UserAccessPolicy userAccessPolicy;
+    private final ApplicationRepository applicationRepository;
 
     public ApplicantCvLibraryService(
         ApplicantProfileRepository profileRepository,
@@ -26,7 +29,7 @@ public final class ApplicantCvLibraryService {
         ApplicantCvIdGenerator cvIdGenerator,
         CvTextStorage cvStorage
     ) {
-        this(profileRepository, cvRepository, cvIdGenerator, cvStorage, UserAccessPolicy.noOp());
+        this(profileRepository, cvRepository, cvIdGenerator, cvStorage, UserAccessPolicy.noOp(), null);
     }
 
     public ApplicantCvLibraryService(
@@ -36,7 +39,25 @@ public final class ApplicantCvLibraryService {
         CvTextStorage cvStorage,
         UserRepository userRepository
     ) {
-        this(profileRepository, cvRepository, cvIdGenerator, cvStorage, new UserAccessPolicy(userRepository));
+        this(profileRepository, cvRepository, cvIdGenerator, cvStorage, new UserAccessPolicy(userRepository), null);
+    }
+
+    public ApplicantCvLibraryService(
+        ApplicantProfileRepository profileRepository,
+        ApplicantCvRepository cvRepository,
+        ApplicantCvIdGenerator cvIdGenerator,
+        CvTextStorage cvStorage,
+        UserRepository userRepository,
+        ApplicationRepository applicationRepository
+    ) {
+        this(
+            profileRepository,
+            cvRepository,
+            cvIdGenerator,
+            cvStorage,
+            new UserAccessPolicy(userRepository),
+            applicationRepository
+        );
     }
 
     private ApplicantCvLibraryService(
@@ -44,13 +65,15 @@ public final class ApplicantCvLibraryService {
         ApplicantCvRepository cvRepository,
         ApplicantCvIdGenerator cvIdGenerator,
         CvTextStorage cvStorage,
-        UserAccessPolicy userAccessPolicy
+        UserAccessPolicy userAccessPolicy,
+        ApplicationRepository applicationRepository
     ) {
         this.profileRepository = Objects.requireNonNull(profileRepository);
         this.cvRepository = Objects.requireNonNull(cvRepository);
         this.cvIdGenerator = Objects.requireNonNull(cvIdGenerator);
         this.cvStorage = Objects.requireNonNull(cvStorage);
         this.userAccessPolicy = Objects.requireNonNull(userAccessPolicy);
+        this.applicationRepository = applicationRepository;
     }
 
     // US02 的核心服务：
@@ -114,6 +137,24 @@ public final class ApplicantCvLibraryService {
     }
 
     // 页面顶部的 CV 标签栏、申请岗位时的 CV 下拉框，都会走这里列出当前 applicant 的 CV。
+    public void deleteCv(String ownerUserId, String cvId) {
+        requireNonBlank(ownerUserId, "ownerUserId");
+        requireNonBlank(cvId, "cvId");
+        userAccessPolicy.requireActiveUserWithRole(ownerUserId, UserRole.APPLICANT);
+
+        ApplicantCv existingCv = getCvById(cvId);
+        if (!existingCv.ownerUserId().equals(ownerUserId.trim())) {
+            throw new IllegalArgumentException("The selected CV does not belong to ownerUserId: " + ownerUserId);
+        }
+        requireCvNotUsedByExistingApplication(existingCv.cvId());
+
+        boolean deletedMetadata = cvRepository.deleteByCvId(existingCv.cvId());
+        if (!deletedMetadata) {
+            throw new IllegalArgumentException("No CV exists for cvId: " + cvId);
+        }
+        cvStorage.deleteCv(existingCv.fileName());
+    }
+
     public List<ApplicantCv> listCvsByUserId(String ownerUserId) {
         requireNonBlank(ownerUserId, "ownerUserId");
         userAccessPolicy.requireActiveUserWithRole(ownerUserId, UserRole.APPLICANT);
@@ -133,6 +174,19 @@ public final class ApplicantCvLibraryService {
             throw new IllegalArgumentException(
                 "Each applicant can keep at most %d CVs.".formatted(MAX_CVS_PER_APPLICANT)
             );
+        }
+    }
+
+    private void requireCvNotUsedByExistingApplication(String cvId) {
+        if (applicationRepository == null) {
+            return;
+        }
+
+        boolean usedByExistingApplication = applicationRepository.findAll().stream()
+            .anyMatch(application -> application.cvId().equals(cvId)
+                && application.status() != ApplicationStatus.WITHDRAWN);
+        if (usedByExistingApplication) {
+            throw new IllegalArgumentException("This CV is linked to an existing application and cannot be deleted.");
         }
     }
 

@@ -134,7 +134,8 @@ public final class UiServices {
             cvRepository,
             new ApplicantCvIdGenerator(cvRepository),
             cvStorage,
-            userRepository
+            userRepository,
+            applicationRepository
         );
         ApplicantCvReviewService cvReviewService = new ApplicantCvReviewService(
             applicationRepository,
