@@ -39,6 +39,8 @@ final class JobManagementSection {
 
     static VBox create(NavigationManager nav, UiAppContext context, List<JobPosting> jobs) {
         VBox section = new VBox(16);
+        section.setFillWidth(true);
+        section.setMaxWidth(Double.MAX_VALUE);
         if (jobs.isEmpty()) {
             section.getChildren().add(UiTheme.createWhiteCard("No jobs yet", "Publish a vacancy first and it will appear here."));
             return section;
@@ -68,18 +70,31 @@ final class JobManagementSection {
         )));
 
         VBox textBox = new VBox(6);
+        textBox.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
+        textBox.setMinWidth(420);
+        textBox.setPrefWidth(560);
+        textBox.setMaxWidth(Double.MAX_VALUE);
+        HBox.setHgrow(textBox, Priority.ALWAYS);
+
         Label titleLabel = new Label(job.title());
         titleLabel.setFont(Font.font("Arial", FontWeight.BOLD, 20));
         titleLabel.setTextFill(Color.web("#4664a8"));
+        titleLabel.setStyle("-fx-text-fill: #4664a8;");
+        titleLabel.setWrapText(true);
 
         Label applicantLabel = UiTheme.createMutedText(
-            job.jobId() + " | " + job.moduleOrActivity() + " | applicants: " + applicants
+            job.jobId() + " | " + job.moduleOrActivity() + " | " + job.activityType() + " | applicants: " + applicants
         );
+        applicantLabel.setTextFill(Color.web("#4d588f"));
+        applicantLabel.setStyle("-fx-text-fill: #4d588f;");
         textBox.getChildren().addAll(titleLabel, applicantLabel);
 
         Label statusLabel = new Label(job.status().name());
         statusLabel.setFont(Font.font("Arial", FontWeight.BOLD, 16));
         statusLabel.setTextFill(Color.WHITE);
+        statusLabel.setMinWidth(88);
+        statusLabel.setPrefWidth(88);
+        statusLabel.setAlignment(javafx.geometry.Pos.CENTER);
         statusLabel.setStyle(
             "-fx-background-color: " + (isClosed ? "#e53935" : "#7bb661") + ";" +
                 "-fx-background-radius: 18;" +
@@ -198,6 +213,7 @@ final class JobManagementSection {
             job.organiserId(),
             job.title(),
             job.moduleOrActivity(),
+            job.activityType(),
             job.description(),
             job.requiredSkills(),
             job.weeklyHours(),

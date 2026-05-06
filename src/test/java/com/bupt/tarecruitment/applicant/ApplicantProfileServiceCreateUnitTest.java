@@ -58,6 +58,13 @@ class ApplicantProfileServiceCreateUnitTest {
 
         assertSame(profile, created);
         verify(profileRepository).save(profile);
+        verify(userRepository).save(new UserAccount(
+            "ta901",
+            "hash",
+            UserRole.APPLICANT,
+            "Unit Test Applicant",
+            AccountStatus.ACTIVE
+        ));
     }
 
     // 同一个 userId 已经有 profile 时，create 应立即失败，

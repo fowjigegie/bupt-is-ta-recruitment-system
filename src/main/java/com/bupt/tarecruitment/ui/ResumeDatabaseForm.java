@@ -9,6 +9,7 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
+import javafx.scene.Node;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
@@ -62,19 +63,19 @@ final class ResumeDatabaseForm {
     }
 
     static ResumeDatabaseForm create() {
-        TextField nameField = createRoundedField("Full Name", 280);
+        TextField nameField = createRoundedField("Full Name", 360);
         ComboBox<String> gradeBox = createGradeBox();
-        TextField programmeField = createRoundedField("Programme", 280);
-        TextField studentIdField = createRoundedField("Student ID", 280);
+        TextField programmeField = createRoundedField("Programme", 360);
+        TextField studentIdField = createRoundedField("Student ID", 360);
         ScheduleSlotPicker availabilityPicker = ScheduleSlotPicker.create(
             "Availability",
             "Weekdays only. Choose from the fixed teaching time bands used across the system."
         );
-        TextField cvTitleField = createRoundedField("CV Title", 600);
+        TextField cvTitleField = createRoundedField("CV Title", 720);
         TextArea cvContentArea = createLargeTextArea("Paste CV text here or import a local .txt file");
         cvContentArea.setPrefHeight(190);
         TextArea positionsArea = createLargeTextArea("Desired positions (letters only, separated by commas or new lines)");
-        positionsArea.setPrefHeight(145);
+        positionsArea.setPrefHeight(86);
 
         return new ResumeDatabaseForm(
             nameField,
@@ -102,6 +103,32 @@ final class ResumeDatabaseForm {
             createLabeledTextArea("Desired Positions", positionsArea)
         );
         return leftForm;
+    }
+
+    VBox createProfileSection(Runnable openSkillSelectionAction) {
+        HBox firstRow = new HBox(20, nameField, gradeBox);
+        HBox secondRow = new HBox(20, programmeField, studentIdField);
+        firstRow.setAlignment(Pos.CENTER_LEFT);
+        secondRow.setAlignment(Pos.CENTER_LEFT);
+
+        return createSectionCard(
+            "Profile",
+            firstRow,
+            secondRow,
+            availabilityPicker.compactContainer(),
+            createSkillsSummarySection(openSkillSelectionAction),
+            createLabeledTextArea("Desired Positions", positionsArea)
+        );
+    }
+
+    VBox createCvSection(VBox tabsRow, Label selectedCvLabel) {
+        return createSectionCard(
+            "CV",
+            tabsRow,
+            selectedCvLabel,
+            cvTitleField,
+            createLabeledTextArea("CV Text", cvContentArea)
+        );
     }
 
     String cvTitle() {
@@ -132,6 +159,11 @@ final class ResumeDatabaseForm {
         } catch (IllegalArgumentException ignored) {
             cvContentArea.clear();
         }
+    }
+
+    void clearCvFields() {
+        cvTitleField.clear();
+        cvContentArea.clear();
     }
 
     ApplicantProfile toApplicantProfile(UiAppContext context, String avatarPath) {
@@ -248,6 +280,30 @@ final class ResumeDatabaseForm {
         }
     }
 
+    private VBox createSectionCard(String title, Node... children) {
+        Label titleLabel = new Label(title);
+        titleLabel.setStyle(
+            "-fx-font-family: Arial;" +
+                "-fx-font-size: 22px;" +
+                "-fx-font-weight: bold;" +
+                "-fx-text-fill: #4664a8;"
+        );
+
+        VBox section = new VBox(12);
+        section.setFillWidth(true);
+        section.setPadding(new Insets(14, 18, 18, 18));
+        section.setStyle(
+            "-fx-background-color: white;" +
+                "-fx-background-radius: 20;" +
+                "-fx-border-color: #f3b2df;" +
+                "-fx-border-width: 2;" +
+                "-fx-border-radius: 20;"
+        );
+        section.getChildren().add(titleLabel);
+        section.getChildren().addAll(children);
+        return section;
+    }
+
     private VBox createSkillsSummarySection(Runnable openSkillSelectionAction) {
         Label label = new Label("Skills");
         label.setStyle(
@@ -294,12 +350,12 @@ final class ResumeDatabaseForm {
             }
         }
 
-        Button openButton = UiTheme.createOutlineButton("Choose skills", 180, 46);
+        Button openButton = UiTheme.createOutlineButton("Choose skills", 170, 42);
         openButton.setOnAction(event -> openSkillSelectionAction.run());
 
         VBox box = new VBox(5, label, helper, skillsPane, openButton);
         box.setAlignment(Pos.CENTER_LEFT);
-        box.setPadding(new Insets(12));
+        box.setPadding(new Insets(10));
         box.setStyle(
             "-fx-background-color: white;" +
                 "-fx-background-radius: 20;" +
@@ -377,12 +433,12 @@ final class ResumeDatabaseForm {
         TextField field = new TextField();
         field.setPromptText(prompt);
         field.setPrefWidth(width);
-        field.setPrefHeight(54);
-        field.setFont(Font.font("Arial", 16));
+        field.setPrefHeight(44);
+        field.setFont(Font.font("Arial", 15));
         field.setStyle(
             "-fx-background-color: #eba8df;" +
-                "-fx-background-radius: 25;" +
-                "-fx-border-radius: 25;" +
+                "-fx-background-radius: 22;" +
+                "-fx-border-radius: 22;" +
                 "-fx-border-color: transparent;" +
                 "-fx-prompt-text-fill: white;" +
                 "-fx-text-fill: white;" +
@@ -400,13 +456,13 @@ final class ResumeDatabaseForm {
             "Third-year graduate"
         );
         gradeBox.setValue("Senior undergraduate");
-        gradeBox.setPrefWidth(280);
-        gradeBox.setPrefHeight(54);
+        gradeBox.setPrefWidth(360);
+        gradeBox.setPrefHeight(44);
         gradeBox.setStyle(
             "-fx-background-color: #eba8df;" +
-                "-fx-background-radius: 25;" +
-                "-fx-border-radius: 25;" +
-                "-fx-font-size: 16px;" +
+                "-fx-background-radius: 22;" +
+                "-fx-border-radius: 22;" +
+                "-fx-font-size: 15px;" +
                 "-fx-padding: 0 12 0 12;"
         );
         return gradeBox;
@@ -418,7 +474,7 @@ final class ResumeDatabaseForm {
         area.setPrefWidth(620);
         area.setPrefHeight(145);
         area.setWrapText(true);
-        area.setFont(Font.font("Arial", 16));
+        area.setFont(Font.font("Arial", 15));
         area.setStyle(
             "-fx-control-inner-background: white;" +
                 "-fx-background-color: white;" +

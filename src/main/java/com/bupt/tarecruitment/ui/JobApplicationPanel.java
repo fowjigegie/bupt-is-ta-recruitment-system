@@ -70,13 +70,8 @@ final class JobApplicationPanel {
         var chatButton = UiTheme.createSoftButton("Chat with MO", 170, 56);
         chatButton.setOnAction(event -> chatAction.run());
 
-        var backButton = UiTheme.createBackButton(nav);
-
         HBox actions = new HBox(16, cvBox, applyButton, withdrawButton, chatButton);
         actions.setAlignment(Pos.CENTER_LEFT);
-
-        HBox footer = new HBox(16, backButton);
-        footer.setAlignment(Pos.CENTER_LEFT);
 
         if (currentApplication != null) {
             statusLabel.setTextFill(Color.web("#4664a8"));
@@ -90,7 +85,7 @@ final class JobApplicationPanel {
         return new JobApplicationPanel(
             cvBox,
             statusLabel,
-            new VBox(14, applyTitle, actions, statusLabel, footer)
+            new VBox(14, applyTitle, actions, statusLabel)
         );
     }
 

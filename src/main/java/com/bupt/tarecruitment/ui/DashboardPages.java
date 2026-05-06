@@ -33,8 +33,12 @@ public class DashboardPages extends Application {
 
         VBox center = new VBox(26);
         center.setPadding(new Insets(30, 40, 30, 40));
+        center.setFillWidth(true);
+        center.setMaxWidth(Double.MAX_VALUE);
 
-        HBox welcomeRow = ApplicantDashboardSections.createWelcomeRow(context.session().displayName());
+        HBox welcomeRow = ApplicantDashboardSections.createWelcomeRow(
+            context.displayNameForUser(context.session().userId())
+        );
         HBox featureButtons = ApplicantDashboardSections.createFeatureButtons(nav, context, unreadMessages);
         HBox statRow = ApplicantDashboardSections.createStatRow(openJobs, unreadMessages, myApplications);
         VBox jobsArea = ApplicantDashboardSections.createRecommendedJobsArea(nav, context);

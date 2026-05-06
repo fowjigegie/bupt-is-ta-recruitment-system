@@ -57,6 +57,14 @@ public final class UiAppContext {
     }
 
     public String displayNameForUser(String userId) {
+        String profileName = services.profileRepository().findByUserId(userId)
+            .map(profile -> profile.fullName())
+            .filter(displayName -> !displayName.isBlank())
+            .orElse(null);
+        if (profileName != null) {
+            return profileName;
+        }
+
         return services.userRepository().findByUserId(userId)
             .map(UserAccount::displayName)
             .orElse(userId);

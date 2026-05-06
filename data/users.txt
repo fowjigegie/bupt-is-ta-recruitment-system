@@ -1,12 +1,12 @@
 # Format: userId|passwordHash|role|displayName|status
 admin001|demo-admin-password|ADMIN|System Admin|ACTIVE
-mo001|demo-mo-password|MO|Demo Module Organiser|ACTIVE
-mo002|demo-mo2-password|MO|Database Module Organiser|ACTIVE
-mo003|demo-mo3-password|MO|Math Module Organiser|ACTIVE
-mo004|demo-mo4-password|MO|Web Module Organiser|ACTIVE
-mo005|demo-mo5-password|MO|Network Module Organiser|ACTIVE
-mo006|demo-mo6-password|MO|Mobile Module Organiser|ACTIVE
-ta001|demo-ta-password|APPLICANT|Demo Applicant|ACTIVE
-ta002|demo-ta2-password|APPLICANT|Apply Demo Applicant|ACTIVE
-ta010|1|APPLICANT|ta010|ACTIVE
-ta900|demo-us10-password|APPLICANT|US10 Insight Tester|ACTIVE
+mo001|demo-mo-password|MO|Dr Alice Chen|ACTIVE
+mo002|demo-mo2-password|MO|Dr Brian Zhao|ACTIVE
+mo003|demo-mo3-password|MO|Dr Naomi Wang|ACTIVE
+mo004|demo-mo4-password|MO|Dr Victor Liu|ACTIVE
+mo005|demo-mo5-password|MO|Dr Helen Xu|ACTIVE
+mo006|demo-mo6-password|MO|Dr Rachel Sun|ACTIVE
+ta001|demo-ta-password|APPLICANT|Zhang Yilin|ACTIVE
+ta002|demo-ta2-password|APPLICANT|Chen Yuhan|ACTIVE
+ta010|ta010-password|APPLICANT|Jiang Yuan|ACTIVE
+ta900|demo-us10-password|APPLICANT|Li Minghao|ACTIVE

@@ -3,6 +3,7 @@ package com.bupt.tarecruitment.ui;
 import com.bupt.tarecruitment.common.skill.SkillCatalog;
 import com.bupt.tarecruitment.common.schedule.ScheduleSlot;
 import com.bupt.tarecruitment.common.text.DisplayFormats;
+import com.bupt.tarecruitment.job.JobActivityType;
 import com.bupt.tarecruitment.job.JobPosting;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -30,6 +31,7 @@ final class PostVacancyForm {
     private final TextField titleField;
     private final TextField organiserField;
     private final TextField moduleField;
+    private final ComboBox<String> activityTypeBox;
     private final TextField weeklyHoursField;
     private final TextArea descriptionArea;
     private final ObservableList<String> selectedScheduleSlots;
@@ -44,6 +46,7 @@ final class PostVacancyForm {
         TextField titleField,
         TextField organiserField,
         TextField moduleField,
+        ComboBox<String> activityTypeBox,
         TextField weeklyHoursField,
         TextArea descriptionArea,
         ObservableList<String> selectedScheduleSlots,
@@ -53,6 +56,7 @@ final class PostVacancyForm {
         this.titleField = titleField;
         this.organiserField = organiserField;
         this.moduleField = moduleField;
+        this.activityTypeBox = activityTypeBox;
         this.weeklyHoursField = weeklyHoursField;
         this.descriptionArea = descriptionArea;
         this.selectedScheduleSlots = selectedScheduleSlots;
@@ -65,11 +69,15 @@ final class PostVacancyForm {
         TextField organiserField = createField();
         organiserField.setText(organiserUserId);
         organiserField.setEditable(false);
+        ComboBox<String> activityTypeBox = createComboBox(250);
+        activityTypeBox.getItems().addAll(JobActivityType.values());
+        activityTypeBox.getSelectionModel().select(JobActivityType.OTHER);
 
         return new PostVacancyForm(
             titleField,
             organiserField,
             createField(),
+            activityTypeBox,
             createField(),
             createArea(),
             FXCollections.observableArrayList(),
@@ -81,6 +89,7 @@ final class PostVacancyForm {
     void load(JobPosting job) {
         titleField.setText(job.title());
         moduleField.setText(job.moduleOrActivity());
+        activityTypeBox.getSelectionModel().select(JobActivityType.normalize(job.activityType()));
         weeklyHoursField.setText(DisplayFormats.formatDecimal(job.weeklyHours()));
         descriptionArea.setText(job.description());
         selectedScheduleSlots.setAll(job.scheduleSlots());
@@ -91,6 +100,7 @@ final class PostVacancyForm {
     void clearForCreate() {
         titleField.clear();
         moduleField.clear();
+        activityTypeBox.getSelectionModel().select(JobActivityType.OTHER);
         weeklyHoursField.clear();
         descriptionArea.clear();
         selectedScheduleSlots.clear();
@@ -109,6 +119,10 @@ final class PostVacancyForm {
 
     String moduleOrActivity() {
         return moduleField.getText().trim();
+    }
+
+    String activityType() {
+        return JobActivityType.normalize(activityTypeBox.getValue());
     }
 
     String description() {
@@ -142,8 +156,9 @@ final class PostVacancyForm {
 
     HBox createMetaRow() {
         return new HBox(18,
-            createLabeledFieldBox("Classes in Need of Assistance", moduleField, 390),
-            createLabeledFieldBox("Weekly Hours", weeklyHoursField, 390)
+            createLabeledFieldBox("Classes in Need of Assistance", moduleField, 300),
+            createLabeledComboBox("Activity Type", activityTypeBox, 250),
+            createLabeledFieldBox("Weekly Hours", weeklyHoursField, 210)
         );
     }
 
@@ -419,6 +434,21 @@ final class PostVacancyForm {
         return box;
     }
 
+    private static VBox createLabeledComboBox(String labelText, ComboBox<String> comboBox, double width) {
+        VBox box = new VBox(8);
+
+        Label label = new Label(labelText + " :");
+        label.setStyle(
+            "-fx-font-size: 18px;" +
+                "-fx-font-weight: bold;" +
+                "-fx-text-fill: #4664a8;"
+        );
+
+        comboBox.setPrefWidth(width);
+        box.getChildren().addAll(label, comboBox);
+        return box;
+    }
+
     private static boolean hasScheduleOverlap(List<String> existingSlots, String candidateSlot) {
         try {
             ScheduleSlot candidate = ScheduleSlot.parse(candidateSlot);
@@ -471,6 +501,21 @@ final class PostVacancyForm {
                 "-fx-font-size: 16px;"
         );
         return field;
+    }
+
+    private static ComboBox<String> createComboBox(double width) {
+        ComboBox<String> comboBox = new ComboBox<>();
+        comboBox.setPrefWidth(width);
+        comboBox.setPrefHeight(52);
+        comboBox.setStyle(
+            "-fx-background-color: #fff3f7;" +
+                "-fx-background-radius: 20;" +
+                "-fx-border-color: #f4d9e6;" +
+                "-fx-border-radius: 20;" +
+                "-fx-border-width: 2;" +
+                "-fx-font-size: 15px;"
+        );
+        return comboBox;
     }
 
     private static TextArea createArea() {

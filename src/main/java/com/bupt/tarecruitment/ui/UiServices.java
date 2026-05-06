@@ -13,7 +13,10 @@ import com.bupt.tarecruitment.applicant.CvTextStorage;
 import com.bupt.tarecruitment.applicant.TextFileApplicantCvRepository;
 import com.bupt.tarecruitment.applicant.TextFileApplicantProfileRepository;
 import com.bupt.tarecruitment.applicant.TextFileCvStorage;
+import com.bupt.tarecruitment.assistant.AiAssistantService;
 import com.bupt.tarecruitment.assistant.FakeAiAssistantService;
+import com.bupt.tarecruitment.assistant.HybridAiAssistantService;
+import com.bupt.tarecruitment.assistant.NvidiaAiAssistantClient;
 import com.bupt.tarecruitment.admin.AdminWorkloadService;
 import com.bupt.tarecruitment.application.ApplicationIdGenerator;
 import com.bupt.tarecruitment.application.ApplicantAvailabilityService;
@@ -62,6 +65,7 @@ public final class UiServices {
     private final ApplicantAvailabilityService applicantAvailabilityService;
     private final ApplicantAvatarStorageService applicantAvatarStorageService;
     private final FakeAiAssistantService fakeAiAssistantService;
+    private final AiAssistantService aiAssistantService;
 
     private UiServices(
         UserRepository userRepository,
@@ -85,7 +89,8 @@ public final class UiServices {
         SkillGapAnalysisService skillGapAnalysisService,
         ApplicantAvailabilityService applicantAvailabilityService,
         ApplicantAvatarStorageService applicantAvatarStorageService,
-        FakeAiAssistantService fakeAiAssistantService
+        FakeAiAssistantService fakeAiAssistantService,
+        AiAssistantService aiAssistantService
     ) {
         this.userRepository = userRepository;
         this.profileRepository = profileRepository;
@@ -109,6 +114,7 @@ public final class UiServices {
         this.applicantAvailabilityService = applicantAvailabilityService;
         this.applicantAvatarStorageService = applicantAvatarStorageService;
         this.fakeAiAssistantService = fakeAiAssistantService;
+        this.aiAssistantService = aiAssistantService;
     }
 
     public static UiServices create(Path dataDirectory) {
@@ -134,7 +140,8 @@ public final class UiServices {
             cvRepository,
             new ApplicantCvIdGenerator(cvRepository),
             cvStorage,
-            userRepository
+            userRepository,
+            applicationRepository
         );
         ApplicantCvReviewService cvReviewService = new ApplicantCvReviewService(
             applicationRepository,
@@ -163,7 +170,8 @@ public final class UiServices {
         AdminWorkloadService adminWorkloadService = new AdminWorkloadService(
             applicationRepository,
             jobRepository,
-            userRepository
+            userRepository,
+            profileRepository
         );
         // US08: applicant 与 MO 的聊天服务。
         MessageService messageService = new MessageService(messageRepository);
@@ -192,6 +200,10 @@ public final class UiServices {
             applicantAvailabilityService,
             jobRepository
         );
+        AiAssistantService aiAssistantService = new HybridAiAssistantService(
+            fakeAiAssistantService,
+            NvidiaAiAssistantClient.fromEnvironment()
+        );
 
         return new UiServices(
             userRepository,
@@ -215,7 +227,8 @@ public final class UiServices {
             skillGapAnalysisService,
             applicantAvailabilityService,
             applicantAvatarStorageService,
-            fakeAiAssistantService
+            fakeAiAssistantService,
+            aiAssistantService
         );
     }
 
@@ -305,5 +318,9 @@ public final class UiServices {
 
     public FakeAiAssistantService fakeAiAssistantService() {
         return fakeAiAssistantService;
+    }
+
+    public AiAssistantService aiAssistantService() {
+        return aiAssistantService;
     }
 }

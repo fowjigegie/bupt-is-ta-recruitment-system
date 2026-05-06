@@ -3,6 +3,8 @@ package com.bupt.tarecruitment.admin;
 import com.bupt.tarecruitment.application.ApplicationRepository;
 import com.bupt.tarecruitment.application.ApplicationStatus;
 import com.bupt.tarecruitment.application.JobApplication;
+import com.bupt.tarecruitment.applicant.ApplicantProfile;
+import com.bupt.tarecruitment.applicant.ApplicantProfileRepository;
 import com.bupt.tarecruitment.auth.UserAccount;
 import com.bupt.tarecruitment.auth.UserRepository;
 import com.bupt.tarecruitment.common.schedule.ScheduleSlot;
@@ -27,15 +29,26 @@ public final class AdminWorkloadService {
     private final ApplicationRepository applicationRepository;
     private final JobRepository jobRepository;
     private final UserRepository userRepository;
+    private final ApplicantProfileRepository profileRepository;
 
     public AdminWorkloadService(
         ApplicationRepository applicationRepository,
         JobRepository jobRepository,
         UserRepository userRepository
     ) {
+        this(applicationRepository, jobRepository, userRepository, null);
+    }
+
+    public AdminWorkloadService(
+        ApplicationRepository applicationRepository,
+        JobRepository jobRepository,
+        UserRepository userRepository,
+        ApplicantProfileRepository profileRepository
+    ) {
         this.applicationRepository = Objects.requireNonNull(applicationRepository);
         this.jobRepository = Objects.requireNonNull(jobRepository);
         this.userRepository = Objects.requireNonNull(userRepository);
+        this.profileRepository = profileRepository;
     }
 
     public List<WorkloadSummary> listAcceptedTaWorkloads(int weeklyHourLimit) {
@@ -85,10 +98,7 @@ public final class AdminWorkloadService {
 
         // 解析排期，找出冲突或格式非法的数据
         ScheduleAnalysis scheduleAnalysis = analyzeSchedules(acceptedAssignments);
-        String applicantDisplayName = userRepository.findByUserId(applicantUserId)
-            .map(UserAccount::displayName)
-            .filter(displayName -> !displayName.isBlank())
-            .orElse(applicantUserId);
+        String applicantDisplayName = resolveApplicantDisplayName(applicantUserId);
 
         return new WorkloadSummary(
             applicantUserId,
@@ -101,6 +111,22 @@ public final class AdminWorkloadService {
             !scheduleAnalysis.conflicts().isEmpty(),
             !scheduleAnalysis.invalidScheduleEntries().isEmpty()
         );
+    }
+
+    private String resolveApplicantDisplayName(String applicantUserId) {
+        if (profileRepository != null) {
+            Optional<String> profileName = profileRepository.findByUserId(applicantUserId)
+                .map(ApplicantProfile::fullName)
+                .filter(displayName -> !displayName.isBlank());
+            if (profileName.isPresent()) {
+                return profileName.get();
+            }
+        }
+
+        return userRepository.findByUserId(applicantUserId)
+            .map(UserAccount::displayName)
+            .filter(displayName -> !displayName.isBlank())
+            .orElse(applicantUserId);
     }
 
     private AcceptedAssignment toAcceptedAssignment(JobApplication application) {

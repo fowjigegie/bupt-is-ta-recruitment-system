@@ -261,6 +261,70 @@ class JobApplicationServiceTest {
     }
 
     @Test
+    void shouldThrowWhenAcceptedWorkloadLimitWouldBeExceeded() {
+        String acceptedJobId = "job900";
+        JobPosting targetJob = jobPosting(jobId, 3.0, List.of());
+        JobPosting acceptedJob = jobPosting(acceptedJobId, 8.0, List.of());
+        ApplicantCv cv = mock(ApplicantCv.class);
+        JobApplication acceptedApplication = new JobApplication(
+            "application900",
+            acceptedJobId,
+            applicantUserId,
+            "cv900",
+            ApplicationStatus.ACCEPTED,
+            LocalDateTime.now().minusDays(3),
+            ""
+        );
+
+        when(profileRepository.findByUserId(applicantUserId)).thenReturn(existingProfile());
+        when(jobRepository.findByJobId(jobId)).thenReturn(Optional.of(targetJob));
+        when(applicationRepository.findByApplicantUserId(applicantUserId)).thenReturn(List.of(acceptedApplication));
+        when(cvRepository.findByCvId(cvId)).thenReturn(Optional.of(cv));
+        when(cv.ownerUserId()).thenReturn(applicantUserId);
+        when(jobRepository.findByJobId(acceptedJobId)).thenReturn(Optional.of(acceptedJob));
+
+        IllegalArgumentException ex = assertThrows(
+            IllegalArgumentException.class,
+            () -> service.applyToJobWithCv(applicantUserId, jobId, cvId)
+        );
+
+        assertEquals(
+            "Weekly workload limit exceeded. Current accepted workload is 8h/week; this job adds 3h/week; limit is 10h/week.",
+            ex.getMessage()
+        );
+    }
+
+    @Test
+    void shouldAllowApplicationWhenProjectedWorkloadEqualsLimit() {
+        String acceptedJobId = "job901";
+        JobPosting targetJob = jobPosting(jobId, 3.0, List.of());
+        JobPosting acceptedJob = jobPosting(acceptedJobId, 7.0, List.of());
+        ApplicantCv cv = mock(ApplicantCv.class);
+        JobApplication acceptedApplication = new JobApplication(
+            "application901",
+            acceptedJobId,
+            applicantUserId,
+            "cv901",
+            ApplicationStatus.ACCEPTED,
+            LocalDateTime.now().minusDays(3),
+            ""
+        );
+
+        when(profileRepository.findByUserId(applicantUserId)).thenReturn(existingProfile());
+        when(jobRepository.findByJobId(jobId)).thenReturn(Optional.of(targetJob));
+        when(applicationRepository.findByApplicantUserId(applicantUserId)).thenReturn(List.of(acceptedApplication));
+        when(cvRepository.findByCvId(cvId)).thenReturn(Optional.of(cv));
+        when(cv.ownerUserId()).thenReturn(applicantUserId);
+        when(jobRepository.findByJobId(acceptedJobId)).thenReturn(Optional.of(acceptedJob));
+        when(applicationIdGenerator.nextApplicationId()).thenReturn("application902");
+
+        JobApplication result = service.applyToJobWithCv(applicantUserId, jobId, cvId);
+
+        assertEquals("application902", result.applicationId());
+        verify(applicationRepository).save(any(JobApplication.class));
+    }
+
+    @Test
     void shouldThrowWhenCvDoesNotExist() {
         JobPosting job = mock(JobPosting.class);
 
@@ -403,5 +467,19 @@ class JobApplicationServiceTest {
             List.of("MON-09:00-11:00"),
             List.of("Teaching Assistant")
         ));
+    }
+
+    private JobPosting jobPosting(String jobId, double weeklyHours, List<String> scheduleSlots) {
+        return new JobPosting(
+            jobId,
+            "mo001",
+            "Test job " + jobId,
+            "Software Engineering",
+            "Test description",
+            List.of("Java"),
+            weeklyHours,
+            scheduleSlots,
+            JobStatus.OPEN
+        );
     }
 }

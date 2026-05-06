@@ -75,8 +75,22 @@ public final class TextFileJobRepository implements JobRepository {
 
     private JobPosting parseLine(String line) {
         String[] fields = line.split(FIELD_SEPARATOR, -1);
-        if (fields.length != 9) {
+        if (fields.length != 9 && fields.length != 10) {
             throw new IllegalStateException("Invalid job record: " + line);
+        }
+
+        if (fields.length == 9) {
+            return new JobPosting(
+                fields[0],
+                fields[1],
+                fields[2],
+                fields[3],
+                fields[4],
+                parseList(fields[5]),
+                Double.parseDouble(fields[6]),
+                parseList(fields[7]),
+                JobStatus.valueOf(fields[8])
+            );
         }
 
         return new JobPosting(
@@ -85,10 +99,11 @@ public final class TextFileJobRepository implements JobRepository {
             fields[2],
             fields[3],
             fields[4],
-            parseList(fields[5]),
-            Double.parseDouble(fields[6]),
-            parseList(fields[7]),
-            JobStatus.valueOf(fields[8])
+            fields[5],
+            parseList(fields[6]),
+            Double.parseDouble(fields[7]),
+            parseList(fields[8]),
+            JobStatus.valueOf(fields[9])
         );
     }
 
@@ -129,6 +144,7 @@ public final class TextFileJobRepository implements JobRepository {
             job.organiserId(),
             job.title(),
             job.moduleOrActivity(),
+            job.activityType(),
             job.description(),
             String.join(LIST_SEPARATOR, job.requiredSkills()),
             DisplayFormats.formatDecimal(job.weeklyHours()),

@@ -59,6 +59,13 @@ class ApplicantProfileServiceUpdateUnitTest {
 
         assertSame(updated, saved);
         verify(profileRepository).save(updated);
+        verify(userRepository).save(new UserAccount(
+            "ta951",
+            "hash",
+            UserRole.APPLICANT,
+            "Updated Name",
+            AccountStatus.ACTIVE
+        ));
     }
 
     // update 不是 create，如果旧记录都不存在，就不能更新。

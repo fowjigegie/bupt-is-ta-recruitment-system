@@ -74,8 +74,6 @@ public class InterviewInvitationPage extends Application {
             );
         }
 
-        center.getChildren().add(new HBox(UiTheme.createBackButton(nav)));
-
         ScrollPane scrollPane = new ScrollPane(center);
         scrollPane.setFitToWidth(true);
         scrollPane.setStyle(

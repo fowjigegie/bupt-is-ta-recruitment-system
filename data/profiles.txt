@@ -1,5 +1,5 @@
 # Format: profileId|userId|studentId|fullName|programme|yearOfStudy|educationLevel|skills(;)|availabilitySlots(;)|desiredPositions(;)|avatarPath
-profile001|ta001|231225700|Demo Applicant|Software Engineering|3|Graduated|Java;Communication|MON-08:00-18:00;WED-08:00-18:00;TUE-08:00-18:00;THU-08:00-18:00;FRI-08:00-18:00|Teaching Assistant;Invigilation|
-profile002|ta002|231225701|wozaigansha|Computer Science|1|Graduated|Python;Communication|TUE-14:00-16:00;FRI-10:00-12:00|Teaching Assistant;Lab Support|
-profile003|ta010|2023213389|Jiang Yuan|python|4|Not Graduated|python;java|MON-09:00-11:00;WED-14:00-16:00|python|
-profile900|ta900|231229900|US10 Insight Tester|Software Engineering|3|Not Graduated|Java;Teamwork;Communication;JUnit|MON-08:00-18:00;TUE-08:00-18:00;WED-08:00-18:00;THU-08:00-18:00;FRI-08:00-18:00|Teaching Assistant;Lab Support|
+profile001|ta001|231225700|Zhang Yilin|Software Engineering|3|Graduated|Java;Communication|FRI-08:00-09:35;MON-08:00-09:35;THU-08:00-09:35;TUE-08:00-09:35;WED-08:00-09:35;FRI-09:50-11:25;MON-09:50-11:25;THU-09:50-11:25;TUE-09:50-11:25;WED-09:50-11:25;FRI-11:40-12:25;MON-11:40-12:25;THU-11:40-12:25;TUE-11:40-12:25;WED-11:40-12:25;FRI-13:00-14:35;MON-13:00-14:35;THU-13:00-14:35;TUE-13:00-14:35;WED-13:00-14:35;FRI-14:45-16:25;MON-14:45-16:25;THU-14:45-16:25;TUE-14:45-16:25;WED-14:45-16:25|Teaching Assistant;Invigilation|
+profile002|ta002|231225701|Chen Yuhan|Computer Science|1|Graduated|Python;Communication|TUE-14:45-16:25;FRI-09:50-11:25|Teaching Assistant;Lab Support|
+profile003|ta010|2023213389|Jiang Yuan|Computer Science|4|Not Graduated|Python;Java|MON-09:50-11:25;WED-14:45-16:25|Python Tutor;Teaching Assistant|
+profile900|ta900|231229900|Li Minghao|Software Engineering|3|Not Graduated|Java;Teamwork;Communication;JUnit|MON-08:00-18:00;TUE-08:00-18:00;WED-08:00-18:00;THU-08:00-18:00;FRI-08:00-18:00|Teaching Assistant;Lab Support|

@@ -19,4 +19,6 @@ public interface ApplicantCvRepository {
     // 统一的新增/覆盖保存入口。
     // 如果同一个 cvId 已存在，具体实现会把旧记录替换掉。
     void save(ApplicantCv applicantCv);
+
+    boolean deleteByCvId(String cvId);
 }

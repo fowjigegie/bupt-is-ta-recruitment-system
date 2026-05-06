@@ -6,7 +6,6 @@ import com.bupt.tarecruitment.application.JobApplication;
 import com.bupt.tarecruitment.job.JobPosting;
 import javafx.application.Application;
 import javafx.geometry.Insets;
-import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -49,7 +48,6 @@ public class ApplicationReviewPage extends Application {
                 "No jobs",
                 "You don't have any jobs yet. Go to Post Vacancies to create one."
             ));
-            content.getChildren().add(new HBox(UiTheme.createBackButton(nav)));
         } else {
             JobPosting initialJob = ownedJobs.stream()
                 .filter(job -> job.jobId().equals(context.selectedJobId()))
@@ -119,10 +117,7 @@ public class ApplicationReviewPage extends Application {
             workspace.jobBox().valueProperty().addListener((obs, oldValue, newValue) -> refreshListRef[0].run());
             refreshListRef[0].run();
 
-            VBox footer = new VBox(new HBox(UiTheme.createBackButton(nav)));
-            footer.setAlignment(Pos.CENTER_LEFT);
-
-            content.getChildren().addAll(workspace.jobBox(), workspace.contentRow(), footer);
+            content.getChildren().addAll(workspace.jobBox(), workspace.contentRow());
         }
 
         ScrollPane pageScroll = new ScrollPane(content);

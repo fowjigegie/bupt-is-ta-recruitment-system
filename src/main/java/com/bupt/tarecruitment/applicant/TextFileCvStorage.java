@@ -69,6 +69,20 @@ public final class TextFileCvStorage implements CvTextStorage {
     }
 
     // 做一次路径越界保护，确保读写都只能发生在 data/cvs/ 目录之内。
+    @Override
+    public boolean deleteCv(String relativePath) {
+        if (relativePath == null || relativePath.isBlank()) {
+            throw new IllegalArgumentException("relativePath must not be blank.");
+        }
+
+        Path targetPath = resolveCvPath(relativePath);
+        try {
+            return Files.deleteIfExists(targetPath);
+        } catch (IOException exception) {
+            throw new IllegalStateException("Failed to delete CV text from: " + relativePath, exception);
+        }
+    }
+
     private Path resolveCvPath(String relativePath) {
         Path cvsRoot = dataDirectory.resolve("cvs").normalize();
         Path resolvedPath = dataDirectory.resolve(relativePath).normalize();
