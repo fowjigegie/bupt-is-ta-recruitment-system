@@ -39,6 +39,28 @@ public final class JobPostingService {
         double weeklyHours,
         List<String> scheduleSlots
     ) {
+        return publish(
+            organiserId,
+            title,
+            moduleOrActivity,
+            JobActivityType.infer(title, description),
+            description,
+            requiredSkills,
+            weeklyHours,
+            scheduleSlots
+        );
+    }
+
+    public JobPosting publish(
+        String organiserId,
+        String title,
+        String moduleOrActivity,
+        String activityType,
+        String description,
+        List<String> requiredSkills,
+        double weeklyHours,
+        List<String> scheduleSlots
+    ) {
         requireNonBlank(organiserId, "organiserId");
         requireNonBlank(title, "title");
         requireNonBlank(moduleOrActivity, "moduleOrActivity");
@@ -57,6 +79,7 @@ public final class JobPostingService {
             organiserId.trim(),
             title.trim(),
             moduleOrActivity.trim(),
+            JobActivityType.normalize(activityType),
             description.trim(),
             normalizeList(requiredSkills),
             weeklyHours,
@@ -90,6 +113,7 @@ public final class JobPostingService {
             posting.organiserId().trim(),
             posting.title().trim(),
             posting.moduleOrActivity().trim(),
+            JobActivityType.normalize(posting.activityType()),
             posting.description().trim(),
             normalizeList(posting.requiredSkills()),
             posting.weeklyHours(),

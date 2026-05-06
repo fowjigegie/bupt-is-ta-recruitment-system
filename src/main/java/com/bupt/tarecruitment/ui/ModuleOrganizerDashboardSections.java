@@ -132,7 +132,7 @@ final class ModuleOrganizerDashboardSections {
         scroll.setFitToWidth(true);
         scroll.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
 
-        int visibleRows = ownedJobs.isEmpty() ? 1 : Math.min(ownedJobs.size(), 4);
+        int visibleRows = ownedJobs.isEmpty() ? 1 : Math.min(ownedJobs.size(), 6);
         double rowHeight = 72;
         double viewportHeight = visibleRows * rowHeight + 18;
         scroll.setMinViewportHeight(viewportHeight);

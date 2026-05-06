@@ -5,10 +5,10 @@ import com.bupt.tarecruitment.applicant.ApplicantProfile;
 import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
-import javafx.scene.control.ProgressBar;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -83,20 +83,19 @@ public class ResumeDatabasePage extends Application {
         VBox content = new VBox(18);
         content.setFillWidth(true);
         content.getChildren().addAll(
-            tabsRow,
-            selectedCvLabel,
             createFormSection(
                 nav,
                 context,
                 refreshCvTabs,
                 selectedCvRef,
+                tabsRow,
+                selectedCvLabel,
                 form,
                 statusLabel,
                 refreshAvatarPreviewRef,
                 keepDraftUnselectedRef
             ),
-            statusLabel,
-            createBottomHelperRow(nav)
+            statusLabel
         );
 
         centerPane.setCenter(content);
@@ -152,7 +151,7 @@ public class ResumeDatabasePage extends Application {
             }
 
             if (activeCv != null) {
-                selectedCvLabel.setText("Selected CV: " + activeCv.cvId() + " | " + activeCv.title());
+                selectedCvLabel.setText("Selected CV: " + activeCv.title());
             }
 
             for (ApplicantCv cv : cvs) {
@@ -163,7 +162,7 @@ public class ResumeDatabasePage extends Application {
                 button.setOnAction(event -> {
                     selectedCvRef.set(cv);
                     keepDraftUnselectedRef.set(false);
-                    selectedCvLabel.setText("Selected CV: " + cv.cvId() + " | " + cv.title());
+                    selectedCvLabel.setText("Selected CV: " + cv.title());
                     form.loadCv(context, cv);
                     refreshAvatarPreview.run();
                     rebuildCvTabs(
@@ -188,6 +187,8 @@ public class ResumeDatabasePage extends Application {
         UiAppContext context,
         Runnable refreshCvTabs,
         AtomicReference<ApplicantCv> selectedCvRef,
+        VBox tabsRow,
+        javafx.scene.control.Label selectedCvLabel,
         ResumeDatabaseForm form,
         javafx.scene.control.Label statusLabel,
         AtomicReference<Runnable> refreshAvatarPreviewRef,
@@ -198,11 +199,18 @@ public class ResumeDatabasePage extends Application {
         mainRow.setFillHeight(true);
         mainRow.setMaxWidth(Double.MAX_VALUE);
 
-        VBox leftForm = form.createLeftForm(() -> {
+        Runnable openSkillSelectionAction = () -> {
             ApplicantCv selectedCv = selectedCvRef.get();
             context.saveResumeDraft(form.toDraft(selectedCv == null ? null : selectedCv.cvId()));
             nav.goTo(PageId.SKILL_SELECTOR);
-        });
+        };
+        VBox leftForm = new VBox(18);
+        leftForm.setPrefWidth(780);
+        leftForm.setMaxWidth(Double.MAX_VALUE);
+        leftForm.getChildren().addAll(
+            form.createProfileSection(openSkillSelectionAction),
+            form.createCvSection(tabsRow, selectedCvLabel)
+        );
         ScrollPane leftScroll = new ScrollPane(leftForm);
         leftScroll.setFitToWidth(true);
         leftScroll.setPannable(true);
@@ -221,7 +229,7 @@ public class ResumeDatabasePage extends Application {
         rightPanel.setAlignment(Pos.TOP_CENTER);
         rightPanel.setPrefWidth(300);
         rightPanel.setMinWidth(300);
-        rightPanel.setTranslateY(-46);
+        rightPanel.setTranslateY(-12);
 
         StackPane avatarPane = new StackPane();
         Button uploadAvatarButton = UiTheme.createOutlineButton("Upload avatar", 180, 46);
@@ -244,11 +252,6 @@ public class ResumeDatabasePage extends Application {
             statusLabel.setTextFill(Color.web("#4664a8"));
             statusLabel.setText("Avatar removed.");
         });
-
-        ProgressBar progressBar = new ProgressBar(0.85);
-        progressBar.setPrefWidth(220);
-        progressBar.setPrefHeight(18);
-        progressBar.setStyle("-fx-accent: #f15bbe; -fx-control-inner-background: #f8c4ea;");
 
         var saveProfileButton = UiTheme.createOutlineButton("Create profile", 180, 46);
         var profileStateLabel = UiTheme.createMutedText("");
@@ -292,6 +295,17 @@ public class ResumeDatabasePage extends Application {
         });
 
         var updateCvButton = UiTheme.createOutlineButton("Update selected CV", 180, 46);
+        updateCvButton.setStyle(
+            "-fx-background-color: #e4f5df;" +
+                "-fx-background-radius: 23;" +
+                "-fx-border-color: #9ed08e;" +
+                "-fx-border-width: 1.5;" +
+                "-fx-border-radius: 23;" +
+                "-fx-text-fill: #1f6f2e;" +
+                "-fx-font-size: 14px;" +
+                "-fx-font-weight: bold;" +
+                "-fx-cursor: hand;"
+        );
         updateCvButton.setOnAction(event -> {
             ApplicantCv selectedCv = selectedCvRef.get();
             if (selectedCv == null) {
@@ -363,30 +377,31 @@ public class ResumeDatabasePage extends Application {
         var chatButton = UiTheme.createOutlineButton("Open messages", 180, 46);
         chatButton.setOnAction(event -> nav.goTo(PageId.MESSAGES));
 
-        var avatarHint = UiTheme.createMutedText("JPG/PNG avatar.");
-        avatarHint.setMaxWidth(260);
-        var cvHint = UiTheme.createMutedText("Save profile before CV edits.");
-        cvHint.setMaxWidth(260);
-
         rightPanel.getChildren().addAll(
-            avatarPane,
-            avatarHint,
-            uploadAvatarButton,
-            removeAvatarButton,
-            cvHint,
-            progressBar,
-            UiTheme.createTag("Profile + CV", 220),
-            profileStateLabel,
-            saveProfileButton,
-            importButton,
-            saveNewCvButton,
-            updateCvButton,
-            deleteCvButton,
-            chatButton
+            createActionGroup("Avatar", avatarPane, uploadAvatarButton, removeAvatarButton),
+            createActionGroup("Profile", saveProfileButton),
+            createActionGroup("CV Library", importButton, saveNewCvButton, updateCvButton, deleteCvButton),
+            createActionGroup("Messages", chatButton)
         );
 
         mainRow.getChildren().addAll(leftScroll, rightPanel);
         return mainRow;
+    }
+
+    private static VBox createActionGroup(String title, Node... actions) {
+        Label titleLabel = new Label(title);
+        titleLabel.setMaxWidth(220);
+        titleLabel.setAlignment(Pos.CENTER_LEFT);
+        titleLabel.setTextFill(Color.web("#4664a8"));
+        titleLabel.setStyle("-fx-font-size: 13px; -fx-font-weight: bold;");
+
+        VBox group = new VBox(8);
+        group.setAlignment(Pos.TOP_CENTER);
+        group.setPrefWidth(240);
+        group.setPadding(new Insets(4, 0, 6, 0));
+        group.getChildren().add(titleLabel);
+        group.getChildren().addAll(actions);
+        return group;
     }
 
     private static boolean confirmDeleteCv(ApplicantCv selectedCv) {
@@ -409,16 +424,23 @@ public class ResumeDatabasePage extends Application {
         ApplicantProfile profile = form.toApplicantProfile(context, "");
         if (context.services().profileRepository().findByUserId(context.session().userId()).isPresent()) {
             ApplicantProfile updated = context.services().profileService().updateProfile(profile);
+            refreshSessionDisplayName(context);
             form.syncStoredAvatarState(
                 context.services().applicantAvatarStorageService().hasAvatarForUser(context.session().userId())
             );
             return updated;
         }
         ApplicantProfile created = context.services().profileService().createProfile(profile);
+        refreshSessionDisplayName(context);
         form.syncStoredAvatarState(
             context.services().applicantAvatarStorageService().hasAvatarForUser(context.session().userId())
         );
         return created;
+    }
+
+    private static void refreshSessionDisplayName(UiAppContext context) {
+        context.services().userRepository().findByUserId(context.session().userId())
+            .ifPresent(context::signIn);
     }
 
     private static boolean hasSavedProfile(UiAppContext context) {
@@ -523,12 +545,6 @@ public class ResumeDatabasePage extends Application {
             }
         }
         return Optional.empty();
-    }
-
-    private static HBox createBottomHelperRow(NavigationManager nav) {
-        HBox helperRow = new HBox(UiTheme.createBackButton(nav));
-        helperRow.setAlignment(Pos.CENTER_LEFT);
-        return helperRow;
     }
 
     private static Optional<ApplicantCv> findCvById(UiAppContext context, String cvId) {

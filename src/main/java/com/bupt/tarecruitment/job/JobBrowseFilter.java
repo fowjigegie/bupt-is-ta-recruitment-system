@@ -103,6 +103,7 @@ public final class JobBrowseFilter {
         return contains(job.jobId(), normalizedKeyword)
             || contains(job.title(), normalizedKeyword)
             || contains(job.moduleOrActivity(), normalizedKeyword)
+            || contains(job.activityType(), normalizedKeyword)
             || contains(job.description(), normalizedKeyword)
             || contains(job.organiserId(), normalizedKeyword)
             || contains(organiserDisplayName, normalizedKeyword)
@@ -136,17 +137,7 @@ public final class JobBrowseFilter {
         if (selectedActivityType == null || selectedActivityType.equals("All activity types")) {
             return true;
         }
-
-        String searchBlob = (job.title() + " " + job.description()).toLowerCase(Locale.ROOT);
-        return switch (selectedActivityType) {
-            case "Lab session" -> searchBlob.contains("lab");
-            case "Tutorial" -> searchBlob.contains("tutorial");
-            case "Assignment / marking" ->
-                searchBlob.contains("assignment") || searchBlob.contains("marking") || searchBlob.contains("grading");
-            case "Project / development" ->
-                searchBlob.contains("project") || searchBlob.contains("development") || searchBlob.contains("studio");
-            default -> true;
-        };
+        return job.activityType().equalsIgnoreCase(JobActivityType.normalize(selectedActivityType));
     }
 
     private static boolean matchesTimeSlot(JobPosting job, String selectedTimeSlot) {

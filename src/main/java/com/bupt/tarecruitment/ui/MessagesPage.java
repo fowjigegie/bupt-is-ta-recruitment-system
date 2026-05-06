@@ -78,15 +78,17 @@ public class MessagesPage extends Application {
         workspace.messageInput().setOnAction(event -> sendMessageAction.run());
 
         HBox contentRow = new HBox(14, workspace.leftPane(), workspace.rightPane());
-        HBox footer = new HBox(UiTheme.createBackButton(nav));
-        footer.setAlignment(Pos.CENTER_LEFT);
 
         center.getChildren().addAll(
             UiTheme.createPageHeading("Messages"),
             UiTheme.createMutedText("Chat with MO per job context. Select a conversation and send messages below."),
-            contentRow,
-            footer
+            contentRow
         );
+        if (context.session().role() == UserRole.MO) {
+            HBox footer = new HBox(UiTheme.createBackButton(nav));
+            footer.setAlignment(Pos.CENTER_LEFT);
+            center.getChildren().add(footer);
+        }
 
         refreshThreads.run();
 

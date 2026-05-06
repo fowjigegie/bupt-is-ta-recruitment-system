@@ -10,7 +10,6 @@ import javafx.scene.control.Label;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
-import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
@@ -56,7 +55,7 @@ public class ModuleOrganizerDashboardPage extends Application {
         center.setFillWidth(true);
         center.setMaxWidth(Double.MAX_VALUE);
 
-        Label welcomeTitle = UiTheme.createPageHeading("Welcome Back");
+        Label welcomeTitle = UiTheme.createPageHeading("Welcome Back, " + context.displayNameForUser(userId));
         welcomeTitle.setTextFill(MO_SIDEBAR_BLUE);
 
         center.getChildren().add(welcomeTitle);
@@ -82,13 +81,7 @@ public class ModuleOrganizerDashboardPage extends Application {
         footerHint.setMaxWidth(Double.MAX_VALUE);
         footerHint.setAlignment(Pos.CENTER);
 
-        Region spacer = new Region();
-        VBox.setVgrow(spacer, Priority.ALWAYS);
-
-        HBox footer = new HBox(UiTheme.createBackButton(nav));
-        footer.setAlignment(Pos.CENTER_LEFT);
-
-        center.getChildren().addAll(stats, quickActions, jobManagementSection, footerHint, spacer, footer);
+        center.getChildren().addAll(stats, quickActions, jobManagementSection, footerHint);
 
         BorderPane root = UiTheme.createPage(
             "MO Dashboard",

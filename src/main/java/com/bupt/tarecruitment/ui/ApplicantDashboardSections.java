@@ -37,7 +37,8 @@ final class ApplicantDashboardSections {
 
     static HBox createWelcomeRow(String displayName) {
         HBox welcomeRow = new HBox(18);
-        welcomeRow.setAlignment(Pos.CENTER_LEFT);
+        welcomeRow.setAlignment(Pos.CENTER);
+        welcomeRow.setMaxWidth(Double.MAX_VALUE);
         welcomeRow.getChildren().addAll(
             createBlueDiamond(),
             UiTheme.createPageHeading("Welcome back, " + displayName),
@@ -47,7 +48,7 @@ final class ApplicantDashboardSections {
     }
 
     static HBox createFeatureButtons(NavigationManager nav, UiAppContext context, long unreadMessages) {
-        Button invitationButton = UiTheme.createPrimaryButton("Application\nStatus", 220, 110);
+        Button invitationButton = UiTheme.createPrimaryButton("Application Status", 220, 110);
         invitationButton.setOnAction(event -> nav.goTo(PageId.INTERVIEW_INVITATION));
 
         Button chatButton = UiTheme.createPrimaryButton("Chat", 220, 110);
@@ -61,24 +62,57 @@ final class ApplicantDashboardSections {
             nav.goTo(PageId.MESSAGES);
         });
 
-        Button aiButton = UiTheme.createPrimaryButton("AI\nAssistant", 220, 110);
+        Button aiButton = UiTheme.createPrimaryButton("AI Assistant", 220, 110);
         aiButton.setOnAction(event -> FakeAiAssistantDialog.show(aiButton.getScene().getWindow(), context));
 
-        HBox featureButtons = new HBox(30, invitationButton, createChatBadge(chatButton, unreadMessages), aiButton);
+        StackPane chatWrapper = createChatBadge(chatButton, unreadMessages);
+        stretchFeatureButton(invitationButton);
+        stretchFeatureButton(chatButton);
+        stretchFeatureButton(aiButton);
+        stretchFeatureWrapper(chatWrapper);
+
+        HBox featureButtons = new HBox(30, invitationButton, chatWrapper, aiButton);
         featureButtons.setAlignment(Pos.CENTER_LEFT);
+        featureButtons.setMaxWidth(Double.MAX_VALUE);
+        HBox.setHgrow(invitationButton, Priority.ALWAYS);
+        HBox.setHgrow(chatWrapper, Priority.ALWAYS);
+        HBox.setHgrow(aiButton, Priority.ALWAYS);
         return featureButtons;
     }
 
     static HBox createStatRow(long openJobs, long unreadMessages, long myApplications) {
-        return new HBox(20,
-            UiTheme.createStatCard("Open jobs", Long.toString(openJobs), "Browse jobs or jump directly into the detailed view."),
-            UiTheme.createStatCard("Unread messages", Long.toString(unreadMessages), "Unread badges now update from real job-based conversations."),
-            UiTheme.createStatCard("My applications", Long.toString(myApplications), "Withdrawn applications are not counted here.")
+        VBox openJobsCard = UiTheme.createStatCard(
+            "Open jobs",
+            Long.toString(openJobs),
+            "Browse jobs or jump directly into the detailed view."
         );
+        VBox messagesCard = UiTheme.createStatCard(
+            "Unread messages",
+            Long.toString(unreadMessages),
+            "Unread badges now update from real job-based conversations."
+        );
+        VBox applicationsCard = UiTheme.createStatCard(
+            "My applications",
+            Long.toString(myApplications),
+            "Withdrawn applications are not counted here."
+        );
+
+        stretchStatCard(openJobsCard);
+        stretchStatCard(messagesCard);
+        stretchStatCard(applicationsCard);
+
+        HBox statRow = new HBox(24, openJobsCard, messagesCard, applicationsCard);
+        statRow.setMaxWidth(Double.MAX_VALUE);
+        HBox.setHgrow(openJobsCard, Priority.ALWAYS);
+        HBox.setHgrow(messagesCard, Priority.ALWAYS);
+        HBox.setHgrow(applicationsCard, Priority.ALWAYS);
+        return statRow;
     }
 
     static VBox createRecommendedJobsArea(NavigationManager nav, UiAppContext context) {
         VBox jobsArea = new VBox(12);
+        jobsArea.setFillWidth(true);
+        jobsArea.setMaxWidth(Double.MAX_VALUE);
         jobsArea.getChildren().add(UiTheme.createSectionTitle("Recommended jobs"));
 
         Map<String, JobPosting> openJobsById = context.services().jobRepository().findAll().stream()
@@ -93,14 +127,14 @@ final class ApplicantDashboardSections {
 
         if (recommendedJobs.isEmpty()) {
             boolean hasProfile = context.services().profileRepository().findByUserId(context.session().userId()).isPresent();
-            jobsArea.getChildren().add(
-                UiTheme.createWhiteCard(
-                    hasProfile ? "No tailored recommendations yet" : "Profile needed for recommendations",
-                    hasProfile
-                        ? "We could not find a strong match from your current skills and desired positions. Try browsing all jobs."
-                        : "Create or update your profile and skills in Resume Database to unlock personalized recommendations."
-                )
+            VBox emptyCard = UiTheme.createWhiteCard(
+                hasProfile ? "No tailored recommendations yet" : "Profile needed for recommendations",
+                hasProfile
+                    ? "We could not find a strong match from your current skills and desired positions. Try browsing all jobs."
+                    : "Create or update your profile and skills in Resume Database to unlock personalized recommendations."
             );
+            emptyCard.setMaxWidth(Double.MAX_VALUE);
+            jobsArea.getChildren().add(emptyCard);
             return jobsArea;
         }
 
@@ -133,6 +167,20 @@ final class ApplicantDashboardSections {
         return wrapper;
     }
 
+    private static void stretchFeatureButton(Button button) {
+        button.setMinWidth(0);
+        button.setFont(Font.font("Comic Sans MS", FontWeight.BOLD, 20));
+        button.setMaxWidth(Double.MAX_VALUE);
+    }
+
+    private static void stretchFeatureWrapper(StackPane wrapper) {
+        wrapper.setMaxWidth(Double.MAX_VALUE);
+    }
+
+    private static void stretchStatCard(VBox card) {
+        card.setMaxWidth(Double.MAX_VALUE);
+    }
+
     private static VBox createJobRow(
         NavigationManager nav,
         UiAppContext context,
@@ -143,6 +191,7 @@ final class ApplicantDashboardSections {
 
         HBox row = new HBox(20);
         row.setAlignment(Pos.CENTER_LEFT);
+        row.setMaxWidth(Double.MAX_VALUE);
         row.setPadding(new Insets(18, 22, 18, 22));
         row.setBackground(new Background(new BackgroundFill(Color.WHITE, new CornerRadii(24), Insets.EMPTY)));
         row.setBorder(new Border(new BorderStroke(

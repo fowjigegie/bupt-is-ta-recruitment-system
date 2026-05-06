@@ -96,15 +96,11 @@ public class MoreJobsPage extends Application {
         filters.attachRefresh(refreshJobsView);
         refreshJobsView.run();
 
-        HBox footer = new HBox(12, UiTheme.createBackButton(nav));
-        footer.setAlignment(Pos.CENTER_LEFT);
-
         center.getChildren().addAll(
             UiTheme.createPageHeading("More Jobs"),
             filters.searchBar(),
             filters.filterPanel(),
-            jobsScroll,
-            footer
+            jobsScroll
         );
 
         BorderPane root = UiTheme.createPage(
@@ -146,6 +142,10 @@ public class MoreJobsPage extends Application {
         classLabel.setFont(Font.font("Arial", 16));
         classLabel.setTextFill(Color.web("#333333"));
 
+        Label activityLabel = new Label("Activity type : " + job.activityType());
+        activityLabel.setFont(Font.font("Arial", 16));
+        activityLabel.setTextFill(Color.web("#333333"));
+
         Label timeLabel = new Label(
             "Weekly hours : " + DisplayFormats.formatDecimal(job.weeklyHours()) + "    |    Schedule : "
                 + FixedScheduleBands.formatScheduleList(job.scheduleSlots())
@@ -156,7 +156,7 @@ public class MoreJobsPage extends Application {
         Label availabilityLabel = createAvailabilityPreview(context, job);
         Label skillGapLabel = createSkillGapPreview(context, job);
 
-        textBox.getChildren().addAll(courseLabel, idLabel, teacherLabel, classLabel, timeLabel, availabilityLabel, skillGapLabel);
+        textBox.getChildren().addAll(courseLabel, idLabel, teacherLabel, classLabel, activityLabel, timeLabel, availabilityLabel, skillGapLabel);
 
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);

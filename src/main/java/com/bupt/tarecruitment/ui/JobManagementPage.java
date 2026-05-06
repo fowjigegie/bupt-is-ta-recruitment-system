@@ -3,12 +3,10 @@ package com.bupt.tarecruitment.ui;
 import com.bupt.tarecruitment.job.JobPosting;
 import javafx.application.Application;
 import javafx.geometry.Insets;
-import javafx.geometry.Pos;
 import javafx.scene.Scene;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
-import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
@@ -33,14 +31,18 @@ public class JobManagementPage extends Application {
         VBox center = new VBox(20);
         center.setPadding(new Insets(18, 40, 30, 40));
         center.getChildren().add(UiTheme.createPageHeading("Job management"));
-        center.getChildren().add(JobManagementSection.create(nav, context, jobs));
 
-        Region spacer = new Region();
-        VBox.setVgrow(spacer, Priority.ALWAYS);
-
-        HBox footer = new HBox(UiTheme.createBackButton(nav));
-        footer.setAlignment(Pos.CENTER_LEFT);
-        center.getChildren().addAll(spacer, footer);
+        ScrollPane jobsScroll = new ScrollPane(JobManagementSection.create(nav, context, jobs));
+        jobsScroll.setFitToWidth(true);
+        jobsScroll.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
+        jobsScroll.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        jobsScroll.setStyle(
+            "-fx-background: transparent;" +
+                "-fx-background-color: transparent;" +
+                "-fx-border-color: transparent;"
+        );
+        VBox.setVgrow(jobsScroll, Priority.ALWAYS);
+        center.getChildren().add(jobsScroll);
 
         BorderPane root = UiTheme.createPage(
             "Job Management",

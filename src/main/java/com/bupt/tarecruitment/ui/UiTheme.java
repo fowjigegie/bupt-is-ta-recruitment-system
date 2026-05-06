@@ -122,7 +122,9 @@ final class UiTheme {
         rightGroup.getChildren().add(titleLabel);
 
         if (context.session().isAuthenticated()) {
-            Label userLabel = new Label(context.session().displayName() + " | " + context.session().role().name());
+            Label userLabel = new Label(
+                context.displayNameForUser(context.session().userId()) + " | " + context.session().role().name()
+            );
             userLabel.setFont(Font.font("Arial", FontWeight.BOLD, 13));
             userLabel.setTextFill(Color.web("#4c5f99"));
 

@@ -47,8 +47,7 @@ public class JobDetailPage extends Application {
         if (selectedJob == null) {
             main.getChildren().addAll(
                 UiTheme.createPageHeading("Job detail"),
-                UiTheme.createWhiteCard("No job selected", "Go back to the More Jobs page and choose an OPEN job first."),
-                new HBox(UiTheme.createBackButton(nav))
+                UiTheme.createWhiteCard("No job selected", "Go back to the More Jobs page and choose an OPEN job first.")
             );
         } else {
             context.selectJob(selectedJob.jobId());
@@ -77,12 +76,13 @@ public class JobDetailPage extends Application {
         var courseTag = UiTheme.createTag("Course Title : " + job.title(), 500);
         var teacherTag = UiTheme.createTag("Organised By : " + context.formatUserLabel(job.organiserId()), 400);
         var classTag = UiTheme.createTag("Module / Activity : " + job.moduleOrActivity(), 420);
+        var activityTag = UiTheme.createTag("Activity Type : " + job.activityType(), 320);
         var hoursTag = UiTheme.createTag("Weekly Hours : " + DisplayFormats.formatDecimal(job.weeklyHours()), 260);
         var statusTag = UiTheme.createTag("Status : " + job.status().name(), 220);
 
         VBox details = new VBox(16,
             new HBox(20, courseTag, teacherTag),
-            new HBox(20, classTag, hoursTag, statusTag),
+            new HBox(20, classTag, activityTag, hoursTag, statusTag),
             UiTheme.createWhiteCard(
                 "Job Description",
                 job.description()

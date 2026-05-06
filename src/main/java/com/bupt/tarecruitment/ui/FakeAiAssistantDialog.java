@@ -1,8 +1,8 @@
 package com.bupt.tarecruitment.ui;
 
 import javafx.animation.KeyFrame;
-import javafx.animation.PauseTransition;
 import javafx.animation.Timeline;
+import javafx.concurrent.Task;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
@@ -22,11 +22,8 @@ import javafx.stage.Stage;
 import javafx.stage.Window;
 import javafx.util.Duration;
 
-import java.nio.file.Path;
-import java.util.concurrent.ThreadLocalRandom;
-
 /**
- * Shows the local fake AI assistant in a plugin-style dialog.
+ * Shows the AI assistant dialog.
  */
 public final class FakeAiAssistantDialog {
     private FakeAiAssistantDialog() {
@@ -43,12 +40,12 @@ public final class FakeAiAssistantDialog {
         VBox transcript = new VBox(12);
         transcript.setPadding(new Insets(8, 6, 8, 6));
 
-        Path answerFilePath = context.services().fakeAiAssistantService().answersFilePath();
+        String providerLabel = context.services().aiAssistantService().providerLabel();
         transcript.getChildren().addAll(
             createAssistantBubble(
-                "Hello, I'm the BUPT-TA AI Assistant plugin demo.\nTry asking: \"Recommend the best jobs for me\" or \"What skills am I missing for TA for Software Engineering?\""
+                "Hello, I'm the BUPT-TA AI Assistant.\nTry asking: \"Recommend the best jobs for me\" or \"What skills am I missing for TA for Software Engineering?\""
             ),
-            createMetaLabel("Local answer library: " + answerFilePath.toAbsolutePath())
+            createMetaLabel("Assistant provider: " + providerLabel)
         );
         if (context.selectedJobId() != null) {
             transcript.getChildren().add(createMetaLabel("Current selected job context: " + context.selectedJobId()));
@@ -98,22 +95,35 @@ public final class FakeAiAssistantDialog {
             thinkingAnimation.setCycleCount(Timeline.INDEFINITE);
             thinkingAnimation.play();
 
-            double waitSeconds = ThreadLocalRandom.current().nextDouble(2.0, 3.1);
-            PauseTransition pause = new PauseTransition(Duration.seconds(waitSeconds));
-            pause.setOnFinished(event -> {
+            Task<String> answerTask = new Task<>() {
+                @Override
+                protected String call() {
+                    return context.services().aiAssistantService().answer(
+                        question,
+                        context.session().isAuthenticated() ? context.session().userId() : null,
+                        context.selectedJobId()
+                    );
+                }
+            };
+            answerTask.setOnSucceeded(event -> {
                 thinkingAnimation.stop();
-                String answer = context.services().fakeAiAssistantService().answer(
-                    question,
-                    context.session().isAuthenticated() ? context.session().userId() : null,
-                    context.selectedJobId()
-                );
-                thinkingLabel.setText(answer);
+                thinkingLabel.setText(answerTask.getValue());
                 inputField.setDisable(false);
                 sendButton.setDisable(false);
                 inputField.requestFocus();
                 scrollToBottom.run();
             });
-            pause.play();
+            answerTask.setOnFailed(event -> {
+                thinkingAnimation.stop();
+                thinkingLabel.setText("The AI assistant could not answer right now. Please try again later.");
+                inputField.setDisable(false);
+                sendButton.setDisable(false);
+                inputField.requestFocus();
+                scrollToBottom.run();
+            });
+            Thread worker = new Thread(answerTask, "ai-assistant-request");
+            worker.setDaemon(true);
+            worker.start();
         };
 
         sendButton.setOnAction(event -> sendActionRef[0].run());
@@ -122,15 +132,19 @@ public final class FakeAiAssistantDialog {
         HBox inputRow = new HBox(12, inputField, sendButton);
         inputRow.setAlignment(Pos.CENTER_LEFT);
 
-        Label title = new Label("AI Assistant Plugin Demo");
+        Label title = new Label("AI Assistant");
         title.setFont(Font.font("Arial", FontWeight.BOLD, 28));
         title.setTextFill(Color.web("#4664a8"));
 
-        Label subtitle = new Label("Simulated local assistant with prepared answers, rule-based analysis, and a delayed response effect.");
+        Label subtitle = new Label(
+            context.services().aiAssistantService().isRealApiEnabled()
+                ? "NVIDIA-powered assistant with local recruitment-system context."
+                : "Local assistant fallback. Set NVIDIA_API_KEY before launch to enable the real API."
+        );
         subtitle.setFont(Font.font("Arial", 14));
         subtitle.setTextFill(Color.web("#8b7fa0"));
 
-        Label pluginTag = new Label("Plugin Demo");
+        Label pluginTag = new Label(context.services().aiAssistantService().isRealApiEnabled() ? "NVIDIA" : "Local");
         pluginTag.setFont(Font.font("Arial", FontWeight.BOLD, 13));
         pluginTag.setTextFill(Color.web("#b05a88"));
         pluginTag.setStyle(

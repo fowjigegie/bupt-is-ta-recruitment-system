@@ -40,6 +40,9 @@ public final class JobApplicationService {
     /** Guard to prevent schedule conflicts */
     private final ScheduleConflictGuard scheduleConflictGuard;
 
+    /** Guard to prevent accepted workload over-allocation */
+    private final WorkloadLimitGuard workloadLimitGuard;
+
     /** Service to verify applicant availability covers the selected job */
     private final ApplicantAvailabilityService applicantAvailabilityService;
 
@@ -104,6 +107,7 @@ public final class JobApplicationService {
 
         // Initialize schedule conflict guard
         this.scheduleConflictGuard = new ScheduleConflictGuard(applicationRepository, jobRepository);
+        this.workloadLimitGuard = new WorkloadLimitGuard(applicationRepository, jobRepository);
         this.applicantAvailabilityService = new ApplicantAvailabilityService(profileRepository, jobRepository);
     }
 
@@ -165,6 +169,9 @@ public final class JobApplicationService {
 
         // Check for schedule conflicts with accepted jobs
         scheduleConflictGuard.requireNoConflictWithAcceptedJobs(applicantUserId, jobId);
+
+        // Check whether this application would exceed the weekly workload limit
+        workloadLimitGuard.requireWithinLimit(applicantUserId, job);
 
         // Create new application
         JobApplication application = new JobApplication(

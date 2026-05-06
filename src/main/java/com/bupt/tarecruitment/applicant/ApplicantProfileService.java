@@ -1,6 +1,7 @@
 package com.bupt.tarecruitment.applicant;
 
 import com.bupt.tarecruitment.auth.UserAccessPolicy;
+import com.bupt.tarecruitment.auth.UserAccount;
 import com.bupt.tarecruitment.auth.UserRepository;
 import com.bupt.tarecruitment.auth.UserRole;
 
@@ -14,9 +15,10 @@ public final class ApplicantProfileService {
     private final ApplicantProfileRepository repository;
     private final ApplicantProfileValidator validator;
     private final UserAccessPolicy userAccessPolicy;
+    private final UserRepository userRepository;
 
     public ApplicantProfileService(ApplicantProfileRepository repository, ApplicantProfileValidator validator) {
-        this(repository, validator, UserAccessPolicy.noOp());
+        this(repository, validator, UserAccessPolicy.noOp(), null);
     }
 
     public ApplicantProfileService(
@@ -24,17 +26,24 @@ public final class ApplicantProfileService {
         ApplicantProfileValidator validator,
         UserRepository userRepository
     ) {
-        this(repository, validator, new UserAccessPolicy(userRepository));
+        this(
+            repository,
+            validator,
+            new UserAccessPolicy(Objects.requireNonNull(userRepository)),
+            userRepository
+        );
     }
 
     private ApplicantProfileService(
         ApplicantProfileRepository repository,
         ApplicantProfileValidator validator,
-        UserAccessPolicy userAccessPolicy
+        UserAccessPolicy userAccessPolicy,
+        UserRepository userRepository
     ) {
         this.repository = Objects.requireNonNull(repository);
         this.validator = Objects.requireNonNull(validator);
         this.userAccessPolicy = Objects.requireNonNull(userAccessPolicy);
+        this.userRepository = userRepository;
     }
 
     // US01/US05 的核心服务：
@@ -58,6 +67,7 @@ public final class ApplicantProfileService {
 
         // 4) 落库保存
         repository.save(profile);
+        syncUserDisplayName(profile);
         return profile;
     }
 
@@ -89,11 +99,30 @@ public final class ApplicantProfileService {
         ensureStudentIdIsUnique(profile);
         // 5) 落库保存
         repository.save(profile);
+        syncUserDisplayName(profile);
         return profile;
     }
 
     // studentId 在系统里必须全局唯一。
     // 但同一个 applicant 编辑自己资料时，允许继续保留原 studentId。
+    // Keep the account-level display name aligned with the applicant's profile name.
+    private void syncUserDisplayName(ApplicantProfile profile) {
+        if (userRepository == null) {
+            return;
+        }
+
+        userRepository.findByUserId(profile.userId())
+            .filter(account -> !account.displayName().equals(profile.fullName()))
+            .map(account -> new UserAccount(
+                account.userId(),
+                account.passwordHash(),
+                account.role(),
+                profile.fullName(),
+                account.status()
+            ))
+            .ifPresent(userRepository::save);
+    }
+
     private void ensureStudentIdIsUnique(ApplicantProfile profile) {
         Optional<ApplicantProfile> existingProfile = repository.findByStudentId(profile.studentId());
         if (existingProfile.isPresent() && !existingProfile.get().userId().equals(profile.userId())) {

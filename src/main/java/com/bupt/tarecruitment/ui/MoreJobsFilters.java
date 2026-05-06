@@ -1,6 +1,7 @@
 package com.bupt.tarecruitment.ui;
 
 import com.bupt.tarecruitment.job.JobBrowseFilter;
+import com.bupt.tarecruitment.job.JobActivityType;
 import com.bupt.tarecruitment.job.JobPosting;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -108,12 +109,7 @@ final class MoreJobsFilters {
         moduleFilter.getSelectionModel().selectFirst();
 
         ComboBox<String> activityFilter = createFilterComboBox(190, "All activity types");
-        activityFilter.getItems().addAll(
-            "Lab session",
-            "Tutorial",
-            "Assignment / marking",
-            "Project / development"
-        );
+        activityFilter.getItems().addAll(JobActivityType.values());
         activityFilter.getSelectionModel().selectFirst();
 
         ComboBox<String> skillFilter = createFilterComboBox(210, "All skills");

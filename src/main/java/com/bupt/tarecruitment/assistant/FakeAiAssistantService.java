@@ -23,7 +23,7 @@ import java.util.Optional;
 /**
  * Returns fake AI replies backed by local FAQ data and real rule-based business services.
  */
-public final class FakeAiAssistantService {
+public final class FakeAiAssistantService implements AiAssistantService {
     private static final String FALLBACK_ANSWER =
         "I'm sorry, I don't have a prepared answer for that question yet. Try asking about recommended jobs, missing skills for a named job, the schedule table, or application status.";
 
@@ -71,6 +71,7 @@ public final class FakeAiAssistantService {
         return answer(rawQuestion, null, null);
     }
 
+    @Override
     public String answer(String rawQuestion, String applicantUserId, String selectedJobId) {
         String normalizedQuestion = normalize(rawQuestion);
         if (normalizedQuestion.isBlank()) {
@@ -102,6 +103,11 @@ public final class FakeAiAssistantService {
 
     public Path answersFilePath() {
         return repository.answersFilePath();
+    }
+
+    @Override
+    public String providerLabel() {
+        return "Local rule-based assistant";
     }
 
     private String buildRecommendationAnswer(String applicantUserId) {

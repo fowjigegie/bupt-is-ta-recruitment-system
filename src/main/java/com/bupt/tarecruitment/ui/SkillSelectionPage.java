@@ -40,8 +40,7 @@ public class SkillSelectionPage extends Application {
             nav.goBack();
         });
 
-        var backButton = UiTheme.createBackButton(nav);
-        HBox actions = new HBox(16, backButton, saveButton);
+        HBox actions = new HBox(16, saveButton);
         actions.setAlignment(Pos.CENTER_LEFT);
 
         VBox content = new VBox(

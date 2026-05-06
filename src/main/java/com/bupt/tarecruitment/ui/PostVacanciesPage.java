@@ -18,8 +18,6 @@ import javafx.scene.layout.BorderStrokeStyle;
 import javafx.scene.layout.BorderWidths;
 import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.Priority;
-import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
@@ -108,13 +106,7 @@ public class PostVacanciesPage extends Application {
             actionRow
         );
 
-        HBox footer = new HBox(UiTheme.createBackButton(nav));
-        footer.setAlignment(Pos.CENTER_LEFT);
-
-        Region spacer = new Region();
-        VBox.setVgrow(spacer, Priority.ALWAYS);
-
-        center.getChildren().addAll(titleLabel, formBox, spacer, footer);
+        center.getChildren().addAll(titleLabel, formBox);
 
         BorderPane root = UiTheme.createPage(
             "Post Vacancies",
@@ -167,6 +159,7 @@ public class PostVacanciesPage extends Application {
                 form.organiserId(),
                 form.title(),
                 form.moduleOrActivity(),
+                form.activityType(),
                 form.description(),
                 form.requiredSkills(),
                 weeklyHours,
@@ -203,6 +196,7 @@ public class PostVacanciesPage extends Application {
                 form.organiserId(),
                 form.title(),
                 form.moduleOrActivity(),
+                form.activityType(),
                 form.description(),
                 form.requiredSkills(),
                 weeklyHours,
