@@ -51,12 +51,17 @@ public final class US00SmokeTest {
 
             UserAccount moAccount = service.register("mo101", "pass201", UserRole.MO);
             assertEquals(UserRole.MO, moAccount.role(), "Unexpected registered MO role.");
-            UserAccount adminAccount = service.register("admin101", "pass301", UserRole.ADMIN);
-            assertEquals(UserRole.ADMIN, adminAccount.role(), "Unexpected registered admin role.");
 
             expectRegisterFailure(service, "", "pass401", UserRole.APPLICANT, "userId must not be blank.");
             expectRegisterFailure(service, "ta401", "", UserRole.APPLICANT, "password must not be blank.");
             expectRegisterFailure(service, "ta401", "pass401", null, "role must not be null.");
+            expectRegisterFailure(
+                service,
+                "admin101",
+                "pass301",
+                UserRole.ADMIN,
+                "ADMIN accounts are system-maintained"
+            );
             expectRegisterFailure(
                 service,
                 "staff401",
