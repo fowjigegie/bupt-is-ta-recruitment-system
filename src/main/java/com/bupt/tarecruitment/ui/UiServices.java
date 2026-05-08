@@ -33,6 +33,9 @@ import com.bupt.tarecruitment.job.JobIdGenerator;
 import com.bupt.tarecruitment.job.JobPostingService;
 import com.bupt.tarecruitment.job.JobRepository;
 import com.bupt.tarecruitment.job.TextFileJobRepository;
+import com.bupt.tarecruitment.mo.MoApplicantRankingService;
+import com.bupt.tarecruitment.mo.MoJobAnalyticsService;
+import com.bupt.tarecruitment.mo.MoJobQualityService;
 import com.bupt.tarecruitment.recommendation.MissingSkillsFeedbackService;
 import com.bupt.tarecruitment.recommendation.RecommendationService;
 import com.bupt.tarecruitment.recommendation.SkillGapAnalysisService;
@@ -63,6 +66,9 @@ public final class UiServices {
     private final MissingSkillsFeedbackService missingSkillsFeedbackService;
     private final SkillGapAnalysisService skillGapAnalysisService;
     private final ApplicantAvailabilityService applicantAvailabilityService;
+    private final MoApplicantRankingService moApplicantRankingService;
+    private final MoJobQualityService moJobQualityService;
+    private final MoJobAnalyticsService moJobAnalyticsService;
     private final ApplicantAvatarStorageService applicantAvatarStorageService;
     private final FakeAiAssistantService fakeAiAssistantService;
     private final AiAssistantService aiAssistantService;
@@ -88,6 +94,9 @@ public final class UiServices {
         MissingSkillsFeedbackService missingSkillsFeedbackService,
         SkillGapAnalysisService skillGapAnalysisService,
         ApplicantAvailabilityService applicantAvailabilityService,
+        MoApplicantRankingService moApplicantRankingService,
+        MoJobQualityService moJobQualityService,
+        MoJobAnalyticsService moJobAnalyticsService,
         ApplicantAvatarStorageService applicantAvatarStorageService,
         FakeAiAssistantService fakeAiAssistantService,
         AiAssistantService aiAssistantService
@@ -112,6 +121,9 @@ public final class UiServices {
         this.missingSkillsFeedbackService = missingSkillsFeedbackService;
         this.skillGapAnalysisService = skillGapAnalysisService;
         this.applicantAvailabilityService = applicantAvailabilityService;
+        this.moApplicantRankingService = moApplicantRankingService;
+        this.moJobQualityService = moJobQualityService;
+        this.moJobAnalyticsService = moJobAnalyticsService;
         this.applicantAvatarStorageService = applicantAvatarStorageService;
         this.fakeAiAssistantService = fakeAiAssistantService;
         this.aiAssistantService = aiAssistantService;
@@ -192,6 +204,22 @@ public final class UiServices {
             profileRepository,
             jobRepository
         );
+        MoApplicantRankingService moApplicantRankingService = new MoApplicantRankingService(
+            applicationRepository,
+            jobRepository,
+            profileRepository,
+            cvRepository,
+            applicantAvailabilityService
+        );
+        MoJobQualityService moJobQualityService = new MoJobQualityService(
+            jobRepository,
+            applicationRepository
+        );
+        MoJobAnalyticsService moJobAnalyticsService = new MoJobAnalyticsService(
+            jobRepository,
+            applicationRepository,
+            moJobQualityService
+        );
         ApplicantAvatarStorageService applicantAvatarStorageService = new ApplicantAvatarStorageService(dataDirectory);
         FakeAiAssistantService fakeAiAssistantService = new FakeAiAssistantService(
             dataDirectory,
@@ -226,6 +254,9 @@ public final class UiServices {
             missingSkillsFeedbackService,
             skillGapAnalysisService,
             applicantAvailabilityService,
+            moApplicantRankingService,
+            moJobQualityService,
+            moJobAnalyticsService,
             applicantAvatarStorageService,
             fakeAiAssistantService,
             aiAssistantService
@@ -310,6 +341,18 @@ public final class UiServices {
 
     public ApplicantAvailabilityService applicantAvailabilityService() {
         return applicantAvailabilityService;
+    }
+
+    public MoApplicantRankingService moApplicantRankingService() {
+        return moApplicantRankingService;
+    }
+
+    public MoJobQualityService moJobQualityService() {
+        return moJobQualityService;
+    }
+
+    public MoJobAnalyticsService moJobAnalyticsService() {
+        return moJobAnalyticsService;
     }
 
     public ApplicantAvatarStorageService applicantAvatarStorageService() {

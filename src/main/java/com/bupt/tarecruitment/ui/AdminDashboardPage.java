@@ -52,9 +52,16 @@ public class AdminDashboardPage extends Application {
 
         AdminWorkloadPanel workloadPanel = AdminWorkloadPanel.create(context);
 
+        var analyticsButton = UiTheme.createOutlineButton("Open data analytics", 210, 42);
+        analyticsButton.setOnAction(event -> nav.goTo(PageId.ADMIN_ANALYTICS));
+
+        HBox actionRow = new HBox(12, analyticsButton);
+        actionRow.setAlignment(Pos.CENTER_LEFT);
+
         center.getChildren().addAll(
             UiTheme.createPageHeading("Admin dashboard"),
             UiTheme.createMutedText("Use this page to monitor accepted TA allocations and spot overload, schedule conflict, or schedule-data risks."),
+            actionRow,
             stats,
             workloadPanel.container()
         );

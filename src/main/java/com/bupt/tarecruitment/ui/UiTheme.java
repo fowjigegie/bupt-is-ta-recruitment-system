@@ -366,7 +366,8 @@ final class UiTheme {
                 new NavEntry("Dashboard", PageId.MO_DASHBOARD),
                 new NavEntry("Post\nVacancies", PageId.POST_VACANCIES),
                 new NavEntry("Job\nManagement", PageId.JOB_MANAGEMENT),
-                new NavEntry("Application\nReview", PageId.APPLICATION_REVIEW)
+                new NavEntry("Application\nReview", PageId.APPLICATION_REVIEW),
+                new NavEntry("MO\nInsights", PageId.MO_INSIGHTS)
             )
         );
     }

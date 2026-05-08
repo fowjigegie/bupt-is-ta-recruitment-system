@@ -1,11 +1,15 @@
 package com.bupt.tarecruitment.ui;
 
-import com.bupt.tarecruitment.application.ApplicationStatus;
+import java.util.Comparator;
+import java.util.List;
+
 import com.bupt.tarecruitment.application.ApplicationStatusPresenter;
 import com.bupt.tarecruitment.application.JobApplication;
 import com.bupt.tarecruitment.job.JobPosting;
+
 import javafx.application.Application;
 import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -19,9 +23,6 @@ import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.stage.Stage;
-
-import java.util.Comparator;
-import java.util.List;
 
 /**
  * 申请审核页，负责岗位切换、申请列表刷新和页面编排。
