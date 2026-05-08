@@ -43,6 +43,18 @@ public final class MoJobQualityService {
     }
 
     public JobQualityReport analyze(JobPosting job) {
+        return analyze(job, true);
+    }
+
+    /**
+     * Analyzes an unsaved draft from the Post Vacancies form.
+     * Demand-dependent checks are skipped because the job does not exist in the repository yet.
+     */
+    public JobQualityReport analyzeDraft(JobPosting job) {
+        return analyze(job, false);
+    }
+
+    private JobQualityReport analyze(JobPosting job, boolean includeDemandChecks) {
         Objects.requireNonNull(job);
         List<JobQualityIssue> issues = new ArrayList<>();
 
@@ -73,7 +85,7 @@ public final class MoJobQualityService {
         } else if (job.weeklyHours() > HIGH_WEEKLY_HOURS) {
             issues.add(new JobQualityIssue("WARNING", "HIGH_WEEKLY_HOURS", "Weekly hours are high and may reduce applicant availability."));
         }
-        if (job.status() == JobStatus.OPEN && applicationCount(job.jobId()) == 0) {
+        if (includeDemandChecks && job.status() == JobStatus.OPEN && applicationCount(job.jobId()) == 0) {
             issues.add(new JobQualityIssue("INFO", "NO_APPLICATIONS", "Open job currently has no applications."));
         }
 

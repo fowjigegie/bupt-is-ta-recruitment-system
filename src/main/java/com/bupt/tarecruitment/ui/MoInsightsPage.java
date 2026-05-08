@@ -4,9 +4,12 @@ import com.bupt.tarecruitment.application.ApplicationStatusPresenter;
 import com.bupt.tarecruitment.common.text.DisplayFormats;
 import com.bupt.tarecruitment.job.JobPosting;
 import com.bupt.tarecruitment.mo.JobQualityIssue;
+import com.bupt.tarecruitment.mo.CandidateComparisonRow;
 import com.bupt.tarecruitment.mo.JobQualityReport;
 import com.bupt.tarecruitment.mo.MoJobAnalyticsRow;
+import com.bupt.tarecruitment.mo.MoDecisionLogEntry;
 import com.bupt.tarecruitment.mo.MoJobAnalyticsSummary;
+import com.bupt.tarecruitment.mo.MoShortlistEntry;
 import com.bupt.tarecruitment.mo.RankedApplicantCandidate;
 import javafx.application.Application;
 import javafx.geometry.Insets;
@@ -84,7 +87,8 @@ public class MoInsightsPage extends Application {
                 createAnalyticsSummaryCards(summary),
                 createSectionCard("Choose job", "Select one of your jobs to view ranking and quality details.", jobBox),
                 selectedJobPanel,
-                createJobPerformanceSection(summary)
+                createJobPerformanceSection(summary),
+                createDecisionLogSection(context)
             );
 
             refreshSelectedJob.run();
@@ -144,10 +148,16 @@ public class MoInsightsPage extends Application {
         JobQualityReport qualityReport = context.services().moJobQualityService().analyzeJob(job.jobId());
         List<RankedApplicantCandidate> rankedApplicants = context.services().moApplicantRankingService()
             .rankApplicantsForJob(job.jobId());
+        List<CandidateComparisonRow> comparisonRows = context.services().moCandidateComparisonService()
+            .compareTopCandidates(job.jobId(), 4);
+        List<MoShortlistEntry> shortlistEntries = context.services().moShortlistService()
+            .listForJob(context.session().userId(), job.jobId());
 
         selectedJobPanel.getChildren().addAll(
             createQualitySection(qualityReport),
-            createRankingSection(rankedApplicants)
+            createRankingSection(rankedApplicants),
+            createCandidateComparisonSection(comparisonRows),
+            createShortlistSection(shortlistEntries)
         );
     }
 
@@ -207,6 +217,132 @@ public class MoInsightsPage extends Application {
             "Ranks applicants by skill match, availability, CV presence, profile completeness, and review status.",
             list
         );
+    }
+
+
+    private static VBox createCandidateComparisonSection(List<CandidateComparisonRow> rows) {
+        VBox list = new VBox(10);
+        if (rows.isEmpty()) {
+            list.getChildren().add(createSoftInfoRow("No candidates to compare for this job yet."));
+        } else {
+            for (CandidateComparisonRow row : rows) {
+                list.getChildren().add(createComparisonRow(row));
+            }
+        }
+
+        return createSectionCard(
+            "Candidate comparison",
+            "Compares the strongest candidates by rank score, skill match, availability, CV status, and MO candidate-pool label.",
+            list
+        );
+    }
+
+    private static VBox createShortlistSection(List<MoShortlistEntry> entries) {
+        VBox list = new VBox(10);
+        if (entries.isEmpty()) {
+            list.getChildren().add(createSoftInfoRow("No candidate pool labels yet. Use Application Review to mark applicants as SHORTLISTED, MAYBE, or NOT_SUITABLE."));
+        } else {
+            for (MoShortlistEntry entry : entries) {
+                list.getChildren().add(createShortlistRow(entry));
+            }
+        }
+
+        return createSectionCard(
+            "Candidate pool",
+            "Shows MO-managed shortlist labels. This is separate from final application status, so it supports early-stage decision making.",
+            list
+        );
+    }
+
+    private static VBox createDecisionLogSection(UiAppContext context) {
+        VBox list = new VBox(10);
+        List<MoDecisionLogEntry> entries = context.services().moDecisionLogService()
+            .listRecentForOrganiser(context.session().userId(), 8);
+        if (entries.isEmpty()) {
+            list.getChildren().add(createSoftInfoRow("No MO decision activity has been recorded yet."));
+        } else {
+            for (MoDecisionLogEntry entry : entries) {
+                list.getChildren().add(createDecisionLogRow(entry));
+            }
+        }
+
+        return createSectionCard(
+            "Recent MO decision log",
+            "Tracks shortlist labels and formal status decisions for auditability.",
+            list
+        );
+    }
+
+    private static HBox createComparisonRow(CandidateComparisonRow rowData) {
+        Label score = createCircleLabel(Integer.toString(rowData.rankScore()), scoreColor(rowData.rankScore()));
+
+        VBox text = new VBox(5);
+        Label name = new Label(rowData.applicantName() + " (" + rowData.applicantUserId() + ")");
+        name.setFont(Font.font("Arial", FontWeight.BOLD, 16));
+        name.setStyle("-fx-text-fill: #4664a8;");
+
+        Label meta = new Label(
+            "Skill match: " + rowData.skillMatchPercent() + "%"
+                + " | Availability: " + (rowData.availabilityFit() ? "Fit" : "Risk")
+                + " | CV: " + (rowData.hasCv() ? "Yes" : "Missing")
+                + " | Pool: " + (rowData.shortlistStatus() == null ? "-" : rowData.shortlistStatus().name())
+        );
+        meta.setStyle("-fx-text-fill: #5c6481;");
+        meta.setWrapText(true);
+
+        Label notes = new Label("Notes: " + String.join(", ", rowData.decisionNotes()));
+        notes.setStyle("-fx-text-fill: #8b7fa0; -fx-font-size: 13px;");
+        notes.setWrapText(true);
+
+        text.getChildren().addAll(name, meta, notes);
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+        Label status = createStatusBadge(ApplicationStatusPresenter.toDisplayText(rowData.applicationStatus()), "#4664a8");
+
+        HBox row = new HBox(12, score, text, spacer, status);
+        row.setAlignment(Pos.CENTER_LEFT);
+        row.setPadding(new Insets(14));
+        row.setStyle("-fx-background-color: #fff8fb; -fx-background-radius: 18; -fx-border-color: #f4d9e6; -fx-border-radius: 18;");
+        return row;
+    }
+
+    private static HBox createShortlistRow(MoShortlistEntry entry) {
+        Label status = createStatusBadge(entry.status().name(), switch (entry.status()) {
+            case SHORTLISTED -> "#2e7d32";
+            case MAYBE -> "#f39c12";
+            case NOT_SUITABLE -> "#e74c3c";
+        });
+        Label text = new Label(
+            entry.applicantUserId()
+                + " | application " + entry.applicationId()
+                + " | " + entry.note()
+                + " | updated " + entry.updatedAt().toLocalDate()
+        );
+        text.setStyle("-fx-text-fill: #3f4370;");
+        text.setWrapText(true);
+        HBox row = new HBox(10, status, text);
+        row.setAlignment(Pos.CENTER_LEFT);
+        row.setPadding(new Insets(12));
+        row.setStyle("-fx-background-color: #fff8fb; -fx-background-radius: 16;");
+        return row;
+    }
+
+    private static HBox createDecisionLogRow(MoDecisionLogEntry entry) {
+        Label action = createStatusBadge(entry.action(), "#4664a8");
+        Label text = new Label(
+            entry.timestamp().toLocalDate()
+                + " " + entry.timestamp().toLocalTime().withNano(0)
+                + " | job " + entry.jobId()
+                + " | applicant " + entry.applicantUserId()
+                + " | " + entry.detail()
+        );
+        text.setStyle("-fx-text-fill: #3f4370;");
+        text.setWrapText(true);
+        HBox row = new HBox(10, action, text);
+        row.setAlignment(Pos.CENTER_LEFT);
+        row.setPadding(new Insets(12));
+        row.setStyle("-fx-background-color: #fff8fb; -fx-background-radius: 16;");
+        return row;
     }
 
     private static VBox createJobPerformanceSection(MoJobAnalyticsSummary summary) {

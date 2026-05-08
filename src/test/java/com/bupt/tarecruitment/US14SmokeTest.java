@@ -44,6 +44,7 @@ public final class US14SmokeTest {
             JobRepository jobRepository = new TextFileJobRepository(tempDataDirectory);
 
             AuthService authService = new AuthService(userRepository, new AuthValidator());
+            authService.register("admin101", "pass-admin101", UserRole.ADMIN);
             authService.register("mo101", "pass-mo101", UserRole.MO);
             authService.register("mo201", "pass-mo201", UserRole.MO);
             authService.register("ta101", "pass-ta101", UserRole.APPLICANT);

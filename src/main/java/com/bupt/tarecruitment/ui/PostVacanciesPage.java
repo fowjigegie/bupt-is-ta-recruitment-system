@@ -2,6 +2,8 @@ package com.bupt.tarecruitment.ui;
 
 import com.bupt.tarecruitment.job.JobPosting;
 import com.bupt.tarecruitment.job.JobStatus;
+import com.bupt.tarecruitment.mo.JobQualityIssue;
+import com.bupt.tarecruitment.mo.JobQualityReport;
 import com.bupt.tarecruitment.common.skill.SkillCatalog;
 import javafx.application.Application;
 import javafx.beans.binding.Bindings;
@@ -56,6 +58,11 @@ public class PostVacanciesPage extends Application {
         ));
         statusLabel.visibleProperty().bind(statusLabel.managedProperty());
 
+        VBox qualityAssistantBox = new VBox(10);
+        qualityAssistantBox.setMaxWidth(Double.MAX_VALUE);
+        Runnable refreshQualityAssistant = () -> renderQualityAssistant(context, form, isEditMode ? editJob.get().jobId() : "draft-job", qualityAssistantBox);
+        form.onChange(refreshQualityAssistant);
+
         Label titleLabel = new Label(isEditMode ? "Edit Posting" : "New Posting");
         titleLabel.setStyle(
             "-fx-font-size: 32px;" +
@@ -102,9 +109,12 @@ public class PostVacanciesPage extends Application {
             form.createMetaRow(),
             form.createScheduleSelectorBox(),
             form.createDetailRow(),
+            qualityAssistantBox,
             statusLabel,
             actionRow
         );
+
+        refreshQualityAssistant.run();
 
         center.getChildren().addAll(titleLabel, formBox);
 
@@ -136,6 +146,90 @@ public class PostVacanciesPage extends Application {
             .flatMap(job -> job.requiredSkills().stream())
             .toList();
         return SkillCatalog.mergeSuggestedSkillCategories(jobSkills);
+    }
+
+    private static void renderQualityAssistant(
+        UiAppContext context,
+        PostVacancyForm form,
+        String draftJobId,
+        VBox qualityAssistantBox
+    ) {
+        qualityAssistantBox.getChildren().clear();
+
+        JobPosting draft = form.toDraftJobPosting(draftJobId, JobStatus.OPEN, 0);
+        JobQualityReport report = context.services().moJobQualityService().analyzeDraft(draft);
+
+        Label title = new Label("Live job quality assistant");
+        title.setFont(javafx.scene.text.Font.font("Arial", javafx.scene.text.FontWeight.BOLD, 18));
+        title.setTextFill(Color.web("#4664a8"));
+
+        Label score = new Label("Quality score: " + report.qualityScore() + " / 100");
+        score.setFont(javafx.scene.text.Font.font("Arial", javafx.scene.text.FontWeight.BOLD, 15));
+        score.setTextFill(Color.WHITE);
+        score.setPadding(new Insets(6, 12, 6, 12));
+        score.setStyle(
+            "-fx-background-color: " + scoreColor(report.qualityScore()) + ";" +
+                "-fx-background-radius: 16;"
+        );
+
+        Label status = new Label(report.readyForPublishing() ? "Ready to publish" : "Needs attention before publishing");
+        status.setFont(javafx.scene.text.Font.font("Arial", javafx.scene.text.FontWeight.BOLD, 15));
+        status.setTextFill(report.readyForPublishing() ? Color.web("#2e7d32") : Color.web("#b00020"));
+
+        HBox header = new HBox(12, title, score, status);
+        header.setAlignment(Pos.CENTER_LEFT);
+
+        VBox issueList = new VBox(8);
+        if (report.issues().isEmpty()) {
+            Label empty = UiTheme.createMutedText("No quality issues detected. This posting is clear and ready.");
+            issueList.getChildren().add(empty);
+        } else {
+            for (JobQualityIssue issue : report.issues()) {
+                issueList.getChildren().add(createQualityIssueRow(issue));
+            }
+        }
+
+        qualityAssistantBox.getChildren().addAll(header, issueList);
+        qualityAssistantBox.setPadding(new Insets(16));
+        qualityAssistantBox.setStyle(
+            "-fx-background-color: #fff8fb;" +
+                "-fx-background-radius: 20;" +
+                "-fx-border-color: #f4d9e6;" +
+                "-fx-border-width: 1.5;" +
+                "-fx-border-radius: 20;"
+        );
+    }
+
+    private static HBox createQualityIssueRow(JobQualityIssue issue) {
+        String color = switch (issue.severity()) {
+            case "CRITICAL" -> "#e74c3c";
+            case "WARNING" -> "#f39c12";
+            default -> "#4664a8";
+        };
+
+        Label severity = new Label(issue.severity());
+        severity.setFont(javafx.scene.text.Font.font("Arial", javafx.scene.text.FontWeight.BOLD, 12));
+        severity.setTextFill(Color.WHITE);
+        severity.setPadding(new Insets(4, 9, 4, 9));
+        severity.setStyle("-fx-background-color: " + color + "; -fx-background-radius: 12;");
+
+        Label message = new Label(issue.code() + " | " + issue.message());
+        message.setWrapText(true);
+        message.setTextFill(Color.web("#3f4370"));
+
+        HBox row = new HBox(10, severity, message);
+        row.setAlignment(Pos.CENTER_LEFT);
+        return row;
+    }
+
+    private static String scoreColor(int score) {
+        if (score >= 80) {
+            return "#2e7d32";
+        }
+        if (score >= 55) {
+            return "#f39c12";
+        }
+        return "#e74c3c";
     }
 
     private static void publish(

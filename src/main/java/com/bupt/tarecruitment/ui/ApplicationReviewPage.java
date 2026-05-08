@@ -2,10 +2,14 @@ package com.bupt.tarecruitment.ui;
 
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import com.bupt.tarecruitment.application.ApplicationStatusPresenter;
 import com.bupt.tarecruitment.application.JobApplication;
 import com.bupt.tarecruitment.job.JobPosting;
+import com.bupt.tarecruitment.mo.RankedApplicantCandidate;
 
 import javafx.application.Application;
 import javafx.geometry.Insets;
@@ -64,7 +68,23 @@ public class ApplicationReviewPage extends Application {
                     return;
                 }
 
-                List<JobApplication> applications = loadApplicationsForJob(context, selectedJob.jobId());
+                List<RankedApplicantCandidate> rankedCandidates = context.services().moApplicantRankingService()
+                    .rankApplicantsForJob(selectedJob.jobId());
+                Map<String, RankedApplicantCandidate> rankingByApplicationId = rankedCandidates.stream()
+                    .collect(Collectors.toMap(
+                        RankedApplicantCandidate::applicationId,
+                        Function.identity(),
+                        (left, right) -> left
+                    ));
+
+                List<JobApplication> applications = loadApplicationsForJob(context, selectedJob.jobId()).stream()
+                    .sorted(Comparator
+                        .comparingInt((JobApplication application) -> rankingByApplicationId
+                            .getOrDefault(application.applicationId(), fallbackCandidate(application))
+                            .rankScore())
+                        .reversed()
+                        .thenComparing(JobApplication::applicationId))
+                    .toList();
                 if (applications.isEmpty()) {
                     workspace.applicantListBox().getChildren().add(UiTheme.createWhiteCard(
                         "No applications",
@@ -78,13 +98,20 @@ public class ApplicationReviewPage extends Application {
 
                 if (workspace.selectedApplication() == null
                     || applications.stream().noneMatch(app -> app.applicationId().equals(workspace.selectedApplication().applicationId()))) {
-                    workspace.setSelectedApplication(applications.getFirst());
+                    workspace.setSelectedApplication(applications.get(0));
+                }
+
+                if (!rankedCandidates.isEmpty()) {
+                    workspace.applicantListBox().getChildren().add(createRankingSummaryCard(rankedCandidates));
                 }
 
                 for (JobApplication application : applications) {
+                    RankedApplicantCandidate candidate = rankingByApplicationId
+                        .getOrDefault(application.applicationId(), fallbackCandidate(application));
                         workspace.applicantListBox().getChildren().add(createApplicantRow(
                             context,
                             application,
+                            candidate,
                             workspace.selectedApplication() != null
                                 && application.applicationId().equals(workspace.selectedApplication().applicationId()),
                             selected -> {
@@ -156,6 +183,7 @@ public class ApplicationReviewPage extends Application {
     private static HBox createApplicantRow(
         UiAppContext context,
         JobApplication application,
+        RankedApplicantCandidate candidate,
         boolean selected,
         java.util.function.Consumer<JobApplication> onSelect
     ) {
@@ -186,6 +214,37 @@ public class ApplicationReviewPage extends Application {
                 + " -fx-background-radius: 10;"
         );
 
+        Label scoreLabel = new Label("Rank " + candidate.rankScore());
+        scoreLabel.setFont(Font.font("Arial", FontWeight.BOLD, 13));
+        scoreLabel.setTextFill(Color.WHITE);
+        scoreLabel.setPadding(new Insets(4, 10, 4, 10));
+        scoreLabel.setStyle(
+            "-fx-background-color: " + rankingScoreColor(candidate.rankScore()) + ";"
+                + " -fx-background-radius: 10;"
+        );
+
+        Label matchLabel = new Label(candidate.skillMatchPercent() + "% skills");
+        matchLabel.setFont(Font.font("Arial", FontWeight.BOLD, 13));
+        matchLabel.setTextFill(Color.web("#4664a8"));
+        matchLabel.setPadding(new Insets(4, 10, 4, 10));
+        matchLabel.setStyle(
+            "-fx-background-color: #eef2ff;"
+                + " -fx-background-radius: 10;"
+        );
+
+        String poolText = context.services().moShortlistService()
+            .findByApplicationId(application.applicationId())
+            .map(entry -> "Pool " + entry.status().name())
+            .orElse("Pool -");
+        Label poolLabel = new Label(poolText);
+        poolLabel.setFont(Font.font("Arial", FontWeight.BOLD, 13));
+        poolLabel.setTextFill(Color.web("#5c6481"));
+        poolLabel.setPadding(new Insets(4, 10, 4, 10));
+        poolLabel.setStyle(
+            "-fx-background-color: #fff3f7;"
+                + " -fx-background-radius: 10;"
+        );
+
         Button detailsButton = UiTheme.createSoftButton("View", 80, 42);
         // Row action only updates local page state; no navigation side effects.
         detailsButton.setOnAction(event -> onSelect.accept(application));
@@ -195,7 +254,7 @@ public class ApplicationReviewPage extends Application {
         HBox.setHgrow(spacer1, Priority.ALWAYS);
         HBox.setHgrow(spacer2, Priority.ALWAYS);
 
-        HBox row = new HBox(16, nameLabel, spacer1, statusLabel, detailsButton);
+        HBox row = new HBox(12, nameLabel, spacer1, scoreLabel, matchLabel, poolLabel, statusLabel, detailsButton);
         row.setAlignment(Pos.CENTER_LEFT);
         row.setPadding(new Insets(14, 16, 14, 16));
         row.setMaxWidth(Double.MAX_VALUE);
@@ -204,6 +263,59 @@ public class ApplicationReviewPage extends Application {
                 + "-fx-border-color: #f4d9e6; -fx-border-width: 0 0 2 0;"
         );
         return row;
+    }
+
+    private static VBox createRankingSummaryCard(List<RankedApplicantCandidate> candidates) {
+        RankedApplicantCandidate top = candidates.get(0);
+        Label title = new Label("AI-style applicant ranking");
+        title.setFont(Font.font("Arial", FontWeight.BOLD, 16));
+        title.setTextFill(Color.web("#4664a8"));
+
+        Label body = new Label(
+            "Top candidate: " + top.applicantName()
+                + " | Score: " + top.rankScore()
+                + " | Skill match: " + top.skillMatchPercent() + "%"
+                + " | Availability: " + (top.availabilityFit() ? "Fit" : "Risk")
+        );
+        body.setWrapText(true);
+        body.setTextFill(Color.web("#5c6481"));
+
+        VBox card = new VBox(6, title, body);
+        card.setPadding(new Insets(12, 14, 12, 14));
+        card.setStyle(
+            "-fx-background-color: #fff8fb;" +
+                "-fx-background-radius: 16;" +
+                "-fx-border-color: #f4d9e6;" +
+                "-fx-border-radius: 16;"
+        );
+        return card;
+    }
+
+    private static RankedApplicantCandidate fallbackCandidate(JobApplication application) {
+        return new RankedApplicantCandidate(
+            application.applicationId(),
+            application.jobId(),
+            application.applicantUserId(),
+            application.applicantUserId(),
+            application.status(),
+            0,
+            0,
+            false,
+            false,
+            List.of(),
+            List.of(),
+            List.of("Ranking data unavailable")
+        );
+    }
+
+    private static String rankingScoreColor(int score) {
+        if (score >= 80) {
+            return "#2e7d32";
+        }
+        if (score >= 55) {
+            return "#f39c12";
+        }
+        return "#e74c3c";
     }
 
     public static void main(String[] args) {
