@@ -69,7 +69,7 @@ public class RegisterPage extends Application {
         roleLabel.setStyle("-fx-font-size: 16px; -fx-text-fill: black;");
 
         ComboBox<UserRole> roleBox = new ComboBox<>();
-        roleBox.getItems().addAll(UserRole.APPLICANT, UserRole.MO, UserRole.ADMIN);
+        roleBox.getItems().addAll(UserRole.APPLICANT, UserRole.MO);
         roleBox.setValue(UserRole.APPLICANT);
         roleBox.setPrefHeight(40);
         roleBox.setPrefWidth(260);
@@ -81,7 +81,7 @@ public class RegisterPage extends Application {
         );
 
         Label ruleHint = UiTheme.createMutedText(
-            "Use ta### for APPLICANT, mo### for MO, and admin### for ADMIN."
+            "Use ta### for APPLICANT or mo### for MO. Admin is a system-maintained account."
         );
         Label statusLabel = new Label();
         statusLabel.setWrapText(true);
