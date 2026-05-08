@@ -81,10 +81,12 @@ public final class NavigationManager {
 
         // US00: 统一做权限/登录拦截，未登录或角色不匹配会被重定向
         PageId targetPage = normalizeTarget(requestedPage);
+
         // 只有实际发生跳转时才压栈
         if (pushHistory && currentPage != null && currentPage != targetPage) {
             history.push(currentPage);
         }
+
         currentPage = targetPage;
 
         Scene scene = switch (targetPage) {
@@ -102,7 +104,9 @@ public final class NavigationManager {
             case POST_VACANCIES -> PostVacanciesPage.createScene(this, context);
             case JOB_MANAGEMENT -> JobManagementPage.createScene(this, context);
             case APPLICATION_REVIEW -> ApplicationReviewPage.createScene(this, context);
+            case MO_INSIGHTS -> MoInsightsPage.createScene(this, context);
             case ADMIN_DASHBOARD -> AdminDashboardPage.createScene(this, context);
+            case ADMIN_ANALYTICS -> AdminAnalyticsPage.createScene(this, context);
         };
 
         // 记录当前窗口状态，避免页面切换后窗口大小/位置突变
@@ -177,8 +181,8 @@ public final class NavigationManager {
         return switch (pageId) {
             case APPLICANT_DASHBOARD, TA_WORKLOAD, MORE_JOBS, RESUME_DATABASE, SKILL_SELECTOR, JOB_DETAIL, INTERVIEW_INVITATION ->
                 UserRole.APPLICANT;
-            case MO_DASHBOARD, POST_VACANCIES, JOB_MANAGEMENT, APPLICATION_REVIEW -> UserRole.MO;
-            case ADMIN_DASHBOARD -> UserRole.ADMIN;
+            case MO_DASHBOARD, POST_VACANCIES, JOB_MANAGEMENT, APPLICATION_REVIEW, MO_INSIGHTS -> UserRole.MO;
+            case ADMIN_DASHBOARD, ADMIN_ANALYTICS -> UserRole.ADMIN;
             default -> null;
         };
     }
@@ -207,7 +211,9 @@ public final class NavigationManager {
             case POST_VACANCIES -> "BUPT-TA Post Vacancies";
             case JOB_MANAGEMENT -> "BUPT-TA Job Management";
             case APPLICATION_REVIEW -> "BUPT-TA Application Review";
+            case MO_INSIGHTS -> "BUPT-TA MO Insights";
             case ADMIN_DASHBOARD -> "BUPT-TA Admin Dashboard";
+            case ADMIN_ANALYTICS -> "BUPT-TA Admin Data Analytics";
         };
     }
 }

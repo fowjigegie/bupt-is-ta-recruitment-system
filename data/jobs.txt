@@ -21,3 +21,4 @@ job904|mo006|Python Statistics Lab Support|COMP904|Lab session|Support applied s
 job905|mo001|RFID Lab Assistant|EBU6011|Lab session|Assist with RFID reader setup, tag testing, and lab safety checks during the IoT practical session.|RFID;IoT;Lab Support|2|FRI-16:35-18:10|OPEN
 job906|mo001|Software Engineering Mentor|EBU6304|Project / development|Mentor student teams on requirements analysis, version control, and Java project structure.|Java;Software Engineering;Teamwork|1.5|WED-08:00-09:35|OPEN
 job907|mo001|Machine Learning Tutorial Assistant|COMP5566|Tutorial|Support machine-learning tutorials on Linux-based tooling, model evaluation, and Python workflows.|Linux;Software Engineering;Machine Learning;Python|1.5|TUE-11:40-12:25|OPEN
+job908|mo001|EBU1111|math|Other|1||9|MON-08:00-09:35;MON-09:50-11:25;MON-11:40-12:25;MON-13:00-14:35;MON-14:45-16:25;MON-16:35-18:10|OPEN
