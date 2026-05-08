@@ -175,8 +175,8 @@ final class AdminJobManagementPanel {
         )));
 
         VBox identity = new VBox(5);
-        identity.setMinWidth(360);
-        identity.setPrefWidth(460);
+        identity.setMinWidth(300);
+        identity.setPrefWidth(390);
         Label titleLabel = new Label(job.title());
         titleLabel.setFont(Font.font("Arial", FontWeight.BOLD, 18));
         titleLabel.setWrapText(true);
@@ -233,7 +233,24 @@ final class AdminJobManagementPanel {
             closeButton.setOpacity(0.72);
         }
 
-        row.getChildren().addAll(identity, chips, spacer, closeButton);
+        Button aiReviewButton = UiTheme.createOutlineButton("AI review", 120, 42);
+        aiReviewButton.setStyle(
+            "-fx-background-color: #fff0f8;" +
+                "-fx-text-fill: #2f3553;" +
+                "-fx-background-radius: 22;" +
+                "-fx-border-color: #f0a6e9;" +
+                "-fx-border-width: 2;" +
+                "-fx-border-radius: 22;" +
+                "-fx-font-weight: bold;" +
+                "-fx-cursor: hand;"
+        );
+        aiReviewButton.setOnAction(event -> AdminAiAnalysisDialog.showJobPostingReview(
+            aiReviewButton.getScene() == null ? null : aiReviewButton.getScene().getWindow(),
+            context,
+            job
+        ));
+
+        row.getChildren().addAll(identity, chips, spacer, aiReviewButton, closeButton);
         return row;
     }
 

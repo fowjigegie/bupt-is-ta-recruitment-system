@@ -44,17 +44,20 @@ final class AdminWorkloadPanel {
 
     private final TextField weeklyHourLimitField;
     private final Label statusLabel;
+    private final VBox workloadOverview;
     private final VBox workloadCards;
     private final VBox container;
 
     private AdminWorkloadPanel(
         TextField weeklyHourLimitField,
         Label statusLabel,
+        VBox workloadOverview,
         VBox workloadCards,
         VBox container
     ) {
         this.weeklyHourLimitField = weeklyHourLimitField;
         this.statusLabel = statusLabel;
+        this.workloadOverview = workloadOverview;
         this.workloadCards = workloadCards;
         this.container = container;
     }
@@ -77,6 +80,7 @@ final class AdminWorkloadPanel {
         statusLabel.setTextFill(Color.web("#b00020"));
 
         VBox workloadCards = new VBox(16);
+        VBox workloadOverview = new VBox(10);
         ScrollPane workloadScroll = new ScrollPane(workloadCards);
         workloadScroll.setFitToWidth(true);
         workloadScroll.setPrefViewportHeight(320);
@@ -94,11 +98,12 @@ final class AdminWorkloadPanel {
             UiTheme.createMutedText("Live view of ACCEPTED TA assignments, overload warnings, schedule conflicts, and invalid schedule data."),
             controlRow,
             statusLabel,
+            workloadOverview,
             workloadScroll
         );
         container.setStyle("-fx-text-fill: #2f3553;");
 
-        AdminWorkloadPanel panel = new AdminWorkloadPanel(weeklyHourLimitField, statusLabel, workloadCards, container);
+        AdminWorkloadPanel panel = new AdminWorkloadPanel(weeklyHourLimitField, statusLabel, workloadOverview, workloadCards, container);
         refreshButton.setOnAction(event -> panel.reload(context));
         panel.reload(context);
         return panel;
@@ -110,6 +115,7 @@ final class AdminWorkloadPanel {
 
     private void reload(UiAppContext context) {
         workloadCards.getChildren().clear();
+        workloadOverview.getChildren().clear();
         statusLabel.setText("");
         statusLabel.setTextFill(Color.web("#b00020"));
 
@@ -149,6 +155,8 @@ final class AdminWorkloadPanel {
                     .formatted(summaries.size(), flaggedCount)
             );
 
+            workloadOverview.getChildren().add(createWorkloadOverview(summaries, weeklyHourLimit));
+
             for (WorkloadSummary summary : summaries) {
                 workloadCards.getChildren().add(createWorkloadCard(summary));
             }
@@ -156,6 +164,61 @@ final class AdminWorkloadPanel {
             statusLabel.setTextFill(Color.web("#b00020"));
             statusLabel.setText(exception.getMessage());
         }
+    }
+
+    private static VBox createWorkloadOverview(List<WorkloadSummary> summaries, int weeklyHourLimit) {
+        Label title = createSubheading("TA workload overview");
+
+        double maxHours = summaries.stream()
+            .mapToDouble(WorkloadSummary::totalWeeklyHours)
+            .max()
+            .orElse(weeklyHourLimit);
+        double scaleMax = Math.max(weeklyHourLimit, maxHours);
+
+        VBox bars = new VBox(8);
+        for (WorkloadSummary summary : summaries.stream()
+            .sorted(Comparator.comparingDouble(WorkloadSummary::totalWeeklyHours).reversed())
+            .toList()) {
+            bars.getChildren().add(createWorkloadOverviewRow(summary, scaleMax, weeklyHourLimit));
+        }
+
+        VBox panel = new VBox(10, title, bars);
+        panel.setPadding(new Insets(18));
+        panel.setMaxWidth(Double.MAX_VALUE);
+        panel.setBackground(new Background(new BackgroundFill(Color.WHITE, new CornerRadii(24), Insets.EMPTY)));
+        panel.setBorder(new Border(new BorderStroke(
+            Color.web("#f4d9e6"),
+            BorderStrokeStyle.SOLID,
+            new CornerRadii(24),
+            new BorderWidths(1.5)
+        )));
+        return panel;
+    }
+
+    private static HBox createWorkloadOverviewRow(WorkloadSummary summary, double scaleMax, int weeklyHourLimit) {
+        Label name = new Label(summary.applicantDisplayName());
+        name.setMinWidth(220);
+        name.setPrefWidth(260);
+        name.setWrapText(true);
+        name.setFont(Font.font("Arial", FontWeight.BOLD, 14));
+        name.setStyle("-fx-text-fill: #4664a8;");
+
+        Region bar = new Region();
+        bar.setMinHeight(18);
+        bar.setPrefWidth(Math.max(18, 520.0 * summary.totalWeeklyHours() / Math.max(1, scaleMax)));
+        bar.setStyle(
+            "-fx-background-color: " + (summary.totalWeeklyHours() > weeklyHourLimit ? "#ffd58a" : "#9fd6a6") + ";" +
+                "-fx-background-radius: 9;"
+        );
+
+        Label hours = new Label(DisplayFormats.formatDecimal(summary.totalWeeklyHours()) + "h");
+        hours.setMinWidth(70);
+        hours.setFont(Font.font("Arial", FontWeight.BOLD, 13));
+        hours.setStyle("-fx-text-fill: #5c6481;");
+
+        HBox row = new HBox(12, name, bar, hours);
+        row.setAlignment(Pos.CENTER_LEFT);
+        return row;
     }
 
     private static VBox createWorkloadCard(WorkloadSummary summary) {

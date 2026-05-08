@@ -58,9 +58,14 @@ public final class NvidiaAiAssistantClient {
     }
 
     public String chat(String systemPrompt, String userPrompt) {
+        return chat(systemPrompt, userPrompt, 360);
+    }
+
+    public String chat(String systemPrompt, String userPrompt, int maxTokens) {
         if (!isConfigured()) {
             throw new IllegalStateException("NVIDIA_API_KEY is not configured.");
         }
+        int safeMaxTokens = Math.max(120, Math.min(1200, maxTokens));
 
         String requestJson = """
             {
@@ -70,7 +75,7 @@ public final class NvidiaAiAssistantClient {
                 { "role": "user", "content": "%s" }
               ],
               "temperature": 0.3,
-              "max_tokens": 360,
+              "max_tokens": %d,
               "stream": false,
               "chat_template_kwargs": {
                 "enable_thinking": false
@@ -79,7 +84,8 @@ public final class NvidiaAiAssistantClient {
             """.formatted(
                 jsonEscape(model),
                 jsonEscape(systemPrompt),
-                jsonEscape(userPrompt)
+                jsonEscape(userPrompt),
+                safeMaxTokens
             );
 
         HttpRequest request = HttpRequest.newBuilder(CHAT_COMPLETIONS_URI)
