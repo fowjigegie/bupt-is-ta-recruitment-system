@@ -7,9 +7,12 @@ import com.bupt.tarecruitment.assistant.NvidiaAiAssistantClient;
 import com.bupt.tarecruitment.auth.UserRole;
 import com.bupt.tarecruitment.job.JobPosting;
 import com.bupt.tarecruitment.job.JobStatus;
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
 import javafx.concurrent.Task;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -31,6 +34,7 @@ import javafx.scene.text.FontWeight;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.Window;
+import javafx.util.Duration;
 
 import java.util.Comparator;
 import java.util.List;
@@ -104,25 +108,22 @@ final class AdminAiAnalysisDialog {
         subtitle.setFont(Font.font("Arial", 14));
         subtitle.setTextFill(Color.web("#8b7fa0"));
 
-        Label output = new Label("Analyzing system data with NVIDIA...");
-        output.setWrapText(true);
-        output.setFont(Font.font("Arial", 15));
-        output.setTextFill(Color.web("#2f3553"));
-        output.setPadding(new Insets(18));
-        output.setBackground(new Background(new BackgroundFill(Color.WHITE, new CornerRadii(20), Insets.EMPTY)));
-        output.setBorder(new Border(new BorderStroke(
-            Color.web("#f4d9e6"),
-            BorderStrokeStyle.SOLID,
-            new CornerRadii(20),
-            new BorderWidths(1.5)
-        )));
+        VBox transcript = new VBox(12);
+        transcript.setPadding(new Insets(8, 6, 8, 6));
+        transcript.getChildren().addAll(
+            createAssistantBubble("I will analyze the current admin data and return a concise management review."),
+            createMetaLabel("Assistant provider: " + createProviderText())
+        );
 
-        ScrollPane resultScroll = new ScrollPane(output);
+        Label thinkingLabel = createBubbleLabel("Thinking...");
+        transcript.getChildren().add(wrapAssistantBubble(thinkingLabel));
+
+        ScrollPane resultScroll = new ScrollPane(transcript);
         resultScroll.setFitToWidth(true);
         resultScroll.setPrefViewportHeight(460);
         resultScroll.setStyle(
-            "-fx-background-color: transparent;" +
-                "-fx-background: transparent;" +
+            "-fx-background:#ffffff;" +
+                "-fx-background-color:#ffffff;" +
                 "-fx-border-color: transparent;"
         );
 
@@ -135,6 +136,14 @@ final class AdminAiAnalysisDialog {
         shell.setPadding(new Insets(24));
         shell.setBackground(UiTheme.pageBackground());
 
+        Timeline thinkingAnimation = new Timeline(
+            new KeyFrame(Duration.ZERO, event -> thinkingLabel.setText("Thinking.")),
+            new KeyFrame(Duration.millis(350), event -> thinkingLabel.setText("Thinking..")),
+            new KeyFrame(Duration.millis(700), event -> thinkingLabel.setText("Thinking..."))
+        );
+        thinkingAnimation.setCycleCount(Timeline.INDEFINITE);
+        thinkingAnimation.play();
+
         Task<String> task = new Task<>() {
             @Override
             protected String call() {
@@ -143,14 +152,27 @@ final class AdminAiAnalysisDialog {
                     return "NVIDIA_API_KEY is not configured for this Java process.\n\n"
                         + "Set it before launching the app, then reopen the JavaFX program to use real AI analysis.";
                 }
-                return client.get().chat(SYSTEM_PROMPT, promptSupplier.get(), maxTokens);
+                String answer = client.get().chat(SYSTEM_PROMPT, promptSupplier.get(), maxTokens);
+                if (answer == null || answer.isBlank()) {
+                    return "NVIDIA returned an empty answer for this admin analysis.\n\n"
+                        + "The API was reachable, but no readable chat content was returned. Please try again, or ask a shorter admin analysis question.";
+                }
+                return answer;
             }
         };
-        task.setOnSucceeded(event -> output.setText(task.getValue()));
-        task.setOnFailed(event -> output.setText(
-            "AI analysis could not be completed right now.\n\n"
-                + summarizeError(task.getException())
-        ));
+        task.setOnSucceeded(event -> {
+            thinkingAnimation.stop();
+            thinkingLabel.setText(task.getValue());
+            resultScroll.setVvalue(1.0);
+        });
+        task.setOnFailed(event -> {
+            thinkingAnimation.stop();
+            thinkingLabel.setText(
+                "AI analysis could not be completed right now.\n\n"
+                    + summarizeError(task.getException())
+            );
+            resultScroll.setVvalue(1.0);
+        });
         Thread worker = new Thread(task, "admin-ai-analysis");
         worker.setDaemon(true);
         worker.start();
@@ -160,8 +182,7 @@ final class AdminAiAnalysisDialog {
     }
 
     private static Label createProviderTag() {
-        Optional<NvidiaAiAssistantClient> client = NvidiaAiAssistantClient.fromEnvironment();
-        Label tag = new Label(client.map(value -> "NVIDIA: " + value.model()).orElse("NVIDIA not configured"));
+        Label tag = new Label(createProviderText());
         tag.setFont(Font.font("Arial", FontWeight.BOLD, 13));
         tag.setTextFill(Color.web("#b05a88"));
         tag.setStyle(
@@ -173,6 +194,52 @@ final class AdminAiAnalysisDialog {
                 "-fx-padding: 6 12 6 12;"
         );
         return tag;
+    }
+
+    private static String createProviderText() {
+        Optional<NvidiaAiAssistantClient> client = NvidiaAiAssistantClient.fromEnvironment();
+        return client.map(value -> "NVIDIA: " + value.model()).orElse("NVIDIA not configured");
+    }
+
+    private static Node createAssistantBubble(String text) {
+        Label bubble = createBubbleLabel(text);
+        return wrapAssistantBubble(bubble);
+    }
+
+    private static HBox wrapAssistantBubble(Label bubble) {
+        applyAssistantBubbleStyle(bubble);
+        HBox row = new HBox(bubble);
+        row.setAlignment(Pos.CENTER_LEFT);
+        return row;
+    }
+
+    private static Label createBubbleLabel(String text) {
+        Label label = new Label(text);
+        label.setWrapText(true);
+        label.setMaxWidth(650);
+        return label;
+    }
+
+    private static void applyAssistantBubbleStyle(Label bubble) {
+        bubble.setStyle(
+            "-fx-background-color: white;" +
+                "-fx-background-radius: 18 18 18 6;" +
+                "-fx-border-color: #f4d9e6;" +
+                "-fx-border-width: 1.5;" +
+                "-fx-border-radius: 18 18 18 6;" +
+                "-fx-text-fill: #5c3f6b;" +
+                "-fx-font-size: 15px;" +
+                "-fx-padding: 12 14 12 14;"
+        );
+    }
+
+    private static Label createMetaLabel(String text) {
+        Label label = new Label(text);
+        label.setWrapText(true);
+        label.setFont(Font.font("Arial", FontWeight.BOLD, 12));
+        label.setTextFill(Color.web("#8b7fa0"));
+        label.setPadding(new Insets(2, 6, 4, 6));
+        return label;
     }
 
     private static String buildSystemPrompt(UiAppContext context) {
