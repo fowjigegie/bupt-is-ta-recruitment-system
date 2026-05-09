@@ -24,7 +24,7 @@ public final class AuthConsoleWorkflow {
         // US00: 控制台版注册/登录流程，便于快速演示账号规则
         output.println("US-00 User Registration and Login Demo");
         output.println("Register with a project userId and role, then log in to verify role recognition.");
-        output.println("ID format rules: APPLICANT -> ta..., MO -> mo.... ADMIN is a system-maintained account.");
+        output.println("ID format rules: APPLICANT -> ta..., MO -> mo..., ADMIN -> admin...");
 
         boolean running = true;
         while (running) {
@@ -126,17 +126,12 @@ public final class AuthConsoleWorkflow {
 
     private UserRole promptRole() {
         while (true) {
-            output.print("Role (APPLICANT, MO): ");
+            output.print("Role (APPLICANT, MO, ADMIN): ");
             String value = scanner.nextLine().trim();
             try {
-                UserRole role = UserRole.valueOf(value.toUpperCase());
-                if (role == UserRole.ADMIN) {
-                    output.println("ADMIN accounts are system-maintained and cannot be registered.");
-                    continue;
-                }
-                return role;
+                return UserRole.valueOf(value.toUpperCase());
             } catch (IllegalArgumentException exception) {
-                output.println("Role must be APPLICANT or MO.");
+                output.println("Role must be APPLICANT, MO, or ADMIN.");
             }
         }
     }

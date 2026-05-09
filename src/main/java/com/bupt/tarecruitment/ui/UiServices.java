@@ -34,8 +34,11 @@ import com.bupt.tarecruitment.job.JobPostingService;
 import com.bupt.tarecruitment.job.JobRepository;
 import com.bupt.tarecruitment.job.TextFileJobRepository;
 import com.bupt.tarecruitment.mo.MoApplicantRankingService;
+import com.bupt.tarecruitment.mo.MoCandidateComparisonService;
+import com.bupt.tarecruitment.mo.MoDecisionLogService;
 import com.bupt.tarecruitment.mo.MoJobAnalyticsService;
 import com.bupt.tarecruitment.mo.MoJobQualityService;
+import com.bupt.tarecruitment.mo.MoShortlistService;
 import com.bupt.tarecruitment.recommendation.MissingSkillsFeedbackService;
 import com.bupt.tarecruitment.recommendation.RecommendationService;
 import com.bupt.tarecruitment.recommendation.SkillGapAnalysisService;
@@ -69,6 +72,9 @@ public final class UiServices {
     private final MoApplicantRankingService moApplicantRankingService;
     private final MoJobQualityService moJobQualityService;
     private final MoJobAnalyticsService moJobAnalyticsService;
+    private final MoDecisionLogService moDecisionLogService;
+    private final MoShortlistService moShortlistService;
+    private final MoCandidateComparisonService moCandidateComparisonService;
     private final ApplicantAvatarStorageService applicantAvatarStorageService;
     private final FakeAiAssistantService fakeAiAssistantService;
     private final AiAssistantService aiAssistantService;
@@ -97,6 +103,9 @@ public final class UiServices {
         MoApplicantRankingService moApplicantRankingService,
         MoJobQualityService moJobQualityService,
         MoJobAnalyticsService moJobAnalyticsService,
+        MoDecisionLogService moDecisionLogService,
+        MoShortlistService moShortlistService,
+        MoCandidateComparisonService moCandidateComparisonService,
         ApplicantAvatarStorageService applicantAvatarStorageService,
         FakeAiAssistantService fakeAiAssistantService,
         AiAssistantService aiAssistantService
@@ -124,6 +133,9 @@ public final class UiServices {
         this.moApplicantRankingService = moApplicantRankingService;
         this.moJobQualityService = moJobQualityService;
         this.moJobAnalyticsService = moJobAnalyticsService;
+        this.moDecisionLogService = moDecisionLogService;
+        this.moShortlistService = moShortlistService;
+        this.moCandidateComparisonService = moCandidateComparisonService;
         this.applicantAvatarStorageService = applicantAvatarStorageService;
         this.fakeAiAssistantService = fakeAiAssistantService;
         this.aiAssistantService = aiAssistantService;
@@ -220,6 +232,17 @@ public final class UiServices {
             applicationRepository,
             moJobQualityService
         );
+        MoDecisionLogService moDecisionLogService = new MoDecisionLogService(dataDirectory);
+        MoShortlistService moShortlistService = new MoShortlistService(
+            dataDirectory,
+            applicationRepository,
+            jobRepository,
+            moDecisionLogService
+        );
+        MoCandidateComparisonService moCandidateComparisonService = new MoCandidateComparisonService(
+            moApplicantRankingService,
+            moShortlistService
+        );
         ApplicantAvatarStorageService applicantAvatarStorageService = new ApplicantAvatarStorageService(dataDirectory);
         FakeAiAssistantService fakeAiAssistantService = new FakeAiAssistantService(
             dataDirectory,
@@ -257,6 +280,9 @@ public final class UiServices {
             moApplicantRankingService,
             moJobQualityService,
             moJobAnalyticsService,
+            moDecisionLogService,
+            moShortlistService,
+            moCandidateComparisonService,
             applicantAvatarStorageService,
             fakeAiAssistantService,
             aiAssistantService
@@ -353,6 +379,18 @@ public final class UiServices {
 
     public MoJobAnalyticsService moJobAnalyticsService() {
         return moJobAnalyticsService;
+    }
+
+    public MoDecisionLogService moDecisionLogService() {
+        return moDecisionLogService;
+    }
+
+    public MoShortlistService moShortlistService() {
+        return moShortlistService;
+    }
+
+    public MoCandidateComparisonService moCandidateComparisonService() {
+        return moCandidateComparisonService;
     }
 
     public ApplicantAvatarStorageService applicantAvatarStorageService() {
