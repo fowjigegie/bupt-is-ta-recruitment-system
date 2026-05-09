@@ -89,7 +89,7 @@ public class AdminAnalyticsPage extends Application {
         private final TrendLineView trendLineView = new TrendLineView();
         private final DonutChartView applicationStatusView = new DonutChartView();
         private final DonutChartView riskStatusView = new DonutChartView();
-        private final VerticalBarView jobDemandView = new VerticalBarView();
+        private final HorizontalDemandView jobDemandView = new HorizontalDemandView();
         private final RankingView workloadRankingView = new RankingView();
 
         private Timeline autoRefresh;
@@ -114,11 +114,16 @@ public class AdminAnalyticsPage extends Application {
             HBox actionRow = new HBox(12, backButton);
             actionRow.setAlignment(Pos.CENTER_LEFT);
 
+            Label heading = UiTheme.createPageHeading("Admin data analytics");
+            heading.setStyle("-fx-text-fill: " + DARK + ";");
+
+            Label subtitle = UiTheme.createMutedText("Detailed visual report for application status, job demand, accepted TA workload, and risk signals.");
+            subtitle.setStyle("-fx-text-fill: " + MUTED + ";");
+
             content.getChildren().addAll(
-                UiTheme.createPageHeading("Admin data analytics"),
-                UiTheme.createMutedText("Live Dribbble-style dashboard for application status, job demand, accepted TA workload, and risk signals."),
+                heading,
+                subtitle,
                 actionRow,
-                createKpiRow(),
                 createTopAnalyticsRow(),
                 createBottomAnalyticsRow(),
                 createAnalysisNotes()
@@ -176,7 +181,7 @@ public class AdminAnalyticsPage extends Application {
         private HBox createBottomAnalyticsRow() {
             VBox demandCard = createDashboardCard(
                 "Job demand",
-                "Gradient bars ranking jobs by application count, with top-demand insight below.",
+                "Horizontal ranking of jobs by application count, with the highest-demand role highlighted.",
                 jobDemandView.container()
             );
 
@@ -192,10 +197,12 @@ public class AdminAnalyticsPage extends Application {
                     workloadRankingView.container()
                 )
             );
+            rightColumn.setMinWidth(500);
+            rightColumn.setPrefWidth(520);
+            rightColumn.setMaxWidth(560);
 
             HBox row = new HBox(22, demandCard, rightColumn);
             HBox.setHgrow(demandCard, Priority.ALWAYS);
-            HBox.setHgrow(rightColumn, Priority.ALWAYS);
             return row;
         }
 
@@ -660,35 +667,22 @@ public class AdminAnalyticsPage extends Application {
         }
     }
 
-    private static final class VerticalBarView {
+    private static final class HorizontalDemandView {
         private final VBox root = new VBox(12);
-        private final HBox plot = new HBox(14);
-        private final Label yAxis = new Label("Y-axis: application count");
-        private final Label xAxis = new Label("X-axis: job posting");
-        private final VBox insightBox = new VBox(8);
+        private final VBox rows = new VBox(9);
+        private final VBox insightBox = new VBox(6);
 
-        private VerticalBarView() {
-            plot.setAlignment(Pos.BOTTOM_CENTER);
-            plot.setMinHeight(250);
-            plot.setPrefHeight(250);
-            plot.setStyle(
-                "-fx-background-color: linear-gradient(to bottom, #fbfcff, #ffffff);" +
-                    "-fx-background-radius: 22;" +
-                    "-fx-border-color: #eef0fb;" +
-                    "-fx-border-radius: 22;"
-            );
-            yAxis.setStyle("-fx-text-fill: " + DARK + "; -fx-font-weight: bold;");
-            xAxis.setStyle("-fx-text-fill: " + MUTED + ";");
-
+        private HorizontalDemandView() {
+            rows.setPadding(new Insets(12, 0, 4, 0));
             insightBox.setPadding(new Insets(14));
             insightBox.setStyle(
-                "-fx-background-color: linear-gradient(to right, #fff7fb, #f7f9ff);" +
+                "-fx-background-color: #fff7fb;" +
                     "-fx-background-radius: 18;" +
                     "-fx-border-color: #eef0fb;" +
                     "-fx-border-radius: 18;"
             );
 
-            root.getChildren().addAll(yAxis, plot, xAxis, insightBox);
+            root.getChildren().addAll(rows, insightBox);
         }
 
         private VBox container() {
@@ -696,8 +690,16 @@ public class AdminAnalyticsPage extends Application {
         }
 
         private void update(List<ChartItem> items, int totalApplications, Tooltip tooltip) {
-            plot.getChildren().clear();
+            rows.getChildren().clear();
             insightBox.getChildren().clear();
+
+            if (items.isEmpty() || "No data".equals(items.get(0).label())) {
+                Label empty = new Label("No application demand data yet.");
+                empty.setStyle("-fx-text-fill: " + MUTED + ";");
+                rows.getChildren().add(empty);
+                updateInsight(items, totalApplications, tooltip);
+                return;
+            }
 
             double max = items.stream().mapToDouble(ChartItem::value).max().orElse(1);
             if (max <= 0) {
@@ -705,39 +707,46 @@ public class AdminAnalyticsPage extends Application {
             }
 
             for (ChartItem item : items) {
-                double height = 28 + 180 * item.value() / max;
-
-                Rectangle bar = new Rectangle(30, height);
-                bar.setArcWidth(14);
-                bar.setArcHeight(14);
-                bar.setFill(new LinearGradient(
-                    0, 0, 0, 1, true, CycleMethod.NO_CYCLE,
-                    new Stop(0, Color.web("#8ea7ff")),
-                    new Stop(1, Color.web(BLUE))
-                ));
-
-                StackPane barWrap = new StackPane(bar);
-                barWrap.setAlignment(Pos.BOTTOM_CENTER);
-                barWrap.setPrefHeight(200);
-
-                Label label = new Label(item.label());
-                label.setFont(Font.font("Arial", 11));
-                label.setStyle("-fx-text-fill: " + MUTED + ";");
-                label.setRotate(-25);
-                label.setMinHeight(38);
-
-                VBox column = new VBox(6, barWrap, label);
-                column.setAlignment(Pos.BOTTOM_CENTER);
-
-                installManualHover(bar, tooltip, () ->
-                    item.detail()
-                        + "\nApplications: " + DisplayFormats.formatDecimal(item.value())
-                );
-
-                plot.getChildren().add(column);
+                rows.getChildren().add(createDemandRow(item, max, tooltip));
             }
 
             updateInsight(items, totalApplications, tooltip);
+        }
+
+        private HBox createDemandRow(ChartItem item, double max, Tooltip tooltip) {
+            Label name = new Label(item.detail());
+            name.setMinWidth(220);
+            name.setPrefWidth(260);
+            name.setWrapText(true);
+            name.setFont(Font.font("Arial", FontWeight.BOLD, 13));
+            name.setStyle("-fx-text-fill: " + BLUE + ";");
+
+            Region bar = new Region();
+            bar.setMinHeight(18);
+            bar.setPrefWidth(Math.max(18, 340.0 * item.value() / max));
+            bar.setStyle("-fx-background-color: #b8d5ff; -fx-background-radius: 9;");
+
+            HBox barTrack = new HBox(bar);
+            barTrack.setAlignment(Pos.CENTER_LEFT);
+            barTrack.setMinWidth(340);
+            barTrack.setPrefWidth(340);
+            barTrack.setMaxWidth(340);
+
+            Label count = new Label(DisplayFormats.formatDecimal(item.value()) + " applications");
+            count.setMinWidth(108);
+            count.setFont(Font.font("Arial", FontWeight.BOLD, 13));
+            count.setStyle("-fx-text-fill: #5c6481;");
+
+            HBox row = new HBox(12, name, barTrack, count);
+            row.setAlignment(Pos.CENTER_LEFT);
+            row.setMinHeight(32);
+
+            installManualHover(row, tooltip, () ->
+                item.detail()
+                    + "\nApplications: " + DisplayFormats.formatDecimal(item.value())
+            );
+
+            return row;
         }
 
         private void updateInsight(List<ChartItem> items, int totalApplications, Tooltip tooltip) {
