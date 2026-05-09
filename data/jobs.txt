@@ -25,3 +25,4 @@ job908|mo001|123|123|Other|You need to be||9|TUE-08:00-09:35|OPEN
 job909|mo001|123456|123|Other|123|Programming;Data Structures;Algorithms|1.5|MON-08:00-09:35|OPEN
 job910|mo001|1|1|Other|123|Programming;Data Structures;Algorithms|2|MON-11:40-12:25|OPEN
 job911|mo001|1|1|Other|123|Programming;Data Structures;Algorithms|2|MON-11:40-12:25|OPEN
+job912|mo001|123|123|Other|12312123||5|MON-11:40-12:25|OPEN
