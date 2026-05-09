@@ -146,18 +146,11 @@ public class AdminDashboardPage extends Application {
 
         AdminWorkloadPanel workloadPanel = AdminWorkloadPanel.create(context);
 
-        var analyticsButton = UiTheme.createOutlineButton("Open data analytics", 210, 42);
-        analyticsButton.setOnAction(event -> nav.goTo(PageId.ADMIN_ANALYTICS));
-
-        HBox actionRow = new HBox(12, analyticsButton);
-        actionRow.setAlignment(Pos.CENTER_LEFT);
-
         center.getChildren().addAll(
             createAdminHeader(aiSystemAnalysisButton),
             UiTheme.createMutedText("Use this page to monitor accepted TA allocations and spot overload, schedule conflict, or schedule-data risks."),
-            actionRow,
             stats,
-            createDashboardAnalyticsRow(context, workloads),
+            createQuickOverviewPanel(context, workloads, nav),
             createTopJobsPanel(context),
             toolRow,
             workloadPanel.container()
@@ -283,6 +276,114 @@ public class AdminDashboardPage extends Application {
         return context.services().applicationRepository().findAll().stream()
             .filter(application -> application.status() == status)
             .count();
+    }
+
+    private static VBox createQuickOverviewPanel(UiAppContext context, List<WorkloadSummary> workloads, NavigationManager nav) {
+        Label title = new Label("Quick overview");
+        title.setFont(Font.font("Arial", FontWeight.BOLD, 22));
+        title.setStyle("-fx-text-fill: #2f3553;");
+
+        Label subtitle = new Label("A compact snapshot. Open the analytics report for full charts and trends.");
+        subtitle.setFont(Font.font("Arial", 13));
+        subtitle.setStyle("-fx-text-fill: #8b7fa0;");
+        subtitle.setWrapText(true);
+
+        VBox heading = new VBox(4, title, subtitle);
+
+        Button analyticsButton = createDashboardActionButton("View detailed analytics", 220);
+        analyticsButton.setOnAction(event -> nav.goTo(PageId.ADMIN_ANALYTICS));
+
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+        HBox header = new HBox(16, heading, spacer, analyticsButton);
+        header.setAlignment(Pos.CENTER_LEFT);
+
+        HBox summaryRow = new HBox(14,
+            createOverviewChip("Applications", buildApplicationStatusSummary(context), "#4664a8"),
+            createOverviewChip("Risk", buildRiskSummary(workloads), riskCount(workloads) == 0 ? "#2e7d32" : "#e74c3c"),
+            createOverviewChip("Top job", buildTopJobSummary(context), "#f39c12")
+        );
+        summaryRow.setMaxWidth(Double.MAX_VALUE);
+        summaryRow.getChildren().forEach(node -> HBox.setHgrow(node, Priority.ALWAYS));
+
+        VBox panel = new VBox(14, header, summaryRow);
+        panel.setPadding(new Insets(18, 24, 18, 24));
+        panel.setMaxWidth(Double.MAX_VALUE);
+        panel.setBackground(new Background(new BackgroundFill(Color.WHITE, new CornerRadii(24), Insets.EMPTY)));
+        panel.setBorder(new Border(new BorderStroke(
+            Color.web("#f4d9e6"),
+            BorderStrokeStyle.SOLID,
+            new CornerRadii(24),
+            new BorderWidths(1.5)
+        )));
+        return panel;
+    }
+
+    private static VBox createOverviewChip(String label, String value, String accentColor) {
+        Label labelNode = new Label(label);
+        labelNode.setFont(Font.font("Arial", FontWeight.BOLD, 13));
+        labelNode.setStyle("-fx-text-fill: " + accentColor + ";");
+
+        Label valueNode = new Label(value);
+        valueNode.setFont(Font.font("Arial", FontWeight.BOLD, 14));
+        valueNode.setStyle("-fx-text-fill: #2f3553;");
+        valueNode.setWrapText(true);
+
+        VBox chip = new VBox(4, labelNode, valueNode);
+        chip.setPadding(new Insets(12, 14, 12, 14));
+        chip.setMinHeight(72);
+        chip.setMaxWidth(Double.MAX_VALUE);
+        chip.setBackground(new Background(new BackgroundFill(Color.web("#fff7fb"), new CornerRadii(18), Insets.EMPTY)));
+        chip.setBorder(new Border(new BorderStroke(
+            Color.web("#f4d9e6"),
+            BorderStrokeStyle.SOLID,
+            new CornerRadii(18),
+            new BorderWidths(1.2)
+        )));
+        return chip;
+    }
+
+    private static String buildApplicationStatusSummary(UiAppContext context) {
+        Map<String, Double> values = applicationStatusValues(context);
+        if (values.containsKey("No applications")) {
+            return "No applications yet";
+        }
+        return values.entrySet().stream()
+            .map(entry -> toDisplayStatus(entry.getKey()) + ": " + DisplayFormats.formatDecimal(entry.getValue()))
+            .collect(Collectors.joining(" | "));
+    }
+
+    private static String buildRiskSummary(List<WorkloadSummary> workloads) {
+        long count = riskCount(workloads);
+        if (workloads.isEmpty()) {
+            return "No accepted TA data";
+        }
+        return count == 0 ? "0 risky TAs" : count + " risky TA(s)";
+    }
+
+    private static long riskCount(List<WorkloadSummary> workloads) {
+        return workloads.stream()
+            .filter(summary -> summary.hasInvalidScheduleData() || summary.hasConflict() || summary.overloaded())
+            .count();
+    }
+
+    private static String buildTopJobSummary(UiAppContext context) {
+        Map<String, Long> applicationsByJob = context.services().applicationRepository().findAll().stream()
+            .collect(Collectors.groupingBy(JobApplication::jobId, Collectors.counting()));
+        return context.services().jobRepository().findAll().stream()
+            .max(Comparator
+                .comparingLong((JobPosting job) -> applicationsByJob.getOrDefault(job.jobId(), 0L))
+                .thenComparing(JobPosting::jobId))
+            .map(job -> job.title() + " (" + applicationsByJob.getOrDefault(job.jobId(), 0L) + ")")
+            .orElse("No jobs yet");
+    }
+
+    private static String toDisplayStatus(String status) {
+        String normalized = status == null ? "" : status.trim().toLowerCase().replace('_', ' ');
+        if (normalized.isBlank()) {
+            return "Unknown";
+        }
+        return Character.toUpperCase(normalized.charAt(0)) + normalized.substring(1);
     }
 
     private static HBox createDashboardAnalyticsRow(UiAppContext context, List<WorkloadSummary> workloads) {
@@ -473,16 +574,21 @@ public class AdminDashboardPage extends Application {
                 .comparingLong((JobPosting job) -> applicationsByJob.getOrDefault(job.jobId(), 0L))
                 .reversed()
                 .thenComparing(JobPosting::jobId))
-            .limit(5)
+            .limit(3)
             .toList();
         long maxApplications = topJobs.stream()
             .mapToLong(job -> applicationsByJob.getOrDefault(job.jobId(), 0L))
             .max()
             .orElse(1);
 
-        Label title = new Label("Top jobs by applications");
+        Label title = new Label("Top jobs preview");
         title.setFont(Font.font("Arial", FontWeight.BOLD, 22));
         title.setStyle("-fx-text-fill: #2f3553;");
+
+        Label subtitle = new Label("Showing the three highest-demand jobs. Detailed charts are in the analytics report.");
+        subtitle.setFont(Font.font("Arial", 13));
+        subtitle.setStyle("-fx-text-fill: #8b7fa0;");
+        subtitle.setWrapText(true);
 
         VBox rows = new VBox(8);
         if (topJobs.isEmpty()) {
@@ -493,8 +599,8 @@ public class AdminDashboardPage extends Application {
             }
         }
 
-        VBox panel = new VBox(12, title, rows);
-        panel.setPadding(new Insets(20, 24, 20, 24));
+        VBox panel = new VBox(10, title, subtitle, rows);
+        panel.setPadding(new Insets(18, 24, 18, 24));
         panel.setMaxWidth(Double.MAX_VALUE);
         panel.setBackground(new Background(new BackgroundFill(Color.WHITE, new CornerRadii(24), Insets.EMPTY)));
         panel.setBorder(new Border(new BorderStroke(
