@@ -5,6 +5,7 @@ import com.bupt.tarecruitment.applicant.ApplicantProfile;
 import com.bupt.tarecruitment.application.ApplicationStatus;
 import com.bupt.tarecruitment.application.ApplicationStatusPresenter;
 import com.bupt.tarecruitment.application.JobApplication;
+import com.bupt.tarecruitment.mo.MoShortlistStatus;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
@@ -130,6 +131,8 @@ final class ApplicationReviewDetailsPanel {
         HBox actionRow = new HBox(12, chatButton, shortlistedButton, acceptedButton, rejectedButton);
         actionRow.setAlignment(Pos.CENTER_LEFT);
 
+        HBox candidatePoolRow = createCandidatePoolRow(context, review.application(), actionStatus, refreshList);
+
         HBox row1 = new HBox(12, nameField, gradeField);
         HBox row2 = new HBox(12, programmeField, studentIdField);
 
@@ -143,10 +146,62 @@ final class ApplicationReviewDetailsPanel {
             createTagListBlock("Profile Skills", profile.skills(), "No skills selected in the applicant profile."),
             createTagListBlock("Desired Positions", profile.desiredPositions(), "No desired positions listed in the applicant profile."),
             statusTag,
+            candidatePoolRow,
             actionRow
         );
         form.setPadding(new Insets(4, 6, 12, 6));
         return form;
+    }
+
+
+    private static HBox createCandidatePoolRow(
+        UiAppContext context,
+        JobApplication application,
+        Label actionStatus,
+        Runnable refreshList
+    ) {
+        Button shortlistButton = UiTheme.createOutlineButton("Pool: Shortlist", 150, 40);
+        shortlistButton.setOnAction(event -> markCandidatePool(
+            context, application, MoShortlistStatus.SHORTLISTED, "Marked as strong shortlist from application detail.", actionStatus, refreshList
+        ));
+
+        Button maybeButton = UiTheme.createOutlineButton("Pool: Maybe", 130, 40);
+        maybeButton.setOnAction(event -> markCandidatePool(
+            context, application, MoShortlistStatus.MAYBE, "Marked as maybe from application detail.", actionStatus, refreshList
+        ));
+
+        Button notSuitableButton = UiTheme.createOutlineButton("Pool: Not suitable", 160, 40);
+        notSuitableButton.setOnAction(event -> markCandidatePool(
+            context, application, MoShortlistStatus.NOT_SUITABLE, "Marked as not suitable from application detail.", actionStatus, refreshList
+        ));
+
+        HBox row = new HBox(10, shortlistButton, maybeButton, notSuitableButton);
+        row.setAlignment(Pos.CENTER_LEFT);
+        return row;
+    }
+
+    private static void markCandidatePool(
+        UiAppContext context,
+        JobApplication application,
+        MoShortlistStatus status,
+        String note,
+        Label actionStatus,
+        Runnable refreshList
+    ) {
+        try {
+            context.services().moShortlistService().mark(
+                context.session().userId(),
+                application.applicationId(),
+                status,
+                note
+            );
+            actionStatus.setTextFill(Color.web("#2e7d32"));
+            actionStatus.setText("Candidate pool updated to " + status.name() + ".");
+            refreshList.run();
+        } catch (IllegalArgumentException | IllegalStateException exception) {
+            actionStatus.setTextFill(Color.web("#b00020"));
+            actionStatus.setText(exception.getMessage());
+        }
     }
 
     private static VBox createApplicantAvatarPreview(UiAppContext context, ApplicantProfile profile) {
@@ -270,10 +325,18 @@ final class ApplicationReviewDetailsPanel {
                 return;
             }
 
-            context.services().applicationDecisionService().updateStatus(
+            JobApplication updatedApplication = context.services().applicationDecisionService().updateStatus(
                 context.session().userId(),
                 applicationId,
                 nextStatus,
+                reviewerNote
+            );
+            context.services().moDecisionLogService().record(
+                context.session().userId(),
+                updatedApplication.jobId(),
+                updatedApplication.applicationId(),
+                updatedApplication.applicantUserId(),
+                "STATUS_" + fromStatus.name() + "_TO_" + nextStatus.name(),
                 reviewerNote
             );
             actionStatus.setTextFill(Color.web("#2e7d32"));

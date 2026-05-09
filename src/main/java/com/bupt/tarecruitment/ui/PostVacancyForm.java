@@ -5,8 +5,10 @@ import com.bupt.tarecruitment.common.schedule.ScheduleSlot;
 import com.bupt.tarecruitment.common.text.DisplayFormats;
 import com.bupt.tarecruitment.job.JobActivityType;
 import com.bupt.tarecruitment.job.JobPosting;
+import com.bupt.tarecruitment.job.JobStatus;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.collections.ListChangeListener;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
@@ -19,6 +21,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 
+import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -37,6 +40,7 @@ final class PostVacancyForm {
     private final ObservableList<String> selectedScheduleSlots;
     private final LinkedHashSet<String> selectedSkills;
     private final Map<String, List<String>> categorizedSkillSuggestions;
+    private final List<Runnable> changeListeners = new ArrayList<>();
     private ComboBox<String> dayBox;
     private ComboBox<String> timeBandBox;
     private FlowPane selectedSkillsPane;
@@ -62,6 +66,13 @@ final class PostVacancyForm {
         this.selectedScheduleSlots = selectedScheduleSlots;
         this.selectedSkills = selectedSkills;
         this.categorizedSkillSuggestions = categorizedSkillSuggestions;
+
+        titleField.textProperty().addListener((obs, oldValue, newValue) -> notifyChanged());
+        moduleField.textProperty().addListener((obs, oldValue, newValue) -> notifyChanged());
+        weeklyHoursField.textProperty().addListener((obs, oldValue, newValue) -> notifyChanged());
+        descriptionArea.textProperty().addListener((obs, oldValue, newValue) -> notifyChanged());
+        activityTypeBox.valueProperty().addListener((obs, oldValue, newValue) -> notifyChanged());
+        selectedScheduleSlots.addListener((ListChangeListener<String>) change -> notifyChanged());
     }
 
     static PostVacancyForm create(String organiserUserId, Map<String, List<String>> categorizedSkillSuggestions) {
@@ -95,6 +106,7 @@ final class PostVacancyForm {
         selectedScheduleSlots.setAll(job.scheduleSlots());
         setSkills(job.requiredSkills());
         clearPendingScheduleSelection();
+        notifyChanged();
     }
 
     void clearForCreate() {
@@ -107,6 +119,7 @@ final class PostVacancyForm {
         selectedSkills.clear();
         refreshSelectedSkillsPane();
         clearPendingScheduleSelection();
+        notifyChanged();
     }
 
     String organiserId() {
@@ -145,6 +158,40 @@ final class PostVacancyForm {
             }
         });
         return List.copyOf(slots);
+    }
+
+    void onChange(Runnable listener) {
+        if (listener != null) {
+            changeListeners.add(listener);
+        }
+    }
+
+    JobPosting toDraftJobPosting(String draftJobId, JobStatus status, double fallbackWeeklyHours) {
+        double weeklyHours = fallbackWeeklyHours;
+        try {
+            weeklyHours = parseWeeklyHours();
+        } catch (NumberFormatException ignored) {
+            // Keep fallback value so the quality assistant can still evaluate other fields.
+        }
+
+        return new JobPosting(
+            draftJobId,
+            organiserId(),
+            title(),
+            moduleOrActivity(),
+            activityType(),
+            description(),
+            requiredSkills(),
+            weeklyHours,
+            scheduleSlots(),
+            status
+        );
+    }
+
+    private void notifyChanged() {
+        for (Runnable listener : changeListeners) {
+            listener.run();
+        }
     }
 
     HBox createFirstRow() {
@@ -350,6 +397,7 @@ final class PostVacancyForm {
             }
         }
         refreshSelectedSkillsPane();
+        notifyChanged();
     }
 
     private void refreshSelectedSkillsPane() {
