@@ -1,0 +1,53 @@
+package com.bupt.tarecruitment.ui;
+
+import com.bupt.tarecruitment.auth.AccountStatus;
+import com.bupt.tarecruitment.auth.UserAccount;
+import com.bupt.tarecruitment.auth.UserRole;
+
+/**
+ * 记录当前登录会话的用户身份和角色信息。
+ */
+public final class SessionState {
+    private String userId;
+    private String displayName;
+    private UserRole role;
+    private AccountStatus status;
+
+    public void setCurrentUser(UserAccount account) {
+        userId = account.userId();
+        displayName = account.displayName();
+        role = account.role();
+        status = account.status();
+    }
+
+    public void clear() {
+        userId = null;
+        displayName = null;
+        role = null;
+        status = null;
+    }
+
+    // US00: 只有登录成功且账号 ACTIVE 时，才认为"已认证"
+    public boolean isAuthenticated() {
+        return userId != null && role != null && status == AccountStatus.ACTIVE;
+    }
+
+    public String userId() {
+        return userId;
+    }
+
+    public String displayName() {
+        if (displayName != null && !displayName.isBlank()) {
+            return displayName;
+        }
+        return userId == null ? "Guest" : userId;
+    }
+
+    public UserRole role() {
+        return role;
+    }
+
+    public AccountStatus status() {
+        return status;
+    }
+}

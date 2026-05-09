@@ -1,0 +1,11 @@
+# Format: messageId|jobId|senderUserId|receiverUserId|sentAt|content|readStatus
+message001|job001|ta001|mo001|2026-03-25T14:10|Could you clarify the marking workload?|READ
+message002|job001|ta001|mo001|2026-03-31T23:58:21.816837900|Could you confirm whether the marking workload is weekly or biweekly?|READ
+message003|job002|ta001|mo001|2026-04-01T00:01:03.590383100|Could you share more details about the tutorial format?|READ
+message004|job002|mo001|ta001|2026-04-01T18:01:07.623818500|The tutorial is discussion-based, with a short weekly problem-solving section.|READ
+message005|job002|ta001|mo001|2026-04-04T20:22:17.085626500|Thanks, I will update my availability before applying.|READ
+message006|job003|ta001|mo001|2026-04-04T20:23:54.027866600|Could you tell me whether this role includes office-hour support?|READ
+message007|job013|ta001|mo001|2026-04-07T00:09:45.910818700|I am interested in this programming support role and can cover the listed time slot.|READ
+message008|job013|ta010|mo001|2026-04-10T19:49:34.272119|Hello, I would like to ask whether Python experience is required.|READ
+message009|job013|mo001|ta010|2026-04-10T20:27:37.787622100|Python experience is helpful, but clear communication with first-year students is more important.|READ
+message010|job012|ta010|mo006|2026-04-10T20:35:02.605996800|I am interested in the mobile app development role and can attend the Friday session.|READ

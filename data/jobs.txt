@@ -1,0 +1,27 @@
+# Format: jobId|organiserId|title|moduleOrActivity|activityType|description|requiredSkills(;)|weeklyHours|scheduleSlots(;)|status
+job001|mo001|TA for Software Engineering|EBU6304|Lab session|Support lab sessions and assignment marking|Java;Teamwork|4|MON-10:00-12:00;THU-14:00-16:00|OPEN
+job002|mo001|TA for Computer Science|COMP101|Tutorial|Support tutorials and coursework feedback|Programming;Communication|3|TUE-09:00-12:00|OPEN
+job003|mo001|TA for Data Structures|COMP202|Lab session|Support weekly lab sessions and office hours|Java;Data Structures;Communication|4|WED-10:00-12:00;FRI-14:00-16:00|OPEN
+job004|mo002|TA for Database Systems|COMP303|Lab session|Assist SQL lab practices and grading|SQL;Database Design;Communication|3|MON-13:00-16:00|OPEN
+job005|mo002|TA for Operating Systems|COMP305|Lab session|Guide kernel concept tutorials and labs|C;Linux;Problem Solving|5|TUE-13:00-16:00;FRI-10:00-12:00|OPEN
+job006|mo003|TA for Linear Algebra|MATH201|Assignment / marking|Support exercise classes and quiz marking|Mathematics;Patience|2|WED-16:00-18:00|OPEN
+job007|mo003|TA for Probability and Statistics|STAT210|Lab session|Help with practical sessions and assignments|Statistics;Python;Communication|2|THU-10:00-12:00|OPEN
+job008|mo004|TA for Web Development|COMP220|Lab session|Support frontend labs and project reviews|HTML;CSS;JavaScript|4|MON-08:00-10:00;WED-14:00-16:00|OPEN
+job009|mo004|TA for Software Testing|COMP340|Assignment / marking|Assist test design workshops and grading|Testing;JUnit;Detail Orientation|2|TUE-08:00-10:00|OPEN
+job010|mo005|TA for Computer Networks|COMP260|Lab session|Assist network configuration labs|Networking;Wireshark;Teamwork|5|WED-08:00-11:00;FRI-08:00-10:00|OPEN
+job011|mo005|TA for Information Security|COMP360|Tutorial|Support cryptography tutorials and lab guidance|Security;Python;Analytical Thinking|2|THU-14:00-16:00|OPEN
+job012|mo006|TA for Mobile App Development|COMP330|Project / development|Mentor Android studio practices and demos|Java;Android;UI Design|2|FRI-14:00-16:00|OPEN
+job013|mo001|Introductory Programming Support|COMP100|Tutorial|Help first-year students practise basic programming exercises and debug weekly lab tasks.|Programming;Communication|1.5|MON-09:50-11:25|OPEN
+job014|mo001|IoT Lab Assistant|EBU6011|Lab session|Support RFID and sensor-network lab activities, including equipment setup and student troubleshooting.|Java;IoT;Communication|4|MON-11:40-12:25|OPEN
+job900|mo001|Advanced Java Lab Assistant|COMP900|Lab session|Support advanced Java labs and pair-programming exercises for high-fit applicant testing.|Java;Communication;Teamwork;JUnit|2|MON-09:50-11:25|OPEN
+job901|mo001|Programming Fundamentals Tutor|COMP901|Tutorial|Run small-group programming tutorials and explain testing concepts to first-year students.|Programming;Presentation;Testing|2|TUE-09:50-11:25|OPEN
+job902|mo002|Database Integration Assistant|COMP902|Project / development|Support database integration clinics covering SQL, Java back-end code, and deployment basics.|Java;Programming;SQL;Docker|3|WED-13:00-14:35|OPEN
+job903|mo005|Cloud Data Processing Assistant|COMP903|Project / development|Help students understand cloud data-processing pipelines and large-scale analytics workflows.|Big Data;Spark;Cloud Computing;AWS|3|THU-09:50-11:25|OPEN
+job904|mo006|Python Statistics Lab Support|COMP904|Lab session|Support applied statistics lab sessions using Python notebooks and data-analysis exercises.|Python;Big Data;Statistics;Communication|2|FRI-14:45-16:25|OPEN
+job905|mo001|RFID Lab Assistant|EBU6011|Lab session|Assist with RFID reader setup, tag testing, and lab safety checks during the IoT practical session.|RFID;IoT;Lab Support|2|FRI-16:35-18:10|OPEN
+job906|mo001|Software Engineering Mentor|EBU6304|Project / development|Mentor student teams on requirements analysis, version control, and Java project structure.|Java;Software Engineering;Teamwork|1.5|WED-08:00-09:35|OPEN
+job907|mo001|Machine Learning Tutorial Assistant|COMP5566|Tutorial|Support machine-learning tutorials on Linux-based tooling, model evaluation, and Python workflows.|Linux;Software Engineering;Machine Learning;Python|1.5|TUE-11:40-12:25|OPEN
+job908|mo001|123|123|Other|You need to be||9|TUE-08:00-09:35|OPEN
+job909|mo001|123456|123|Other|123|Programming;Data Structures;Algorithms|1.5|MON-08:00-09:35|OPEN
+job910|mo001|1|1|Other|123|Programming;Data Structures;Algorithms|2|MON-11:40-12:25|OPEN
+job911|mo001|1|1|Other|123|Programming;Data Structures;Algorithms|2|MON-11:40-12:25|OPEN
