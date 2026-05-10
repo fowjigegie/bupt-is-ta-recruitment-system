@@ -37,14 +37,23 @@ import java.util.Locale;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
 
+/**
+ * Applicant-facing "More jobs" page: browse OPEN postings with keyword and combo filters,
+ * pagination, sort by inferred job sequence, and shortcuts to job detail / MO chat / AI advisor.
+ */
 public class MoreJobsPage extends Application {
     @Override
     public void start(Stage stage) {
         UiLauncher.launch(PageId.MORE_JOBS, stage);
     }
 
+    /**
+     * Builds the full page scene; job list is derived once from the repository (OPEN only) and
+     * re-filtered in memory when inputs change.
+     */
     static Scene createScene(NavigationManager nav, UiAppContext context) {
         final int pageSize = 3;
+        // Mutable state held in one-element arrays so nested lambdas can update them.
         final int[] currentPage = {0};
         final boolean[] sortNewestFirst = {true};
 
@@ -70,6 +79,7 @@ public class MoreJobsPage extends Application {
         divider.setPrefHeight(34);
         divider.setBackground(new Background(new BackgroundFill(Color.WHITE, CornerRadii.EMPTY, Insets.EMPTY)));
 
+        // Fixed snapshot for this scene; filters only narrow this list (no live reload).
         List<JobPosting> jobs = context.services().jobRepository().findAll().stream()
             .filter(job -> job.status() == JobStatus.OPEN)
             .toList();
@@ -81,6 +91,7 @@ public class MoreJobsPage extends Application {
         Region searchSpacer = new Region();
         HBox.setHgrow(searchSpacer, Priority.ALWAYS);
 
+        // Toggles sort direction for numeric suffix in job id (see extractJobSequenceNumber).
         Button sortButton = UiTheme.createSoftButton("Sort by publish time: newest", 260, 44);
         sortButton.setStyle("-fx-background-color: #f8d7e9; -fx-background-radius: 22; -fx-text-fill: #2f3553; -fx-font-weight: bold; -fx-font-size: 14px;");
         searchBar.getChildren().addAll(searchIcon, divider, placeholder, searchSpacer, sortButton);
@@ -96,6 +107,7 @@ public class MoreJobsPage extends Application {
 
         ComboBox<String> moduleFilter = new ComboBox<>();
         moduleFilter.getItems().add("All modules");
+        // Distinct module/activity labels from data, sorted for stable dropdown order.
         moduleFilter.getItems().addAll(jobs.stream()
             .map(JobPosting::moduleOrActivity)
             .filter(m -> m != null && !m.isBlank())
@@ -114,6 +126,7 @@ public class MoreJobsPage extends Application {
 
         ComboBox<String> skillFilter = new ComboBox<>();
         skillFilter.getItems().add("All skills");
+        // Union of required skills across OPEN jobs, sorted.
         skillFilter.getItems().addAll(jobs.stream()
             .flatMap(j -> j.requiredSkills().stream())
             .map(String::trim)
@@ -209,6 +222,7 @@ public class MoreJobsPage extends Application {
             Insets.EMPTY
         )));
 
+        // Forward declaration so pagination buttons can call back into the same refresh logic.
         Runnable[] refreshJobsView = new Runnable[1];
         refreshJobsView[0] = () -> {
             String kw = keywordField.getText() == null ? "" : keywordField.getText().trim();
@@ -217,6 +231,7 @@ public class MoreJobsPage extends Application {
             String sk = skillFilter.getValue() == null ? "All skills" : skillFilter.getValue();
             String time = timeSlotFilter.getValue() == null ? "Any time" : timeSlotFilter.getValue();
 
+            // Keyword + combo filters (all must pass).
             List<JobPosting> filtered = jobs.stream()
                 .filter(job -> matchesKeyword(job, context, kw))
                 .filter(job -> matchesModule(job, mod))
@@ -235,6 +250,7 @@ public class MoreJobsPage extends Application {
                 placeholder.setText("Open: " + jobs.size() + " | Showing: " + filtered.size());
             }
 
+            // Newest = highest numeric id chunk first (toggle reverses comparator only).
             List<JobPosting> sortedJobs = filtered.stream()
                 .sorted(
                     Comparator.comparingInt(MoreJobsPage::extractJobSequenceNumber)
@@ -271,6 +287,7 @@ public class MoreJobsPage extends Application {
             int fromIndex = currentPage[0] * pageSize;
             int toIndex = Math.min(fromIndex + pageSize, sortedJobs.size());
 
+            // One row card per job on this page.
             for (JobPosting job : sortedJobs.subList(fromIndex, toIndex)) {
                 jobsList.getChildren().add(createJobCard(nav, context, job));
             }
@@ -293,6 +310,7 @@ public class MoreJobsPage extends Application {
             }
         };
 
+        // Any filter change jumps back to page 1.
         Runnable resetPageAndRefresh = () -> {
             currentPage[0] = 0;
             refreshJobsView[0].run();
@@ -325,6 +343,7 @@ public class MoreJobsPage extends Application {
 
         refreshJobsView[0].run();
 
+        // Footer: back navigation + page strip (page buttons wired to refreshJobsView).
         Region footerSpacer = new Region();
         HBox.setHgrow(footerSpacer, Priority.ALWAYS);
         HBox footer = new HBox(12, UiTheme.createBackButton(nav), footerSpacer, pageSelector);
@@ -340,6 +359,7 @@ public class MoreJobsPage extends Application {
         center.setFillWidth(true);
         center.setMaxWidth(Double.MAX_VALUE);
 
+        // Main column scrolls vertically; horizontal overflow hidden.
         ScrollPane centerScroll = new ScrollPane(center);
         centerScroll.setFitToWidth(true);
         centerScroll.setPannable(false);
@@ -365,6 +385,7 @@ public class MoreJobsPage extends Application {
         return UiTheme.createScene(root);
     }
 
+    /** Single job row: summary text plus View details and Chat with MO. */
     private static VBox createJobCard(NavigationManager nav, UiAppContext context, JobPosting job) {
         HBox row = new HBox(20);
         row.setAlignment(Pos.CENTER_LEFT);
@@ -423,6 +444,7 @@ public class MoreJobsPage extends Application {
         launch(args);
     }
 
+    /** List cell used for filter {@link ComboBox} dropdown and button display. */
     private static ListCell<String> newFilterComboListCell() {
         return new ListCell<>() {
             @Override
@@ -438,6 +460,7 @@ public class MoreJobsPage extends Application {
         };
     }
 
+    /** Shared pink/white styling for the four filter combo boxes. */
     private static void styleFilterCombo(ComboBox<String> combo) {
         combo.setStyle(
             "-fx-background-color: #ffffff;"
@@ -454,6 +477,10 @@ public class MoreJobsPage extends Application {
         combo.setCellFactory(list -> newFilterComboListCell());
     }
 
+    /**
+     * Parses digits from {@link JobPosting#jobId()} for sort order (e.g. {@code TA-2025-00042} → 202500042).
+     * Non-numeric ids sort last via {@link Integer#MIN_VALUE}.
+     */
     private static int extractJobSequenceNumber(JobPosting job) {
         String jobId = job.jobId();
         String numeric = jobId.replaceAll("\\D+", "");
@@ -467,6 +494,7 @@ public class MoreJobsPage extends Application {
         }
     }
 
+    /** MO display name for keyword search, if the account exists. */
     private static String moDisplayName(UiAppContext context, String organiserId) {
         return context.services().userRepository().findByUserId(organiserId)
             .map(UserAccount::displayName)
@@ -474,6 +502,7 @@ public class MoreJobsPage extends Application {
             .orElse("");
     }
 
+    /** Lowercased concatenation of fields searched by the keyword box. */
     private static String searchHaystack(JobPosting job, UiAppContext context) {
         String moName = moDisplayName(context, job.organiserId());
         return String.join(
@@ -489,6 +518,7 @@ public class MoreJobsPage extends Application {
         ).toLowerCase(Locale.ROOT);
     }
 
+    /** Substring match over {@link #searchHaystack(JobPosting, UiAppContext)}; blank keyword matches all. */
     private static boolean matchesKeyword(JobPosting job, UiAppContext context, String keyword) {
         if (keyword == null || keyword.isBlank()) {
             return true;
@@ -496,6 +526,7 @@ public class MoreJobsPage extends Application {
         return searchHaystack(job, context).contains(keyword.trim().toLowerCase(Locale.ROOT));
     }
 
+    /** Exact match on {@link JobPosting#moduleOrActivity()} (case-insensitive), or pass-through for "All modules". */
     private static boolean matchesModule(JobPosting job, String moduleChoice) {
         if (moduleChoice == null || "All modules".equals(moduleChoice)) {
             return true;
@@ -503,6 +534,7 @@ public class MoreJobsPage extends Application {
         return job.moduleOrActivity() != null && job.moduleOrActivity().equalsIgnoreCase(moduleChoice.trim());
     }
 
+    /** Heuristic: scan title + description for keywords per selected activity bucket. */
     private static boolean matchesActivityType(JobPosting job, String activityChoice) {
         if (activityChoice == null || "All activity types".equals(activityChoice)) {
             return true;
@@ -519,6 +551,7 @@ public class MoreJobsPage extends Application {
         };
     }
 
+    /** Case-insensitive equality against one entry in {@link JobPosting#requiredSkills()}. */
     private static boolean matchesSkill(JobPosting job, String skillChoice) {
         if (skillChoice == null || "All skills".equals(skillChoice)) {
             return true;
@@ -528,6 +561,10 @@ public class MoreJobsPage extends Application {
             .anyMatch(s -> s != null && s.trim().toLowerCase(Locale.ROOT).equals(target));
     }
 
+    /**
+     * Day codes match {@code MON-}… prefix in schedule strings; morning/afternoon/evening use
+     * {@link #slotStartHour(String)}. Jobs with no schedule never match a specific slot filter.
+     */
     private static boolean matchesTimeSlot(JobPosting job, String timeChoice) {
         if (timeChoice == null || "Any time".equals(timeChoice)) {
             return true;
@@ -552,6 +589,9 @@ public class MoreJobsPage extends Application {
         return true;
     }
 
+    /**
+     * Expects slots like {@code MON-09:00-11:00}; returns start hour (0–23) or {@code -1} if unparsable.
+     */
     private static int slotStartHour(String slot) {
         if (slot == null || slot.isBlank()) {
             return -1;
@@ -577,6 +617,10 @@ public class MoreJobsPage extends Application {
         }
     }
 
+    /**
+     * Time-of-day filters for {@link #matchesTimeSlot(JobPosting, String)}: start hour from
+     * {@link #slotStartHour(String)} in morning {@code [5, 12)}, afternoon {@code [12, 17)}, evening {@code [17, 24]}.
+     */
     private static boolean slotStartsInMorning(String slot) {
         int h = slotStartHour(slot);
         return h >= 5 && h < 12;
