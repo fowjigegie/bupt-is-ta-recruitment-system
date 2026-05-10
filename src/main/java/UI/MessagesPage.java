@@ -13,7 +13,6 @@ import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
-import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
@@ -91,7 +90,7 @@ public class MessagesPage extends Application {
         messageFlow.setPadding(new Insets(8, 10, 8, 10));
         ScrollPane messageScroll = new ScrollPane(messageFlow);
         messageScroll.setFitToWidth(true);
-        messageScroll.setPrefViewportHeight(360);
+        messageScroll.setMinViewportHeight(280);
         messageScroll.setStyle(
             "-fx-background:#ffffff;" +
                 "-fx-background-color:#ffffff;" +
@@ -99,6 +98,7 @@ public class MessagesPage extends Application {
                 "-fx-border-radius:12;" +
                 "-fx-background-radius:12;"
         );
+        VBox.setVgrow(messageScroll, Priority.ALWAYS);
 
         TextField messageInput = new TextField();
         messageInput.setPromptText("Type your message to the selected user...");
@@ -188,6 +188,9 @@ public class MessagesPage extends Application {
         HBox.setHgrow(rightPane, Priority.ALWAYS);
 
         HBox contentRow = new HBox(14, leftPane, rightPane);
+        HBox.setHgrow(contentRow, Priority.ALWAYS);
+        VBox.setVgrow(contentRow, Priority.ALWAYS);
+
         HBox footer = new HBox(UiTheme.createBackButton(nav));
         footer.setAlignment(Pos.CENTER_LEFT);
 

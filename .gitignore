@@ -10,3 +10,5 @@ out/
 lib/openjfx/javafx-sdk-26/
 javafx-sdk-26/
 src/main/data/
+# local OpenAI key (optional file — do not commit)
+data/openai-api-key.txt

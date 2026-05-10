@@ -34,6 +34,11 @@ try {
     Reset-Directory -Path $outputDir
     Copy-DirectoryContents -Source $stagedOutputDir -Destination $outputDir
 
+    $resourcesDir = Join-Path $projectRoot "src\\main\\resources"
+    if (Test-Path $resourcesDir) {
+        Copy-Item -Path (Join-Path $resourcesDir "*") -Destination $outputDir -Recurse -Force
+    }
+
     Write-Host "Build completed. Classes written to $outputDir"
 } finally {
     if (Test-Path $tempWorkspace) {

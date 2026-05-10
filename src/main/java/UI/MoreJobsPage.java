@@ -165,7 +165,28 @@ public class MoreJobsPage extends Application {
         VBox actCol = new VBox(4, activityLbl, activityFilter);
         VBox skCol = new VBox(4, skillLbl, skillFilter);
         VBox timeCol = new VBox(4, timeLbl, timeSlotFilter);
-        HBox filterRow = new HBox(14, modCol, actCol, skCol, timeCol);
+
+        Region filterAiSpacer = new Region();
+        HBox.setHgrow(filterAiSpacer, Priority.ALWAYS);
+
+        Label aiColLabel = new Label("AI Assistant");
+        aiColLabel.setTextFill(Color.web("#6b5b7a"));
+        aiColLabel.setFont(Font.font("Arial", 11));
+
+        Button aiJobAdvisorButton = UiTheme.createSoftButton("AI Job Advisor", 168, 44);
+        aiJobAdvisorButton.setStyle(
+            "-fx-background-color: linear-gradient(to right, #ffe6f2, #ffd6e8);"
+                + "-fx-text-fill: #b0306e;"
+                + "-fx-font-weight: bold;"
+                + "-fx-font-size: 13px;"
+                + "-fx-background-radius: 22;"
+        );
+        aiJobAdvisorButton.setMinWidth(140);
+        aiJobAdvisorButton.setOnAction(event -> JobAiChatWindow.open(nav, context, jobs));
+
+        VBox aiCol = new VBox(4, aiColLabel, aiJobAdvisorButton);
+
+        HBox filterRow = new HBox(14, modCol, actCol, skCol, timeCol, filterAiSpacer, aiCol);
         filterRow.setAlignment(Pos.BOTTOM_LEFT);
 
         VBox filterPanel = new VBox(12, searchRow, filterRow);

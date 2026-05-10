@@ -1,0 +1,11 @@
+UI\MessagesPage.class
+UI\JobManagementPage.class
+UI\PostVacanciesPage.class
+UI\JobDetailPage.class
+UI\PageId.class
+UI\NavigationManager.class
+UI\ModuleOrganizerDashboardPage.class
+UI\MoreJobsPage.class
+UI\LoginPage.class
+UI\MessagesPage$ChatThread.class
+UI\RegisterPage.class

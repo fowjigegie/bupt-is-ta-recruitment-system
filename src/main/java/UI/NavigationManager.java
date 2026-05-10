@@ -28,6 +28,10 @@ public final class NavigationManager {
         return context.session();
     }
 
+    public Stage stage() {
+        return stage;
+    }
+
     public PageId currentPage() {
         return currentPage;
     }
