@@ -40,15 +40,24 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * Chat-style window for AI-assisted TA job recommendations (More Jobs page).
+ * Modal chat UI for the AI job advisor on the More Jobs page.
+ * <p>
+ * Uses a background thread for API calls so the JavaFX thread stays responsive.
+ * When no API key is configured, falls back to {@link JobAdvisorFallback}.
  */
 final class JobAiChatWindow {
+    /** Max characters of resume text injected into the system prompt. */
     private static final int MAX_CV_CHARS = 12_000;
+    /** Max characters of the OPEN jobs listing injected into the system prompt. */
     private static final int MAX_JOBS_CHARS = 24_000;
 
     private JobAiChatWindow() {
     }
 
+    /**
+     * Opens a window-modal stage owned by the main app; loads profile, CV text, and open jobs
+     * into the system prompt, then wires Send / Enter to cloud completion or local fallback.
+     */
     static void open(NavigationManager nav, UiAppContext context, List<JobPosting> openJobsSnapshot) {
         Stage owner = nav.stage();
         Stage chatStage = new Stage();
@@ -56,6 +65,7 @@ final class JobAiChatWindow {
         chatStage.initModality(Modality.WINDOW_MODAL);
         chatStage.setTitle("BUPT-TA · AI Job Advisor");
 
+        // Snapshot context for the model (and fallback) for this session only.
         String userId = context.session().userId();
         Optional<ApplicantProfile> profile = context.services().profileRepository().findByUserId(userId);
         String cvDigest = loadCvDigest(context, userId);
@@ -91,6 +101,7 @@ final class JobAiChatWindow {
                 + "-fx-padding: 10;"
         );
 
+        // Rolling chat history for the remote API (trimmed before each request).
         List<ChatTurn> apiHistory = new ArrayList<>();
         OpenAiCompatibleClient client = new OpenAiCompatibleClient();
         boolean cloudAi = client.hasApiKey();
@@ -98,6 +109,7 @@ final class JobAiChatWindow {
             chatStage.setTitle("BUPT-TA · AI Job Advisor (Cloud)");
         }
 
+        // After new bubbles are added, jump to the latest message on the FX thread.
         Runnable scrollChatToBottom = () -> Platform.runLater(() -> {
             messageScroll.layout();
             messageScroll.setVvalue(1.0);
@@ -145,6 +157,7 @@ final class JobAiChatWindow {
             scrollChatToBottom.run();
             sendButton.setDisable(true);
 
+            // Network / file I/O off the FX thread; UI updates via Platform.runLater.
             Runnable runCall = () -> {
                 try {
                     String answer;
@@ -191,6 +204,7 @@ final class JobAiChatWindow {
 
         sendButton.setOnAction(event -> sendAction.run());
 
+        // Enter sends; Shift+Enter inserts a newline (default TextArea behavior).
         input.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
             if (event.getCode() == KeyCode.ENTER && !event.isShiftDown()) {
                 event.consume();
@@ -229,6 +243,7 @@ final class JobAiChatWindow {
         VBox top = new VBox(8, header, subHeader);
         top.setPadding(new Insets(8, 8, 16, 8));
 
+        // Rounded white card wrapping the scrollable transcript.
         VBox chatShell = new VBox(messageScroll);
         chatShell.setPadding(new Insets(0));
         chatShell.setBackground(new Background(new BackgroundFill(
@@ -295,6 +310,9 @@ final class JobAiChatWindow {
         return row;
     }
 
+    /**
+     * Builds the fixed system message: role, applicant summary, resume excerpts, and OPEN postings.
+     */
     private static String buildSystemPrompt(
         String userId,
         Optional<ApplicantProfile> profile,
@@ -325,6 +343,9 @@ final class JobAiChatWindow {
         return sb.toString();
     }
 
+    /**
+     * Loads the newest CVs for the user, concatenates plain text up to {@link #MAX_CV_CHARS}, newest first.
+     */
     private static String loadCvDigest(UiAppContext context, String userId) {
         List<ApplicantCv> cvs = context.services().cvRepository().findByOwnerUserId(userId).stream()
             .sorted(Comparator.comparing(ApplicantCv::updatedAt).reversed())
@@ -354,6 +375,9 @@ final class JobAiChatWindow {
         return out.toString().trim();
     }
 
+    /**
+     * Formats only {@link JobStatus#OPEN} jobs as a plain-text catalog, capped by {@link #MAX_JOBS_CHARS}.
+     */
     private static String formatJobsCatalog(List<JobPosting> jobs) {
         List<JobPosting> open = jobs.stream()
             .filter(j -> j.status() == JobStatus.OPEN)
