@@ -36,6 +36,7 @@ import com.bupt.tarecruitment.job.TextFileJobRepository;
 import com.bupt.tarecruitment.mo.MoApplicantRankingService;
 import com.bupt.tarecruitment.mo.MoCandidateComparisonService;
 import com.bupt.tarecruitment.mo.MoDecisionLogService;
+import com.bupt.tarecruitment.mo.MoInterviewScheduleService;
 import com.bupt.tarecruitment.mo.MoJobAnalyticsService;
 import com.bupt.tarecruitment.mo.MoJobQualityService;
 import com.bupt.tarecruitment.mo.MoShortlistService;
@@ -73,6 +74,7 @@ public final class UiServices {
     private final MoJobQualityService moJobQualityService;
     private final MoJobAnalyticsService moJobAnalyticsService;
     private final MoDecisionLogService moDecisionLogService;
+    private final MoInterviewScheduleService moInterviewScheduleService;
     private final MoShortlistService moShortlistService;
     private final MoCandidateComparisonService moCandidateComparisonService;
     private final ApplicantAvatarStorageService applicantAvatarStorageService;
@@ -104,6 +106,7 @@ public final class UiServices {
         MoJobQualityService moJobQualityService,
         MoJobAnalyticsService moJobAnalyticsService,
         MoDecisionLogService moDecisionLogService,
+        MoInterviewScheduleService moInterviewScheduleService,
         MoShortlistService moShortlistService,
         MoCandidateComparisonService moCandidateComparisonService,
         ApplicantAvatarStorageService applicantAvatarStorageService,
@@ -134,6 +137,7 @@ public final class UiServices {
         this.moJobQualityService = moJobQualityService;
         this.moJobAnalyticsService = moJobAnalyticsService;
         this.moDecisionLogService = moDecisionLogService;
+        this.moInterviewScheduleService = moInterviewScheduleService;
         this.moShortlistService = moShortlistService;
         this.moCandidateComparisonService = moCandidateComparisonService;
         this.applicantAvatarStorageService = applicantAvatarStorageService;
@@ -233,6 +237,13 @@ public final class UiServices {
             moJobQualityService
         );
         MoDecisionLogService moDecisionLogService = new MoDecisionLogService(dataDirectory);
+        MoInterviewScheduleService moInterviewScheduleService = new MoInterviewScheduleService(
+            jobRepository,
+            applicationRepository,
+            profileRepository,
+            messageService,
+            moDecisionLogService
+        );
         MoShortlistService moShortlistService = new MoShortlistService(
             dataDirectory,
             applicationRepository,
@@ -281,6 +292,7 @@ public final class UiServices {
             moJobQualityService,
             moJobAnalyticsService,
             moDecisionLogService,
+            moInterviewScheduleService,
             moShortlistService,
             moCandidateComparisonService,
             applicantAvatarStorageService,
@@ -383,6 +395,10 @@ public final class UiServices {
 
     public MoDecisionLogService moDecisionLogService() {
         return moDecisionLogService;
+    }
+
+    public MoInterviewScheduleService moInterviewScheduleService() {
+        return moInterviewScheduleService;
     }
 
     public MoShortlistService moShortlistService() {

@@ -6,6 +6,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.List;
 
 import com.bupt.tarecruitment.common.storage.DataFile;
@@ -16,6 +17,8 @@ import com.bupt.tarecruitment.common.storage.DataFile;
 public final class TextFileMessageRepository implements MessageRepository {
     private static final String FIELD_SEPARATOR = "\\|";
     private static final String OUTPUT_SEPARATOR = "|";
+    /** When message body contains '|' or newlines, store as Base64 so the line stays 7 pipe-separated fields. */
+    private static final String CONTENT_B64_PREFIX = "b64msg:";
 
     private final Path messagesFilePath;
 
@@ -88,7 +91,7 @@ public final class TextFileMessageRepository implements MessageRepository {
             fields[2],
             fields[3],
             LocalDateTime.parse(fields[4]),
-            fields[5],
+            decodeContentField(fields[5]),
             parseReadStatus(fields[6])
         );
     }
@@ -134,9 +137,28 @@ public final class TextFileMessageRepository implements MessageRepository {
             message.senderUserId(),
             message.receiverUserId(),
             message.sentAt().toString(),
-            message.content(),
+            encodeContentField(message.content()),
             formatReadStatus(message.read())
         );
+    }
+
+    private static String encodeContentField(String content) {
+        String value = content == null ? "" : content;
+        if (value.contains("|") || value.contains("\n") || value.contains("\r")) {
+            return CONTENT_B64_PREFIX + Base64.getEncoder().encodeToString(value.getBytes(StandardCharsets.UTF_8));
+        }
+        return value;
+    }
+
+    private static String decodeContentField(String raw) {
+        if (raw == null) {
+            return "";
+        }
+        if (raw.startsWith(CONTENT_B64_PREFIX)) {
+            byte[] bytes = Base64.getDecoder().decode(raw.substring(CONTENT_B64_PREFIX.length()));
+            return new String(bytes, StandardCharsets.UTF_8);
+        }
+        return raw;
     }
 
     // 启动时保证 data/messages.txt 存在。
