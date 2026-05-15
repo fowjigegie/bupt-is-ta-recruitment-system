@@ -156,14 +156,14 @@ powershell -ExecutionPolicy Bypass -File scripts\web-clean.ps1 -RemoveRuntimeDat
 ## 4. 演示账号
 
 - Applicant
-  - `ta001 / demo-ta-password`
-  - `ta002 / demo-ta2-password`
+  - `ta001 / 123456`
+  - `ta002 / 123456`
 
 - Module organiser
-  - `mo001 / demo-mo-password`
+  - `mo001 / 123456`
 
 - Admin
-  - `admin001 / demo-admin-password`
+  - `admin001 / 123456`
 
 ## 5. 本次功能如何手动验证
 
@@ -175,7 +175,7 @@ powershell -ExecutionPolicy Bypass -File scripts\web-clean.ps1 -RemoveRuntimeDat
 powershell -ExecutionPolicy Bypass -File scripts\run-javafx.ps1
 ```
 
-2. 使用 `mo001 / demo-mo-password` 登录。
+2. 使用 `mo001 / 123456` 登录。
 3. 进入 `Application Review` 页面。
 4. 对某条申请执行：
    - `Shortlist`
@@ -185,7 +185,7 @@ powershell -ExecutionPolicy Bypass -File scripts\run-javafx.ps1
 
 ### 5.2 管理员工作量验证
 
-1. 使用 `admin001 / demo-admin-password` 登录。
+1. 使用 `admin001 / 123456` 登录。
 2. 进入管理员首页。
 3. 查看 “TA workload control” 区域。
 4. 确认以下内容是否展示：

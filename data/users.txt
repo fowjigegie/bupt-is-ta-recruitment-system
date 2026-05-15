@@ -1,12 +1,22 @@
 # Format: userId|passwordHash|role|displayName|status
-admin001|demo-admin-password|ADMIN|System Admin|ACTIVE
-mo001|demo-mo-password|MO|Dr Alice Chen|ACTIVE
-mo002|demo-mo2-password|MO|Dr Brian Zhao|ACTIVE
-mo003|demo-mo3-password|MO|Dr Naomi Wang|ACTIVE
-mo004|demo-mo4-password|MO|Dr Victor Liu|ACTIVE
-mo005|demo-mo5-password|MO|Dr Helen Xu|ACTIVE
-mo006|demo-mo6-password|MO|Dr Rachel Sun|ACTIVE
-ta001|demo-ta-password|APPLICANT|Zhang Yiliang|ACTIVE
-ta002|demo-ta2-password|APPLICANT|Chen Yuhan|ACTIVE
-ta010|ta010-password|APPLICANT|Jiang Yuan|ACTIVE
-ta900|demo-us10-password|APPLICANT|Li Minghao|ACTIVE
+admin001|123456|ADMIN|System Admin|ACTIVE
+mo001|123456|MO|Dr Alice Chen|ACTIVE
+mo002|123456|MO|Dr Brian Zhao|ACTIVE
+mo003|123456|MO|Dr Naomi Wang|ACTIVE
+mo004|123456|MO|Dr Victor Liu|ACTIVE
+mo005|123456|MO|Dr Helen Xu|ACTIVE
+mo006|123456|MO|Dr Rachel Sun|ACTIVE
+ta001|123456|APPLICANT|Zhang Yiliang|ACTIVE
+ta002|123456|APPLICANT|Chen Yuhan|ACTIVE
+ta003|123456|APPLICANT|Liu Qian|ACTIVE
+ta004|123456|APPLICANT|Wang Rui|ACTIVE
+ta005|123456|APPLICANT|Zhao Min|ACTIVE
+ta006|123456|APPLICANT|Sun Ke|ACTIVE
+ta007|123456|APPLICANT|Huang Jia|ACTIVE
+ta008|123456|APPLICANT|Lin Siyu|ACTIVE
+ta009|123456|APPLICANT|Zhou Han|ACTIVE
+ta010|123456|APPLICANT|Jiang Yuan|ACTIVE
+ta011|123456|APPLICANT|Guo Yichen|ACTIVE
+ta012|123456|APPLICANT|Ma Ning|ACTIVE
+ta013|123456|APPLICANT|Yang Fan|ACTIVE
+ta900|123456|APPLICANT|Li Minghao|ACTIVE

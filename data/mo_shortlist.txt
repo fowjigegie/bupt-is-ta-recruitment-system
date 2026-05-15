@@ -1,0 +1,2 @@
+mo001	job907	application926	ta001	SHORTLISTED	Marked as strong shortlist from application detail.	2026-05-15T20:30:53.974625900
+mo001	job001	application005	ta001	MAYBE	Marked as maybe from application detail.	2026-05-15T20:39:20.387740800

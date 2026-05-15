@@ -64,9 +64,9 @@
             <aside class="account-card">
                 <h2>Demo Accounts</h2>
                 <div class="account-list">
-                    <div class="account-item"><strong>Applicant:</strong> ta001 / demo-ta-password</div>
-                    <div class="account-item"><strong>Module organiser:</strong> mo001 / demo-mo-password</div>
-                    <div class="account-item"><strong>Admin:</strong> admin001 / demo-admin-password</div>
+                    <div class="account-item"><strong>Applicant:</strong> ta001 / 123456</div>
+                    <div class="account-item"><strong>Module organiser:</strong> mo001 / 123456</div>
+                    <div class="account-item"><strong>Admin:</strong> admin001 / 123456</div>
                 </div>
             </aside>
         </section>

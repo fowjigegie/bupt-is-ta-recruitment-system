@@ -40,12 +40,15 @@ public final class FakeAiAssistantDialog {
         VBox transcript = new VBox(12);
         transcript.setPadding(new Insets(8, 6, 8, 6));
 
+        boolean realApiEnabled = context.services().aiAssistantService().isRealApiEnabled();
         String providerLabel = context.services().aiAssistantService().providerLabel();
         transcript.getChildren().addAll(
             createAssistantBubble(
-                "Hello, I'm the BUPT-TA AI Assistant.\nTry asking: \"Recommend the best jobs for me\" or \"What skills am I missing for TA for Software Engineering?\""
+                realApiEnabled
+                    ? "Hello, I'm the BUPT-TA AI Assistant.\nTry asking: \"Recommend the best jobs for me\" or \"What skills am I missing for TA for Software Engineering?\""
+                    : "Hello, I'm the BUPT-TA built-in helper.\nI can answer with local recruitment-system data. Try asking about recommended jobs, missing skills, timetable checks, or application status."
             ),
-            createMetaLabel("Assistant provider: " + providerLabel)
+            createMetaLabel("Assistant mode: " + providerLabel)
         );
         if (context.selectedJobId() != null) {
             transcript.getChildren().add(createMetaLabel("Current selected job context: " + context.selectedJobId()));
@@ -138,13 +141,13 @@ public final class FakeAiAssistantDialog {
 
         Label subtitle = new Label(
             context.services().aiAssistantService().isRealApiEnabled()
-                ? "NVIDIA-powered assistant with local recruitment-system context."
-                : "Local assistant fallback. Set NVIDIA_API_KEY before launch to enable the real API."
+                ? "Cloud AI with local recruitment-system context."
+                : "Built-in helper using local system data. Set DASHSCOPE_API_KEY or NVIDIA_API_KEY before launch to enable Cloud AI."
         );
         subtitle.setFont(Font.font("Arial", 14));
         subtitle.setTextFill(Color.web("#8b7fa0"));
 
-        Label pluginTag = new Label(context.services().aiAssistantService().isRealApiEnabled() ? "NVIDIA" : "Local");
+        Label pluginTag = new Label(context.services().aiAssistantService().isRealApiEnabled() ? "Cloud AI" : "Built-in");
         pluginTag.setFont(Font.font("Arial", FontWeight.BOLD, 13));
         pluginTag.setTextFill(Color.web("#b05a88"));
         pluginTag.setStyle(

@@ -1,0 +1,4 @@
+Huang Jia
+Focus: Web development and mobile app project mentoring.
+Skills: HTML, CSS, JavaScript, UI design, Android.
+Experience: Reviewed student UI prototypes and helped debug Android Studio build issues.

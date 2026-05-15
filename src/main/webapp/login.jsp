@@ -142,9 +142,9 @@
             <section class="side-card">
                 <h3>Demo Accounts</h3>
                 <ul>
-                    <li>Applicant: <strong>ta001</strong> / <strong>demo-ta-password</strong></li>
-                    <li>Module organiser: <strong>mo001</strong> / <strong>demo-mo-password</strong></li>
-                    <li>Admin: <strong>admin001</strong> / <strong>demo-admin-password</strong></li>
+                    <li>Applicant: <strong>ta001</strong> / <strong>123456</strong></li>
+                    <li>Module organiser: <strong>mo001</strong> / <strong>123456</strong></li>
+                    <li>Admin: <strong>admin001</strong> / <strong>123456</strong></li>
                 </ul>
             </section>
 

@@ -1,0 +1,4 @@
+Yang Fan
+Focus: First-year programming tutorials.
+Skills: Programming, presentation, communication, patience, teaching.
+Experience: Led small peer-help sessions for loops, functions, debugging, and test cases.

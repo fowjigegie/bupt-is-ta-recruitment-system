@@ -1,0 +1,4 @@
+Ma Ning
+Focus: Cloud data processing and analytics mentoring.
+Skills: Big Data, Spark, cloud computing, AWS, Python.
+Experience: Built demo data pipelines and explained batch-processing concepts to peers.

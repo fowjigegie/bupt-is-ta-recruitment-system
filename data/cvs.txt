@@ -7,4 +7,15 @@ cv006|ta001|Teaching Support CV|cvs/ta001/cv006.txt|2026-04-07T00:07:22.59689040
 cv007|ta010|Information Security CV|cvs/ta010/cv007.txt|2026-04-10T20:01:35.026517100|2026-04-10T20:01:35.026517100
 cv008|ta010|Python Lab Support CV|cvs/ta010/cv008.txt|2026-04-10T20:01:44.217426600|2026-04-10T20:01:44.217426600
 cv009|ta010|Software Testing CV|cvs/ta010/cv009.txt|2026-04-10T20:03:07.812357200|2026-04-10T20:03:07.812357200
+cv010|ta003|Data Structures Lab CV|cvs/ta003/cv010.txt|2026-04-17T09:00|2026-04-17T09:00
+cv011|ta004|Database Systems Support CV|cvs/ta004/cv011.txt|2026-04-17T09:30|2026-04-17T09:30
+cv012|ta005|Systems and Networks CV|cvs/ta005/cv012.txt|2026-04-18T10:30|2026-04-18T10:30
+cv013|ta006|Statistics and Python Lab CV|cvs/ta006/cv013.txt|2026-04-18T14:00|2026-04-18T14:00
+cv014|ta007|Frontend and Mobile CV|cvs/ta007/cv014.txt|2026-04-19T09:15|2026-04-19T09:15
+cv015|ta008|Software Testing CV|cvs/ta008/cv015.txt|2026-04-19T10:40|2026-04-19T10:40
+cv016|ta009|Security Tutorial CV|cvs/ta009/cv016.txt|2026-04-20T11:20|2026-04-20T11:20
+cv017|ta011|IoT Lab Support CV|cvs/ta011/cv017.txt|2026-04-20T13:10|2026-04-20T13:10
+cv018|ta012|Cloud Data Processing CV|cvs/ta012/cv018.txt|2026-04-21T15:05|2026-04-21T15:05
+cv019|ta013|Programming Tutor CV|cvs/ta013/cv019.txt|2026-04-21T16:25|2026-04-21T16:25
 cv900|ta900|Software Engineering Teaching CV|cvs/ta900/cv900.txt|2026-04-16T10:00|2026-04-16T10:00
+cv901|ta001|iot CV|cvs/ta001/cv901.txt|2026-05-15T20:22:31.135381900|2026-05-15T20:22:33.557710900
