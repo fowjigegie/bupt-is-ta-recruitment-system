@@ -1,0 +1,7 @@
+Name: Jiang Yuan
+Grade: Senior undergraduate
+Programme: Computer Science
+Student ID: 2023213389
+Availability: MON-09:50-11:25; WED-14:45-16:25
+Skills: Python, Java, Testing
+Desired Positions: Software Testing Assistant, Teaching Assistant

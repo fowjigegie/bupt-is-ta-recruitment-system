@@ -43,16 +43,9 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
- * Modal JavaFX dialogs that send admin data snapshots to the NVIDIA chat API
- * for system-wide analysis or single job posting review.
- * <p>
- * Network calls run on a daemon thread so the UI thread stays responsive; results
- * are applied on the JavaFX application thread via {@link Task} callbacks.
+ * Admin-only NVIDIA analysis entry points.
  */
 final class AdminAiAnalysisDialog {
-    /**
-     * Instructions to the model: stay within supplied data, plain text only, compact sections.
-     */
     private static final String SYSTEM_PROMPT = """
         You are an AI analyst for the BUPT-TA Recruitment System admin dashboard.
         Use only the system snapshot supplied by the application.
@@ -66,10 +59,6 @@ final class AdminAiAnalysisDialog {
     private AdminAiAnalysisDialog() {
     }
 
-    /**
-     * Opens a modal dialog that asks the assistant for a cross-cutting admin report
-     * (users, jobs, applications, workload, integrity).
-     */
     static void showSystemAnalysis(Window owner, UiAppContext context) {
         showAnalysisDialog(
             owner,
@@ -80,9 +69,6 @@ final class AdminAiAnalysisDialog {
         );
     }
 
-    /**
-     * Opens a modal dialog focused on one {@link JobPosting}: quality, completeness, and appeal.
-     */
     static void showJobPostingReview(Window owner, UiAppContext context, JobPosting job) {
         showAnalysisDialog(
             owner,
@@ -93,14 +79,6 @@ final class AdminAiAnalysisDialog {
         );
     }
 
-    /**
-     * Builds the dialog chrome, starts a {@link Task} that calls {@link NvidiaAiAssistantClient#chat},
-     * and blocks with {@link Stage#showAndWait()} until the user closes the window.
-     *
-     * @param owner          parent window for modality, or {@code null}
-     * @param promptSupplier user message builder (runs on the worker thread)
-     * @param maxTokens      completion length cap passed to the API
-     */
     private static void showAnalysisDialog(
         Window owner,
         String titleText,
@@ -158,7 +136,6 @@ final class AdminAiAnalysisDialog {
         shell.setPadding(new Insets(24));
         shell.setBackground(UiTheme.pageBackground());
 
-        // Lightweight progress indicator while the API request is in flight.
         Timeline thinkingAnimation = new Timeline(
             new KeyFrame(Duration.ZERO, event -> thinkingLabel.setText("Thinking.")),
             new KeyFrame(Duration.millis(350), event -> thinkingLabel.setText("Thinking..")),
@@ -167,7 +144,6 @@ final class AdminAiAnalysisDialog {
         thinkingAnimation.setCycleCount(Timeline.INDEFINITE);
         thinkingAnimation.play();
 
-        // NVIDIA chat runs off the UI thread; Task delivers the result back on the JavaFX thread.
         Task<String> task = new Task<>() {
             @Override
             protected String call() {
@@ -184,7 +160,6 @@ final class AdminAiAnalysisDialog {
                 return answer;
             }
         };
-        // Task callbacks run on the JavaFX thread; replace the placeholder with the answer or an error summary.
         task.setOnSucceeded(event -> {
             thinkingAnimation.stop();
             thinkingLabel.setText(task.getValue());
@@ -206,7 +181,6 @@ final class AdminAiAnalysisDialog {
         dialog.showAndWait();
     }
 
-    /** Small pill label showing configured model or "not configured". */
     private static Label createProviderTag() {
         Label tag = new Label(createProviderText());
         tag.setFont(Font.font("Arial", FontWeight.BOLD, 13));
@@ -222,19 +196,16 @@ final class AdminAiAnalysisDialog {
         return tag;
     }
 
-    /** Human-readable NVIDIA model label for the header and transcript meta line. */
     private static String createProviderText() {
         Optional<NvidiaAiAssistantClient> client = NvidiaAiAssistantClient.fromEnvironment();
         return client.map(value -> "NVIDIA: " + value.model()).orElse("NVIDIA not configured");
     }
 
-    /** Assistant message styled as a left-aligned chat bubble. */
     private static Node createAssistantBubble(String text) {
         Label bubble = createBubbleLabel(text);
         return wrapAssistantBubble(bubble);
     }
 
-    /** Wraps a label in a left-aligned row with assistant bubble styling. */
     private static HBox wrapAssistantBubble(Label bubble) {
         applyAssistantBubbleStyle(bubble);
         HBox row = new HBox(bubble);
@@ -242,7 +213,6 @@ final class AdminAiAnalysisDialog {
         return row;
     }
 
-    /** Base label used for both static intro text and the live result / error body. */
     private static Label createBubbleLabel(String text) {
         Label label = new Label(text);
         label.setWrapText(true);
@@ -250,7 +220,6 @@ final class AdminAiAnalysisDialog {
         return label;
     }
 
-    /** Pastel bubble chrome shared by assistant messages in the transcript. */
     private static void applyAssistantBubbleStyle(Label bubble) {
         bubble.setStyle(
             "-fx-background-color: white;" +
@@ -273,17 +242,12 @@ final class AdminAiAnalysisDialog {
         return label;
     }
 
-    /**
-     * Serialises repository state into a single user prompt: counts, integrity summary,
-     * workload lines, and job lists the model should reason about.
-     */
     private static String buildSystemPrompt(UiAppContext context) {
         List<JobApplication> applications = context.services().applicationRepository().findAll();
         List<JobPosting> jobs = context.services().jobRepository().findAll();
         List<WorkloadSummary> workloads = context.services().adminWorkloadService().listAcceptedTaWorkloads(10);
         AdminDataIntegrityPanel.IntegrityReport integrityReport = AdminDataIntegrityPanel.analyze(context);
 
-        // Aggregate applications per job for ranking and "zero application" open jobs.
         Map<String, Long> applicationsByJob = applications.stream()
             .collect(Collectors.groupingBy(JobApplication::jobId, Collectors.counting()));
         List<JobPosting> topJobs = jobs.stream()
@@ -355,10 +319,6 @@ final class AdminAiAnalysisDialog {
         return prompt.toString();
     }
 
-    /**
-     * Builds a user prompt for one job: posting fields, per-status application counts,
-     * and lightweight local heuristics (placeholder title, short description, etc.).
-     */
     private static String buildJobReviewPrompt(UiAppContext context, JobPosting job) {
         List<JobApplication> applications = context.services().applicationRepository().findAll().stream()
             .filter(application -> application.jobId().equals(job.jobId()))
@@ -397,11 +357,6 @@ final class AdminAiAnalysisDialog {
         return prompt.toString();
     }
 
-    /**
-     * Counts non-admin users, optionally filtered to one {@link UserRole}.
-     *
-     * @param role {@code null} means all non-admin roles
-     */
     private static long countUsers(UiAppContext context, UserRole role) {
         return context.services().userRepository().findAll().stream()
             .filter(user -> user.role() != UserRole.ADMIN)
@@ -409,7 +364,6 @@ final class AdminAiAnalysisDialog {
             .count();
     }
 
-    /** Heuristic for obvious placeholder or test titles to flag in the job review prompt. */
     private static boolean looksPlaceholderTitle(String title) {
         String normalized = title == null ? "" : title.trim().toLowerCase();
         return normalized.isBlank()
@@ -420,7 +374,6 @@ final class AdminAiAnalysisDialog {
             || normalized.startsWith("job ");
     }
 
-    /** Best-effort message for {@link Task#setOnFailed}: prefer leaf cause text when present. */
     private static String summarizeError(Throwable throwable) {
         if (throwable == null) {
             return "Unknown error.";
@@ -435,7 +388,6 @@ final class AdminAiAnalysisDialog {
         return throwable.getClass().getSimpleName();
     }
 
-    /** Supplies the user-role prompt on the worker thread when the dialog is shown. */
     @FunctionalInterface
     private interface PromptSupplier {
         String get();
