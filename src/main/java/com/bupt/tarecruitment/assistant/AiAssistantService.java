@@ -11,6 +11,6 @@ public interface AiAssistantService {
     }
 
     default String providerLabel() {
-        return "Local assistant";
+        return "Built-in helper";
     }
 }

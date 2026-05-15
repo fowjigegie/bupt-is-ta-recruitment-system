@@ -25,7 +25,7 @@ import java.util.Optional;
  */
 public final class FakeAiAssistantService implements AiAssistantService {
     private static final String FALLBACK_ANSWER =
-        "I'm sorry, I don't have a prepared answer for that question yet. Try asking about recommended jobs, missing skills for a named job, the schedule table, or application status.";
+        "I'm sorry, the built-in helper does not have enough local context for that one yet. Try asking about recommended jobs, missing skills, timetable checks, or application status.";
 
     private final TextFileFakeAiRepository repository;
     private final RecommendationService recommendationService;
@@ -107,7 +107,7 @@ public final class FakeAiAssistantService implements AiAssistantService {
 
     @Override
     public String providerLabel() {
-        return "Local rule-based assistant";
+        return "Built-in helper";
     }
 
     private String buildRecommendationAnswer(String applicantUserId) {

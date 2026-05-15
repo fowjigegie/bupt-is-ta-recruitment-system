@@ -15,8 +15,14 @@ import com.bupt.tarecruitment.application.JobApplication;
 import com.bupt.tarecruitment.common.text.DisplayFormats;
 import com.bupt.tarecruitment.job.JobPosting;
 
+import javafx.animation.FadeTransition;
+import javafx.animation.Interpolator;
 import javafx.animation.KeyFrame;
+import javafx.animation.KeyValue;
+import javafx.animation.ParallelTransition;
+import javafx.animation.ScaleTransition;
 import javafx.animation.Timeline;
+import javafx.animation.TranslateTransition;
 import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -53,6 +59,15 @@ import javafx.util.Duration;
 public class AdminAnalyticsPage extends Application {
     private static final int DEFAULT_WEEKLY_HOUR_LIMIT = 10;
     private static final Duration AUTO_REFRESH_INTERVAL = Duration.seconds(3);
+    private static final Duration ENTRANCE_DURATION = Duration.millis(520);
+    private static final double ENTRANCE_STAGGER_MILLIS = 85;
+    private static final double ENTRANCE_OFFSET_Y = 18;
+    private static final Duration CHART_ANIMATION_DELAY = Duration.millis(320);
+    private static final Duration CHART_ANIMATION_DURATION = Duration.millis(760);
+    private static final Duration DOT_POP_DURATION = Duration.millis(260);
+    private static final double DOT_STAGGER_MILLIS = 75;
+    private static final double BAR_STAGGER_MILLIS = 55;
+    private static final double RING_STAGGER_MILLIS = 70;
 
     private static final String BLUE = "#4664a8";
     private static final String PURPLE = "#8b5cf6";
@@ -128,6 +143,7 @@ public class AdminAnalyticsPage extends Application {
                 createBottomAnalyticsRow(),
                 createAnalysisNotes()
             );
+            prepareEntranceAnimation(content);
 
             ScrollPane scrollPane = new ScrollPane(content);
             scrollPane.setFitToWidth(true);
@@ -138,12 +154,42 @@ public class AdminAnalyticsPage extends Application {
             Scene scene = UiTheme.createScene(root);
 
             reloadData();
+            playEntranceAnimation(content);
 
             autoRefresh = new Timeline(new KeyFrame(AUTO_REFRESH_INTERVAL, event -> reloadData()));
             autoRefresh.setCycleCount(Timeline.INDEFINITE);
             autoRefresh.play();
 
             return scene;
+        }
+
+        private void prepareEntranceAnimation(VBox content) {
+            for (Node node : content.getChildren()) {
+                node.setOpacity(0);
+                node.setTranslateY(ENTRANCE_OFFSET_Y);
+            }
+        }
+
+        private void playEntranceAnimation(VBox content) {
+            int index = 0;
+            for (Node node : content.getChildren()) {
+                Duration delay = Duration.millis(index * ENTRANCE_STAGGER_MILLIS);
+
+                FadeTransition fade = new FadeTransition(ENTRANCE_DURATION, node);
+                fade.setFromValue(0);
+                fade.setToValue(1);
+                fade.setDelay(delay);
+                fade.setInterpolator(Interpolator.EASE_OUT);
+
+                TranslateTransition slide = new TranslateTransition(ENTRANCE_DURATION, node);
+                slide.setFromY(ENTRANCE_OFFSET_Y);
+                slide.setToY(0);
+                slide.setDelay(delay);
+                slide.setInterpolator(Interpolator.EASE_OUT);
+
+                new ParallelTransition(fade, slide).play();
+                index++;
+            }
         }
 
         private HBox createKpiRow() {
@@ -469,6 +515,7 @@ public class AdminAnalyticsPage extends Application {
         private final VBox root = new VBox(12);
         private final Pane chartPane = new Pane();
         private final HBox labels = new HBox();
+        private boolean animated;
 
         private TrendLineView() {
             chartPane.setPrefSize(600, 260);
@@ -491,6 +538,7 @@ public class AdminAnalyticsPage extends Application {
         }
 
         private void update(List<ChartItem> items, Tooltip tooltip) {
+            boolean animate = !animated;
             chartPane.getChildren().clear();
             labels.getChildren().clear();
 
@@ -561,7 +609,14 @@ public class AdminAnalyticsPage extends Application {
             line.setStrokeWidth(4);
             line.setStrokeLineCap(StrokeLineCap.ROUND);
 
-            chartPane.getChildren().addAll(area, line);
+            Pane plotLayer = new Pane(area, line);
+            plotLayer.setPickOnBounds(false);
+            if (animate) {
+                Rectangle revealClip = new Rectangle(left, top - 4, 0, height + 12);
+                plotLayer.setClip(revealClip);
+                animateRectangleWidth(revealClip, width + 8, CHART_ANIMATION_DELAY);
+            }
+            chartPane.getChildren().add(plotLayer);
 
             for (int i = 0; i < items.size(); i++) {
                 ChartItem item = items.get(i);
@@ -575,6 +630,10 @@ public class AdminAnalyticsPage extends Application {
                         + "\nCount: " + DisplayFormats.formatDecimal(item.value())
                 );
 
+                if (animate) {
+                    animateNodePop(dot, CHART_ANIMATION_DELAY.add(Duration.millis(160 + i * DOT_STAGGER_MILLIS)));
+                }
+
                 chartPane.getChildren().add(dot);
 
                 Label label = new Label(item.label());
@@ -582,6 +641,8 @@ public class AdminAnalyticsPage extends Application {
                 label.setStyle("-fx-text-fill: " + MUTED + ";");
                 labels.getChildren().add(label);
             }
+
+            animated = true;
         }
     }
 
@@ -592,6 +653,7 @@ public class AdminAnalyticsPage extends Application {
         private final Label centerValue = new Label("0");
         private final Label centerText = new Label("Total");
         private final List<Arc> arcs = new ArrayList<>();
+        private boolean animated;
 
         private DonutChartView() {
             chartPane.setPrefSize(320, 250);
@@ -626,6 +688,7 @@ public class AdminAnalyticsPage extends Application {
         }
 
         private void update(Map<String, Double> values, Tooltip tooltip) {
+            boolean animate = !animated;
             double total = values.values().stream().mapToDouble(Double::doubleValue).sum();
             centerValue.setText(DisplayFormats.formatDecimal(total));
 
@@ -650,6 +713,10 @@ public class AdminAnalyticsPage extends Application {
                 arc.setStroke(Color.web(color));
                 arc.setStrokeWidth(28);
                 arc.setStrokeLineCap(StrokeLineCap.ROUND);
+                if (animate) {
+                    arc.setLength(0);
+                    animateArcLength(arc, length, CHART_ANIMATION_DELAY.add(Duration.millis(index * RING_STAGGER_MILLIS)));
+                }
 
                 String text = entry.getKey()
                     + "\nCount: " + DisplayFormats.formatDecimal(value)
@@ -664,6 +731,7 @@ public class AdminAnalyticsPage extends Application {
                 start += length;
                 index++;
             }
+            animated = true;
         }
     }
 
@@ -671,6 +739,7 @@ public class AdminAnalyticsPage extends Application {
         private final VBox root = new VBox(12);
         private final VBox rows = new VBox(9);
         private final VBox insightBox = new VBox(6);
+        private boolean animated;
 
         private HorizontalDemandView() {
             rows.setPadding(new Insets(12, 0, 4, 0));
@@ -690,6 +759,7 @@ public class AdminAnalyticsPage extends Application {
         }
 
         private void update(List<ChartItem> items, int totalApplications, Tooltip tooltip) {
+            boolean animate = !animated;
             rows.getChildren().clear();
             insightBox.getChildren().clear();
 
@@ -706,14 +776,15 @@ public class AdminAnalyticsPage extends Application {
                 max = 1;
             }
 
-            for (ChartItem item : items) {
-                rows.getChildren().add(createDemandRow(item, max, tooltip));
+            for (int i = 0; i < items.size(); i++) {
+                rows.getChildren().add(createDemandRow(items.get(i), max, tooltip, animate, i));
             }
 
             updateInsight(items, totalApplications, tooltip);
+            animated = true;
         }
 
-        private HBox createDemandRow(ChartItem item, double max, Tooltip tooltip) {
+        private HBox createDemandRow(ChartItem item, double max, Tooltip tooltip, boolean animate, int index) {
             Label name = new Label(item.detail());
             name.setMinWidth(220);
             name.setPrefWidth(260);
@@ -723,8 +794,13 @@ public class AdminAnalyticsPage extends Application {
 
             Region bar = new Region();
             bar.setMinHeight(18);
-            bar.setPrefWidth(Math.max(18, 340.0 * item.value() / max));
+            double targetWidth = Math.max(18, 340.0 * item.value() / max);
+            bar.setMinWidth(0);
+            bar.setPrefWidth(animate ? 0 : targetWidth);
             bar.setStyle("-fx-background-color: #b8d5ff; -fx-background-radius: 9;");
+            if (animate) {
+                animateRegionPrefWidth(bar, targetWidth, CHART_ANIMATION_DELAY.add(Duration.millis(index * BAR_STAGGER_MILLIS)));
+            }
 
             HBox barTrack = new HBox(bar);
             barTrack.setAlignment(Pos.CENTER_LEFT);
@@ -810,6 +886,7 @@ public class AdminAnalyticsPage extends Application {
 
     private static final class RankingView {
         private final VBox root = new VBox(12);
+        private boolean animated;
 
         private RankingView() {
             root.setMinHeight(300);
@@ -820,6 +897,7 @@ public class AdminAnalyticsPage extends Application {
         }
 
         private void update(List<ChartItem> items, Tooltip tooltip) {
+            boolean animate = !animated;
             root.getChildren().clear();
 
             double max = items.stream().mapToDouble(ChartItem::value).max().orElse(1);
@@ -827,7 +905,8 @@ public class AdminAnalyticsPage extends Application {
                 max = 1;
             }
 
-            for (ChartItem item : items) {
+            for (int i = 0; i < items.size(); i++) {
+                ChartItem item = items.get(i);
                 Label name = new Label(item.label());
                 name.setFont(Font.font("Arial", FontWeight.BOLD, 13));
                 name.setStyle("-fx-text-fill: " + DARK + ";");
@@ -838,7 +917,8 @@ public class AdminAnalyticsPage extends Application {
                 value.setStyle("-fx-text-fill: " + BLUE + ";");
                 value.setPrefWidth(52);
 
-                Rectangle bar = new Rectangle(Math.max(8, 250 * item.value() / max), 14);
+                double targetWidth = Math.max(8, 250 * item.value() / max);
+                Rectangle bar = new Rectangle(animate ? 0 : targetWidth, 14);
                 bar.setArcWidth(14);
                 bar.setArcHeight(14);
                 bar.setFill(new LinearGradient(
@@ -846,6 +926,9 @@ public class AdminAnalyticsPage extends Application {
                     new Stop(0, Color.web(PURPLE)),
                     new Stop(1, Color.web(CYAN))
                 ));
+                if (animate) {
+                    animateRectangleWidth(bar, targetWidth, CHART_ANIMATION_DELAY.add(Duration.millis(i * BAR_STAGGER_MILLIS)));
+                }
 
                 StackPane track = new StackPane();
                 track.setAlignment(Pos.CENTER_LEFT);
@@ -865,6 +948,8 @@ public class AdminAnalyticsPage extends Application {
 
                 root.getChildren().add(row);
             }
+
+            animated = true;
         }
     }
 
@@ -972,6 +1057,53 @@ public class AdminAnalyticsPage extends Application {
         row.setAlignment(Pos.CENTER_LEFT);
         row.setMinWidth(190);
         return row;
+    }
+
+    private static void animateArcLength(Arc arc, double targetLength, Duration delay) {
+        Timeline draw = new Timeline(
+            new KeyFrame(
+                CHART_ANIMATION_DURATION,
+                new KeyValue(arc.lengthProperty(), targetLength, Interpolator.EASE_OUT)
+            )
+        );
+        draw.setDelay(delay);
+        draw.play();
+    }
+
+    private static void animateRegionPrefWidth(Region region, double targetWidth, Duration delay) {
+        Timeline grow = new Timeline(
+            new KeyFrame(
+                CHART_ANIMATION_DURATION,
+                new KeyValue(region.prefWidthProperty(), targetWidth, Interpolator.EASE_OUT)
+            )
+        );
+        grow.setDelay(delay);
+        grow.play();
+    }
+
+    private static void animateRectangleWidth(Rectangle rectangle, double targetWidth, Duration delay) {
+        Timeline grow = new Timeline(
+            new KeyFrame(
+                CHART_ANIMATION_DURATION,
+                new KeyValue(rectangle.widthProperty(), targetWidth, Interpolator.EASE_OUT)
+            )
+        );
+        grow.setDelay(delay);
+        grow.play();
+    }
+
+    private static void animateNodePop(Node node, Duration delay) {
+        node.setScaleX(0);
+        node.setScaleY(0);
+
+        ScaleTransition pop = new ScaleTransition(DOT_POP_DURATION, node);
+        pop.setFromX(0);
+        pop.setFromY(0);
+        pop.setToX(1);
+        pop.setToY(1);
+        pop.setDelay(delay);
+        pop.setInterpolator(Interpolator.EASE_OUT);
+        pop.play();
     }
 
     private static void installManualHover(Node node, Tooltip tooltip, Supplier<String> textSupplier) {

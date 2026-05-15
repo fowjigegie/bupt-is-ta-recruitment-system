@@ -58,10 +58,10 @@ If a teammate gets errors like `NoClassDefFoundError: Stage`, it usually means J
 ## Demo accounts
 
 - Applicant already used for historical demo data:
-  - `ta001 / demo-ta-password`
+  - `ta001 / 123456`
 - Fresh applicant recommended for application walkthrough:
-  - `ta002 / demo-ta2-password`
+  - `ta002 / 123456`
 - Module organiser:
-  - `mo001 / demo-mo-password`
+  - `mo001 / 123456`
 - Admin:
-  - `admin001 / demo-admin-password`
+  - `admin001 / 123456`

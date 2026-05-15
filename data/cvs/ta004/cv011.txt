@@ -1,0 +1,4 @@
+Wang Rui
+Focus: Database systems and backend integration support.
+Skills: SQL, database design, Java, Docker, communication.
+Experience: Built course projects with normalized schemas, JDBC access, and deployment notes.

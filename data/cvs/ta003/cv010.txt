@@ -1,0 +1,4 @@
+Liu Qian
+Focus: Data structures lab support and Java teaching.
+Skills: Java, data structures, algorithms, Git, communication.
+Experience: Helped classmates debug linked-list, tree, and sorting assignments.

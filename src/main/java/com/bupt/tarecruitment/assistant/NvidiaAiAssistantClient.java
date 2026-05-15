@@ -8,45 +8,99 @@ import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.Optional;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
- * Minimal NVIDIA NIM chat-completions client.
+ * Minimal OpenAI-compatible chat-completions client.
+ *
+ * <p>The class name is kept for compatibility with the existing UI wiring.
  */
 public final class NvidiaAiAssistantClient {
-    private static final URI CHAT_COMPLETIONS_URI =
+    private static final URI NVIDIA_CHAT_COMPLETIONS_URI =
         URI.create("https://integrate.api.nvidia.com/v1/chat/completions");
-    private static final String DEFAULT_MODEL = "z-ai/glm4.7";
-    private static final Pattern CONTENT_PATTERN = Pattern.compile(
-        "\"message\"\\s*:\\s*\\{.*?\"content\"\\s*:\\s*\"((?:\\\\.|[^\"\\\\])*)\"",
-        Pattern.DOTALL
-    );
-
+    private static final String DASHSCOPE_COMPATIBLE_BASE =
+        "https://dashscope.aliyuncs.com/compatible-mode/v1";
+    private static final String DEFAULT_NVIDIA_MODEL = "z-ai/glm4.7";
+    private static final String DEFAULT_DASHSCOPE_MODEL = "qwen-plus";
     private final HttpClient httpClient;
     private final String apiKey;
     private final String model;
+    private final URI chatCompletionsUri;
+    private final String providerName;
+    private final boolean nvidiaProvider;
 
     public NvidiaAiAssistantClient(String apiKey) {
-        this(apiKey, DEFAULT_MODEL);
+        this(apiKey, DEFAULT_NVIDIA_MODEL);
     }
 
     public NvidiaAiAssistantClient(String apiKey, String model) {
+        this(apiKey, model, NVIDIA_CHAT_COMPLETIONS_URI, "NVIDIA", true);
+    }
+
+    private NvidiaAiAssistantClient(
+        String apiKey,
+        String model,
+        URI chatCompletionsUri,
+        String providerName,
+        boolean nvidiaProvider
+    ) {
         this.httpClient = HttpClient.newBuilder()
             .connectTimeout(Duration.ofSeconds(12))
             .version(HttpClient.Version.HTTP_1_1)
             .build();
         this.apiKey = apiKey == null ? "" : apiKey.trim();
-        this.model = model == null || model.isBlank() ? DEFAULT_MODEL : model.trim();
+        this.model = model == null || model.isBlank() ? DEFAULT_NVIDIA_MODEL : model.trim();
+        this.chatCompletionsUri = chatCompletionsUri;
+        this.providerName = providerName;
+        this.nvidiaProvider = nvidiaProvider;
     }
 
     public static Optional<NvidiaAiAssistantClient> fromEnvironment() {
-        String apiKey = System.getenv("NVIDIA_API_KEY");
-        if (apiKey == null || apiKey.isBlank()) {
+        String dashScopeApiKey = firstNonBlank(
+            System.getenv("DASHSCOPE_API_KEY"),
+            System.getenv("ALIYUN_API_KEY")
+        );
+        if (dashScopeApiKey != null) {
+            String baseUrl = firstNonBlank(
+                System.getenv("DASHSCOPE_API_BASE"),
+                System.getenv("ALIYUN_API_BASE"),
+                System.getenv("AI_API_BASE"),
+                DASHSCOPE_COMPATIBLE_BASE
+            );
+            String model = firstNonBlank(
+                System.getenv("DASHSCOPE_AI_MODEL"),
+                System.getenv("ALIYUN_AI_MODEL"),
+                System.getenv("AI_MODEL"),
+                DEFAULT_DASHSCOPE_MODEL
+            );
+            return Optional.of(new NvidiaAiAssistantClient(
+                dashScopeApiKey,
+                model,
+                chatCompletionsUri(baseUrl),
+                "Alibaba Cloud DashScope",
+                false
+            ));
+        }
+
+        String genericApiKey = System.getenv("AI_API_KEY");
+        if (genericApiKey != null && !genericApiKey.isBlank()) {
+            String baseUrl = firstNonBlank(System.getenv("AI_API_BASE"), DASHSCOPE_COMPATIBLE_BASE);
+            String model = firstNonBlank(System.getenv("AI_MODEL"), DEFAULT_DASHSCOPE_MODEL);
+            String provider = firstNonBlank(System.getenv("AI_PROVIDER_NAME"), "OpenAI-compatible");
+            return Optional.of(new NvidiaAiAssistantClient(
+                genericApiKey,
+                model,
+                chatCompletionsUri(baseUrl),
+                provider,
+                false
+            ));
+        }
+
+        String nvidiaApiKey = System.getenv("NVIDIA_API_KEY");
+        if (nvidiaApiKey == null || nvidiaApiKey.isBlank()) {
             return Optional.empty();
         }
         String model = System.getenv("NVIDIA_AI_MODEL");
-        return Optional.of(new NvidiaAiAssistantClient(apiKey, model));
+        return Optional.of(new NvidiaAiAssistantClient(nvidiaApiKey, model));
     }
 
     public boolean isConfigured() {
@@ -54,7 +108,7 @@ public final class NvidiaAiAssistantClient {
     }
 
     public String model() {
-        return model;
+        return providerName + " / " + model;
     }
 
     public String chat(String systemPrompt, String userPrompt) {
@@ -63,9 +117,18 @@ public final class NvidiaAiAssistantClient {
 
     public String chat(String systemPrompt, String userPrompt, int maxTokens) {
         if (!isConfigured()) {
-            throw new IllegalStateException("NVIDIA_API_KEY is not configured.");
+            throw new IllegalStateException("Cloud API key is not configured.");
         }
         int safeMaxTokens = Math.max(120, Math.min(1200, maxTokens));
+
+        String extraFields = nvidiaProvider
+            ? """
+              ,
+              "chat_template_kwargs": {
+                "enable_thinking": false
+              }
+              """
+            : "";
 
         String requestJson = """
             {
@@ -76,19 +139,17 @@ public final class NvidiaAiAssistantClient {
               ],
               "temperature": 0.3,
               "max_tokens": %d,
-              "stream": false,
-              "chat_template_kwargs": {
-                "enable_thinking": false
-              }
+              "stream": false%s
             }
             """.formatted(
                 jsonEscape(model),
                 jsonEscape(systemPrompt),
                 jsonEscape(userPrompt),
-                safeMaxTokens
+                safeMaxTokens,
+                extraFields
             );
 
-        HttpRequest request = HttpRequest.newBuilder(CHAT_COMPLETIONS_URI)
+        HttpRequest request = HttpRequest.newBuilder(chatCompletionsUri)
             .timeout(Duration.ofSeconds(120))
             .header("Authorization", "Bearer " + apiKey)
             .header("Content-Type", "application/json")
@@ -107,7 +168,7 @@ public final class NvidiaAiAssistantClient {
                 sleepBeforeRetry();
             }
         }
-        throw lastFailure == null ? new IllegalStateException("NVIDIA API request failed.") : lastFailure;
+        throw lastFailure == null ? new IllegalStateException("Cloud API request failed.") : lastFailure;
     }
 
     private String sendOnce(HttpRequest request) {
@@ -115,15 +176,15 @@ public final class NvidiaAiAssistantClient {
             HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
             if (response.statusCode() < 200 || response.statusCode() >= 300) {
                 throw new IllegalStateException(
-                    "NVIDIA API request failed with HTTP " + response.statusCode() + ": " + response.body()
+                    providerName + " request failed with HTTP " + response.statusCode() + ": " + response.body()
                 );
             }
             return extractContent(response.body());
         } catch (IOException exception) {
-            throw new IllegalStateException("Failed to call NVIDIA API.", exception);
+            throw new IllegalStateException("Failed to call " + providerName + ".", exception);
         } catch (InterruptedException exception) {
             Thread.currentThread().interrupt();
-            throw new IllegalStateException("NVIDIA API call was interrupted.", exception);
+            throw new IllegalStateException(providerName + " call was interrupted.", exception);
         }
     }
 
@@ -145,11 +206,78 @@ public final class NvidiaAiAssistantClient {
     }
 
     static String extractContent(String responseJson) {
-        Matcher matcher = CONTENT_PATTERN.matcher(responseJson == null ? "" : responseJson);
-        if (!matcher.find()) {
-            throw new IllegalStateException("NVIDIA API response did not contain a chat message.");
+        String json = responseJson == null ? "" : responseJson;
+        int messageIndex = json.indexOf("\"message\"");
+        int searchStart = Math.max(messageIndex, 0);
+        int contentIndex = json.indexOf("\"content\"", searchStart);
+        if (contentIndex < 0) {
+            throw new IllegalStateException("Cloud API response did not contain a chat message.");
         }
-        return jsonUnescape(matcher.group(1)).trim();
+
+        int colonIndex = json.indexOf(':', contentIndex + "\"content\"".length());
+        if (colonIndex < 0) {
+            throw new IllegalStateException("Cloud API response did not contain a chat message.");
+        }
+
+        int valueStart = -1;
+        for (int index = colonIndex + 1; index < json.length(); index++) {
+            char character = json.charAt(index);
+            if (!Character.isWhitespace(character)) {
+                if (character == '"') {
+                    valueStart = index + 1;
+                }
+                break;
+            }
+        }
+        if (valueStart < 0) {
+            throw new IllegalStateException("Cloud API response did not contain a chat message.");
+        }
+
+        StringBuilder rawContent = new StringBuilder();
+        boolean escaped = false;
+        for (int index = valueStart; index < json.length(); index++) {
+            char character = json.charAt(index);
+            if (escaped) {
+                rawContent.append('\\').append(character);
+                escaped = false;
+                continue;
+            }
+            if (character == '\\') {
+                escaped = true;
+                continue;
+            }
+            if (character == '"') {
+                return jsonUnescape(rawContent.toString()).trim();
+            }
+            rawContent.append(character);
+        }
+
+        throw new IllegalStateException("Cloud API response did not contain a complete chat message.");
+    }
+
+    private static URI chatCompletionsUri(String baseUrl) {
+        String normalized = (baseUrl == null || baseUrl.isBlank())
+            ? DASHSCOPE_COMPATIBLE_BASE
+            : baseUrl.trim();
+        while (normalized.endsWith("/")) {
+            normalized = normalized.substring(0, normalized.length() - 1);
+        }
+        if (!normalized.endsWith("/chat/completions")) {
+            normalized = normalized + "/chat/completions";
+        }
+        return URI.create(normalized);
+    }
+
+    private static String firstNonBlank(String... candidates) {
+        if (candidates == null) {
+            return null;
+        }
+        for (String candidate : candidates) {
+            if (candidate != null && !candidate.isBlank()) {
+                return candidate.trim();
+            }
+        }
+        return null;
     }
 
     static String jsonEscape(String value) {

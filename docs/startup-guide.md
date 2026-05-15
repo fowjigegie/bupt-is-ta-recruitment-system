@@ -109,9 +109,9 @@ powershell -ExecutionPolicy Bypass -File scripts\web-clean.ps1 -RemoveRuntimeDat
 
 仓库初始账号来自 `data/users.txt`：
 
-- Applicant：`ta001 / demo-ta-password`
-- Module organiser：`mo001 / demo-mo-password`
-- Admin：`admin001 / demo-admin-password`
+- Applicant：`ta001 / 123456`
+- Module organiser：`mo001 / 123456`
+- Admin：`admin001 / 123456`
 
 JSP Web 版还支持直接通过 `register.jsp` 注册新账号。
 

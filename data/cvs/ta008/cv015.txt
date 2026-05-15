@@ -1,0 +1,4 @@
+Lin Siyu
+Focus: Software testing workshops and Java code reviews.
+Skills: Testing, JUnit, Java, detail orientation, teamwork.
+Experience: Designed unit-test examples and explained test coverage for course projects.

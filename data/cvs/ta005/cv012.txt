@@ -1,0 +1,4 @@
+Zhao Min
+Focus: Operating systems and computer networks lab support.
+Skills: C, Linux, networking, Wireshark, problem solving.
+Experience: Comfortable guiding shell, process, socket, and packet-capture exercises.

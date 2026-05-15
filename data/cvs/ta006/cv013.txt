@@ -1,0 +1,4 @@
+Sun Ke
+Focus: Statistics, Python notebooks, and data-analysis labs.
+Skills: Python, statistics, mathematics, data analysis, communication.
+Experience: Supported peer study groups on probability exercises and pandas notebooks.

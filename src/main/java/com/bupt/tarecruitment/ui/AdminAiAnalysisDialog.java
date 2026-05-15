@@ -149,12 +149,12 @@ final class AdminAiAnalysisDialog {
             protected String call() {
                 Optional<NvidiaAiAssistantClient> client = NvidiaAiAssistantClient.fromEnvironment();
                 if (client.isEmpty() || !client.get().isConfigured()) {
-                    return "NVIDIA_API_KEY is not configured for this Java process.\n\n"
-                        + "Set it before launching the app, then reopen the JavaFX program to use real AI analysis.";
+                    return "Cloud AI is not configured for this Java process yet.\n\n"
+                        + "You can still use the local dashboard tools. To enable Cloud AI analysis, set DASHSCOPE_API_KEY or NVIDIA_API_KEY before launching the app.";
                 }
                 String answer = client.get().chat(SYSTEM_PROMPT, promptSupplier.get(), maxTokens);
                 if (answer == null || answer.isBlank()) {
-                    return "NVIDIA returned an empty answer for this admin analysis.\n\n"
+                    return "Cloud AI returned an empty answer for this admin analysis.\n\n"
                         + "The API was reachable, but no readable chat content was returned. Please try again, or ask a shorter admin analysis question.";
                 }
                 return answer;
@@ -168,7 +168,7 @@ final class AdminAiAnalysisDialog {
         task.setOnFailed(event -> {
             thinkingAnimation.stop();
             thinkingLabel.setText(
-                "AI analysis could not be completed right now.\n\n"
+                "Cloud AI analysis could not be completed right now.\n\n"
                     + summarizeError(task.getException())
             );
             resultScroll.setVvalue(1.0);
@@ -198,7 +198,7 @@ final class AdminAiAnalysisDialog {
 
     private static String createProviderText() {
         Optional<NvidiaAiAssistantClient> client = NvidiaAiAssistantClient.fromEnvironment();
-        return client.map(value -> "NVIDIA: " + value.model()).orElse("NVIDIA not configured");
+        return client.map(value -> "Cloud AI: " + value.model()).orElse("Built-in tools only");
     }
 
     private static Node createAssistantBubble(String text) {

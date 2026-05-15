@@ -1,0 +1,4 @@
+Zhou Han
+Focus: Information security tutorials and Linux-based labs.
+Skills: Security, Python, Linux, analytical thinking, cryptography.
+Experience: Assisted classmates with basic crypto scripts, permissions, and threat-model exercises.

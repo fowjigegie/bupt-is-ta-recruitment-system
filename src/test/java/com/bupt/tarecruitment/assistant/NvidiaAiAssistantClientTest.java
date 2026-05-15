@@ -35,4 +35,23 @@ class NvidiaAiAssistantClientTest {
             NvidiaAiAssistantClient.jsonEscape("line 1\nquote: \"ok\"")
         );
     }
+
+    @Test
+    void extractsLongAssistantContentWithoutRegexBacktracking() {
+        String longText = "A".repeat(20_000) + "\\nDone";
+        String responseJson = """
+            {
+              "choices": [
+                {
+                  "message": {
+                    "role": "assistant",
+                    "content": "%s"
+                  }
+                }
+              ]
+            }
+            """.formatted(longText);
+
+        assertEquals("A".repeat(20_000) + "\nDone", NvidiaAiAssistantClient.extractContent(responseJson));
+    }
 }

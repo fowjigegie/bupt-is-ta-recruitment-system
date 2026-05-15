@@ -1,0 +1,19 @@
+2026-05-15T00:58:54.248347700	mo001	job001	application005	ta001	SHORTLIST_MAYBE	Marked as maybe from application detail.
+2026-05-15T00:58:54.815224500	mo001	job001	application005	ta001	SHORTLIST_NOT_SUITABLE	Marked as not suitable from application detail.
+2026-05-15T00:58:56.005954100	mo001	job001	application005	ta001	SHORTLIST_SHORTLISTED	Marked as strong shortlist from application detail.
+2026-05-15T20:30:29.933495600	mo001	job907	application926	ta001	SHORTLIST_MAYBE	Marked as maybe from application detail.
+2026-05-15T20:30:30.608098200	mo001	job907	application926	ta001	SHORTLIST_MAYBE	Marked as maybe from application detail.
+2026-05-15T20:30:35.658406200	mo001	job907	application926	ta001	STATUS_SUBMITTED_TO_SHORTLISTED	Shortlisted by MO in Application Review page.
+2026-05-15T20:30:48.420001800	mo001	job907	application926	ta001	STATUS_SHORTLISTED_TO_ACCEPTED	Accepted by MO in Application Review page.
+2026-05-15T20:30:52.578243900	mo001	job907	application926	ta001	STATUS_ACCEPTED_TO_SHORTLISTED	Shortlisted by MO in Application Review page.
+2026-05-15T20:30:53.981107900	mo001	job907	application926	ta001	SHORTLIST_SHORTLISTED	Marked as strong shortlist from application detail.
+2026-05-15T20:39:13.505066200	mo001	job001	application005	ta001	SHORTLIST_SHORTLISTED	Marked as strong shortlist from application detail.
+2026-05-15T20:39:14.102985	mo001	job001	application005	ta001	SHORTLIST_SHORTLISTED	Marked as strong shortlist from application detail.
+2026-05-15T20:39:14.905630800	mo001	job001	application005	ta001	SHORTLIST_MAYBE	Marked as maybe from application detail.
+2026-05-15T20:39:17.208797200	mo001	job001	application005	ta001	SHORTLIST_NOT_SUITABLE	Marked as not suitable from application detail.
+2026-05-15T20:39:18.070556800	mo001	job001	application005	ta001	SHORTLIST_NOT_SUITABLE	Marked as not suitable from application detail.
+2026-05-15T20:39:18.683223700	mo001	job001	application005	ta001	SHORTLIST_NOT_SUITABLE	Marked as not suitable from application detail.
+2026-05-15T20:39:19.162820100	mo001	job001	application005	ta001	SHORTLIST_NOT_SUITABLE	Marked as not suitable from application detail.
+2026-05-15T20:39:19.403901900	mo001	job001	application005	ta001	SHORTLIST_NOT_SUITABLE	Marked as not suitable from application detail.
+2026-05-15T20:39:19.562706300	mo001	job001	application005	ta001	SHORTLIST_NOT_SUITABLE	Marked as not suitable from application detail.
+2026-05-15T20:39:20.389745200	mo001	job001	application005	ta001	SHORTLIST_MAYBE	Marked as maybe from application detail.

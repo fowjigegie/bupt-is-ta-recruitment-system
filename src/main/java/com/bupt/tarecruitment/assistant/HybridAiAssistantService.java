@@ -43,9 +43,9 @@ public final class HybridAiAssistantService implements AiAssistantService {
             return localAnswer
                 + System.lineSeparator()
                 + System.lineSeparator()
-                + "(NVIDIA AI was unavailable: "
+                + "Small note: Cloud AI did not respond this time, so this answer came from the built-in helper using local system data. Reason: "
                 + summarizeError(exception)
-                + ". This answer used the local assistant fallback.)";
+                + ".";
         }
     }
 
@@ -57,7 +57,7 @@ public final class HybridAiAssistantService implements AiAssistantService {
     @Override
     public String providerLabel() {
         return isRealApiEnabled()
-            ? "NVIDIA API: " + nvidiaClient.get().model()
+            ? "Cloud AI: " + nvidiaClient.get().model()
             : fallbackService.providerLabel();
     }
 

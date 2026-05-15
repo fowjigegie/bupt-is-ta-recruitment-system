@@ -84,7 +84,7 @@ public class LoginPage extends Application {
         );
 
         Label hintLabel = UiTheme.createMutedText(
-            "Demo accounts: ta001 / demo-ta-password, mo001 / demo-mo-password, admin001 / demo-admin-password"
+            "Demo accounts: ta001 / 123456, mo001 / 123456, admin001 / 123456"
         );
         Label statusLabel = new Label();
         statusLabel.setWrapText(true);
