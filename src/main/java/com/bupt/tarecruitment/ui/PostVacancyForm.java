@@ -315,14 +315,21 @@ final class PostVacancyForm {
                 Label chipText = new Label(FixedScheduleBands.formatSlotForDisplay(slot));
                 chipText.setStyle("-fx-text-fill: #4664a8; -fx-font-weight: bold; -fx-font-size: 13px;");
 
-                Button removeBtn = new Button("脳");
+                Button removeBtn = new Button("\u00D7");
+                removeBtn.setMinWidth(28);
+                removeBtn.setPrefWidth(28);
+                removeBtn.setMaxWidth(28);
+                removeBtn.setMinHeight(28);
+                removeBtn.setPrefHeight(28);
+                removeBtn.setMaxHeight(28);
                 removeBtn.setStyle(
                     "-fx-background-color: transparent;" +
                         "-fx-text-fill: #8a4f7a;" +
-                        "-fx-font-size: 14px;" +
+                        "-fx-font-size: 18px;" +
                         "-fx-font-weight: bold;" +
                         "-fx-cursor: hand;" +
-                        "-fx-padding: 0 2 0 6;"
+                        "-fx-padding: 0;" +
+                        "-fx-background-insets: 0;"
                 );
                 removeBtn.setOnAction(event -> {
                     selectedScheduleSlots.remove(slot);

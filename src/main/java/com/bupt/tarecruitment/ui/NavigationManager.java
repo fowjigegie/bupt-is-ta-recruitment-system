@@ -105,6 +105,7 @@ public final class NavigationManager {
             case JOB_MANAGEMENT -> JobManagementPage.createScene(this, context);
             case APPLICATION_REVIEW -> ApplicationReviewPage.createScene(this, context);
             case MO_INSIGHTS -> MoInsightsPage.createScene(this, context);
+            case MO_INTERVIEW_SCHEDULE -> MoInterviewSchedulePage.createScene(this, context);
             case ADMIN_DASHBOARD -> AdminDashboardPage.createScene(this, context);
             case ADMIN_ANALYTICS -> AdminAnalyticsPage.createScene(this, context);
         };
@@ -181,7 +182,8 @@ public final class NavigationManager {
         return switch (pageId) {
             case APPLICANT_DASHBOARD, TA_WORKLOAD, MORE_JOBS, RESUME_DATABASE, SKILL_SELECTOR, JOB_DETAIL, INTERVIEW_INVITATION ->
                 UserRole.APPLICANT;
-            case MO_DASHBOARD, POST_VACANCIES, JOB_MANAGEMENT, APPLICATION_REVIEW, MO_INSIGHTS -> UserRole.MO;
+            case MO_DASHBOARD, POST_VACANCIES, JOB_MANAGEMENT, APPLICATION_REVIEW, MO_INSIGHTS, MO_INTERVIEW_SCHEDULE ->
+                UserRole.MO;
             case ADMIN_DASHBOARD, ADMIN_ANALYTICS -> UserRole.ADMIN;
             default -> null;
         };
@@ -212,6 +214,7 @@ public final class NavigationManager {
             case JOB_MANAGEMENT -> "BUPT-TA Job Management";
             case APPLICATION_REVIEW -> "BUPT-TA Application Review";
             case MO_INSIGHTS -> "BUPT-TA MO Insights";
+            case MO_INTERVIEW_SCHEDULE -> "BUPT-TA Interview schedule";
             case ADMIN_DASHBOARD -> "BUPT-TA Admin Dashboard";
             case ADMIN_ANALYTICS -> "BUPT-TA Admin Data Analytics";
         };

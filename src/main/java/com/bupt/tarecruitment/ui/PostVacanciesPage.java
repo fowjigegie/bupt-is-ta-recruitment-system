@@ -11,6 +11,7 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.Border;
@@ -38,8 +39,9 @@ public class PostVacanciesPage extends Application {
     }
 
     static Scene createScene(NavigationManager nav, UiAppContext context) {
-        VBox center = new VBox(22);
-        center.setPadding(new Insets(20, 40, 28, 40));
+        VBox scrollBody = new VBox(22);
+        scrollBody.setPadding(new Insets(20, 40, 28, 40));
+        scrollBody.setMaxWidth(Double.MAX_VALUE);
 
         Optional<JobPosting> editJob = resolveEditJob(context);
         boolean isEditMode = editJob.isPresent();
@@ -116,12 +118,22 @@ public class PostVacanciesPage extends Application {
 
         refreshQualityAssistant.run();
 
-        center.getChildren().addAll(titleLabel, formBox);
+        scrollBody.getChildren().addAll(titleLabel, formBox);
+
+        ScrollPane scrollPane = new ScrollPane(scrollBody);
+        scrollPane.setFitToWidth(true);
+        scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
+        scrollPane.setStyle(
+            "-fx-background: transparent;" +
+                "-fx-background-color: transparent;" +
+                "-fx-border-color: transparent;"
+        );
 
         BorderPane root = UiTheme.createPage(
             "Post Vacancies",
             UiTheme.createMoSidebar(nav, PageId.POST_VACANCIES),
-            center,
+            scrollPane,
             nav,
             context
         );
@@ -161,27 +173,30 @@ public class PostVacanciesPage extends Application {
 
         Label title = new Label("Live job quality assistant");
         title.setFont(javafx.scene.text.Font.font("Arial", javafx.scene.text.FontWeight.BOLD, 18));
-        title.setTextFill(Color.web("#4664a8"));
+        title.setStyle("-fx-text-fill: #111111 !important;");
 
         Label score = new Label("Quality score: " + report.qualityScore() + " / 100");
         score.setFont(javafx.scene.text.Font.font("Arial", javafx.scene.text.FontWeight.BOLD, 15));
-        score.setTextFill(Color.WHITE);
         score.setPadding(new Insets(6, 12, 6, 12));
         score.setStyle(
-            "-fx-background-color: " + scoreColor(report.qualityScore()) + ";" +
-                "-fx-background-radius: 16;"
+            "-fx-text-fill: #111111 !important;"
+                + "-fx-background-color: " + scoreColor(report.qualityScore()) + ";"
+                + "-fx-background-radius: 16;"
         );
 
         Label status = new Label(report.readyForPublishing() ? "Ready to publish" : "Needs attention before publishing");
         status.setFont(javafx.scene.text.Font.font("Arial", javafx.scene.text.FontWeight.BOLD, 15));
-        status.setTextFill(report.readyForPublishing() ? Color.web("#2e7d32") : Color.web("#b00020"));
+        status.setStyle("-fx-text-fill: #111111 !important;");
 
         HBox header = new HBox(12, title, score, status);
         header.setAlignment(Pos.CENTER_LEFT);
 
         VBox issueList = new VBox(8);
         if (report.issues().isEmpty()) {
-            Label empty = UiTheme.createMutedText("No quality issues detected. This posting is clear and ready.");
+            Label empty = new Label("No quality issues detected. This posting is clear and ready.");
+            empty.setWrapText(true);
+            empty.setFont(javafx.scene.text.Font.font("Arial", 15));
+            empty.setStyle("-fx-text-fill: #111111 !important;");
             issueList.getChildren().add(empty);
         } else {
             for (JobQualityIssue issue : report.issues()) {
@@ -192,11 +207,12 @@ public class PostVacanciesPage extends Application {
         qualityAssistantBox.getChildren().addAll(header, issueList);
         qualityAssistantBox.setPadding(new Insets(16));
         qualityAssistantBox.setStyle(
-            "-fx-background-color: #fff8fb;" +
-                "-fx-background-radius: 20;" +
-                "-fx-border-color: #f4d9e6;" +
-                "-fx-border-width: 1.5;" +
-                "-fx-border-radius: 20;"
+            "-fx-background-color: #fff8fb;"
+                + "-fx-background-radius: 20;"
+                + "-fx-border-color: #f4d9e6;"
+                + "-fx-border-width: 1.5;"
+                + "-fx-border-radius: 20;"
+                + "-fx-text-fill: #111111;"
         );
     }
 
@@ -209,13 +225,16 @@ public class PostVacanciesPage extends Application {
 
         Label severity = new Label(issue.severity());
         severity.setFont(javafx.scene.text.Font.font("Arial", javafx.scene.text.FontWeight.BOLD, 12));
-        severity.setTextFill(Color.WHITE);
         severity.setPadding(new Insets(4, 9, 4, 9));
-        severity.setStyle("-fx-background-color: " + color + "; -fx-background-radius: 12;");
+        severity.setStyle(
+            "-fx-background-color: " + color + ";"
+                + "-fx-background-radius: 12;"
+                + "-fx-text-fill: #ffffff !important;"
+        );
 
         Label message = new Label(issue.code() + " | " + issue.message());
         message.setWrapText(true);
-        message.setTextFill(Color.web("#3f4370"));
+        message.setStyle("-fx-text-fill: #111111 !important;");
 
         HBox row = new HBox(10, severity, message);
         row.setAlignment(Pos.CENTER_LEFT);

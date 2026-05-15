@@ -5,6 +5,8 @@ import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
@@ -36,7 +38,7 @@ public class MessagesPage extends Application {
         }
 
         String userId = context.session().userId();
-        MessagesWorkspace workspace = MessagesWorkspace.create();
+        MessagesWorkspace workspace = MessagesWorkspace.create(context.session().role(), nav);
 
         Runnable refreshThreads = () -> {
             List<ChatThread> threads = MessagesConversationView.buildThreads(context, userId);
@@ -75,15 +77,20 @@ public class MessagesPage extends Application {
 
         workspace.refreshButton().setOnAction(event -> refreshThreads.run());
         workspace.sendButton().setOnAction(event -> sendMessageAction.run());
-        workspace.messageInput().setOnAction(event -> sendMessageAction.run());
+        workspace.messageInput().addEventFilter(KeyEvent.KEY_PRESSED, event -> {
+            if (event.getCode() == KeyCode.ENTER && event.isControlDown()) {
+                sendMessageAction.run();
+                event.consume();
+            }
+        });
 
         HBox contentRow = new HBox(14, workspace.leftPane(), workspace.rightPane());
 
-        center.getChildren().addAll(
-            UiTheme.createPageHeading("Messages"),
-            UiTheme.createMutedText("Chat with MO per job context. Select a conversation and send messages below."),
-            contentRow
+        center.getChildren().add(UiTheme.createPageHeading("Messages"));
+        center.getChildren().add(
+            UiTheme.createMutedText("Chat with MO per job context. Select a conversation and send messages below.")
         );
+        center.getChildren().add(contentRow);
         if (context.session().role() == UserRole.MO) {
             HBox footer = new HBox(UiTheme.createBackButton(nav));
             footer.setAlignment(Pos.CENTER_LEFT);

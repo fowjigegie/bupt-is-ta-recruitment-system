@@ -1,5 +1,6 @@
 package com.bupt.tarecruitment.ui;
 
+import com.bupt.tarecruitment.auth.UserRole;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.geometry.Insets;
@@ -7,7 +8,7 @@ import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
-import javafx.scene.control.TextField;
+import javafx.scene.control.TextArea;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.Border;
@@ -31,7 +32,7 @@ final class MessagesWorkspace {
     private final Label conversationTitle;
     private final VBox messageFlow;
     private final ScrollPane messageScroll;
-    private final TextField messageInput;
+    private final TextArea messageInput;
     private final Label statusLabel;
     private final Button refreshButton;
     private final Button sendButton;
@@ -44,7 +45,7 @@ final class MessagesWorkspace {
         Label conversationTitle,
         VBox messageFlow,
         ScrollPane messageScroll,
-        TextField messageInput,
+        TextArea messageInput,
         Label statusLabel,
         Button refreshButton,
         Button sendButton,
@@ -64,7 +65,7 @@ final class MessagesWorkspace {
         this.rightPane = rightPane;
     }
 
-    static MessagesWorkspace create() {
+    static MessagesWorkspace create(UserRole role, NavigationManager nav) {
         ObjectProperty<ChatThread> selectedThread = new SimpleObjectProperty<>(null);
 
         VBox threadListBox = new VBox(10);
@@ -104,15 +105,16 @@ final class MessagesWorkspace {
                 "-fx-background-radius:12;"
         );
 
-        TextField messageInput = new TextField();
-        messageInput.setPromptText("Type your message to the selected user...");
-        messageInput.setPrefHeight(42);
+        TextArea messageInput = new TextArea();
+        messageInput.setPromptText("Type your message to the selected user... (Ctrl+Enter to send)");
+        messageInput.setWrapText(true);
         messageInput.setStyle(
-            "-fx-background-color: #ffffff;" +
-                "-fx-background-radius: 12;" +
-                "-fx-border-color: #f0d9e9;" +
-                "-fx-border-radius: 12;" +
-                "-fx-padding: 0 12 0 12;"
+            "-fx-background-color: #ffffff;"
+                + "-fx-control-inner-background: #ffffff;"
+                + "-fx-background-radius: 12;"
+                + "-fx-border-color: #f0d9e9;"
+                + "-fx-border-radius: 12;"
+                + "-fx-padding: 8 12 8 12;"
         );
 
         Label statusLabel = UiTheme.createMutedText("");
@@ -121,9 +123,33 @@ final class MessagesWorkspace {
         Button refreshButton = UiTheme.createSoftButton("Refresh", 110, 42);
         Button sendButton = UiTheme.createPrimaryButton("Send", 120, 42);
 
-        HBox composer = new HBox(10, messageInput, sendButton, refreshButton);
+        HBox sendRefreshRow = new HBox(8, sendButton, refreshButton);
+        sendRefreshRow.setAlignment(Pos.CENTER_RIGHT);
+
+        VBox buttonStack = new VBox(8, sendRefreshRow);
+        buttonStack.setFillWidth(true);
+        if (role == UserRole.MO) {
+            Button interviewSchedule = new Button("Interview schedule");
+            interviewSchedule.setMinHeight(40);
+            interviewSchedule.setMaxWidth(Double.MAX_VALUE);
+            interviewSchedule.setStyle(
+                "-fx-text-fill: #111111 !important;"
+                    + "-fx-font-size: 14px;"
+                    + "-fx-background-color: #ffffff;"
+                    + "-fx-border-color: #4664a8;"
+                    + "-fx-border-radius: 10;"
+                    + "-fx-background-radius: 10;"
+            );
+            interviewSchedule.setOnAction(event -> nav.goTo(PageId.MO_INTERVIEW_SCHEDULE));
+            buttonStack.getChildren().add(interviewSchedule);
+        }
+
+        HBox composer = new HBox(10, messageInput, buttonStack);
         HBox.setHgrow(messageInput, Priority.ALWAYS);
-        composer.setAlignment(Pos.CENTER_LEFT);
+        composer.setAlignment(Pos.TOP_LEFT);
+        messageInput.minHeightProperty().bind(buttonStack.heightProperty());
+        messageInput.prefHeightProperty().bind(buttonStack.heightProperty());
+        messageInput.maxHeightProperty().bind(buttonStack.heightProperty());
 
         VBox leftPane = new VBox(10, UiTheme.createSectionTitle("Conversations"), threadScroll);
         leftPane.setPadding(new Insets(14));
@@ -180,7 +206,7 @@ final class MessagesWorkspace {
         return messageScroll;
     }
 
-    TextField messageInput() {
+    TextArea messageInput() {
         return messageInput;
     }
 
