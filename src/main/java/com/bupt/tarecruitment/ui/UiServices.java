@@ -12,6 +12,7 @@ import com.bupt.tarecruitment.applicant.ApplicantProfileValidator;
 import com.bupt.tarecruitment.applicant.CvTextStorage;
 import com.bupt.tarecruitment.applicant.TextFileApplicantCvRepository;
 import com.bupt.tarecruitment.applicant.TextFileApplicantProfileRepository;
+import com.bupt.tarecruitment.applicant.TextFileCvAttachmentStorage;
 import com.bupt.tarecruitment.applicant.TextFileCvStorage;
 import com.bupt.tarecruitment.assistant.AiAssistantService;
 import com.bupt.tarecruitment.assistant.FakeAiAssistantService;
@@ -168,6 +169,7 @@ public final class UiServices {
             cvRepository,
             new ApplicantCvIdGenerator(cvRepository),
             cvStorage,
+            new TextFileCvAttachmentStorage(dataDirectory),
             userRepository,
             applicationRepository
         );
