@@ -24,6 +24,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * 封装简历库页面的表单输入、导入和内容组装逻辑。
@@ -38,6 +39,7 @@ final class ResumeDatabaseForm {
     private final TextArea cvContentArea;
     private final TextArea positionsArea;
     private final LinkedHashSet<String> selectedSkills;
+    private Path selectedPdfPath;
     private boolean storedAvatarPresent;
 
     private ResumeDatabaseForm(
@@ -59,6 +61,7 @@ final class ResumeDatabaseForm {
         this.cvContentArea = cvContentArea;
         this.positionsArea = positionsArea;
         this.selectedSkills = new LinkedHashSet<>();
+        this.selectedPdfPath = null;
         this.storedAvatarPresent = false;
     }
 
@@ -164,6 +167,7 @@ final class ResumeDatabaseForm {
     void clearCvFields() {
         cvTitleField.clear();
         cvContentArea.clear();
+        selectedPdfPath = null;
     }
 
     ApplicantProfile toApplicantProfile(UiAppContext context, String avatarPath) {
@@ -277,6 +281,52 @@ final class ResumeDatabaseForm {
         } catch (IOException exception) {
             statusLabel.setTextFill(Color.web("#b00020"));
             statusLabel.setText("Failed to read the selected .txt file: " + exception.getMessage());
+        }
+    }
+
+    void importPdfCv(Label statusLabel) {
+        FileChooser chooser = new FileChooser();
+        chooser.setTitle("Choose a .pdf CV file");
+        chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("PDF files (*.pdf)", "*.pdf"));
+
+        Path selectedPath = null;
+        if (cvTitleField.getScene() != null && cvTitleField.getScene().getWindow() != null) {
+            var selectedFile = chooser.showOpenDialog(cvTitleField.getScene().getWindow());
+            if (selectedFile != null) {
+                selectedPath = selectedFile.toPath();
+            }
+        }
+
+        if (selectedPath == null) {
+            return;
+        }
+
+        String fileName = selectedPath.getFileName().toString();
+        if (!fileName.toLowerCase().endsWith(".pdf")) {
+            statusLabel.setTextFill(Color.web("#b00020"));
+            statusLabel.setText("Only .pdf CV files are supported.");
+            return;
+        }
+
+        selectedPdfPath = selectedPath;
+        if (cvTitleField.getText().isBlank()) {
+            cvTitleField.setText(fileName.substring(0, fileName.length() - 4));
+        }
+        statusLabel.setTextFill(Color.web("#2e7d32"));
+        statusLabel.setText("Local .pdf file selected. Save or update CV to attach it.");
+    }
+
+    Optional<byte[]> consumeSelectedPdfBytes() {
+        if (selectedPdfPath == null) {
+            return Optional.empty();
+        }
+
+        Path pathToLoad = selectedPdfPath;
+        selectedPdfPath = null;
+        try {
+            return Optional.of(Files.readAllBytes(pathToLoad));
+        } catch (IOException exception) {
+            throw new IllegalStateException("Failed to read the selected .pdf file: " + exception.getMessage(), exception);
         }
     }
 

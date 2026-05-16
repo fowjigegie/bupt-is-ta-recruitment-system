@@ -9,6 +9,7 @@ import com.bupt.tarecruitment.application.ApplicationStatus;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 /**
  * 管理申请人简历库的查询、保存和读取。
@@ -20,6 +21,7 @@ public final class ApplicantCvLibraryService {
     private final ApplicantCvRepository cvRepository;
     private final ApplicantCvIdGenerator cvIdGenerator;
     private final CvTextStorage cvStorage;
+    private final CvAttachmentStorage attachmentStorage;
     private final UserAccessPolicy userAccessPolicy;
     private final ApplicationRepository applicationRepository;
 
@@ -29,7 +31,15 @@ public final class ApplicantCvLibraryService {
         ApplicantCvIdGenerator cvIdGenerator,
         CvTextStorage cvStorage
     ) {
-        this(profileRepository, cvRepository, cvIdGenerator, cvStorage, UserAccessPolicy.noOp(), null);
+        this(
+            profileRepository,
+            cvRepository,
+            cvIdGenerator,
+            cvStorage,
+            new TextFileCvAttachmentStorage(),
+            UserAccessPolicy.noOp(),
+            null
+        );
     }
 
     public ApplicantCvLibraryService(
@@ -39,7 +49,15 @@ public final class ApplicantCvLibraryService {
         CvTextStorage cvStorage,
         UserRepository userRepository
     ) {
-        this(profileRepository, cvRepository, cvIdGenerator, cvStorage, new UserAccessPolicy(userRepository), null);
+        this(
+            profileRepository,
+            cvRepository,
+            cvIdGenerator,
+            cvStorage,
+            new TextFileCvAttachmentStorage(),
+            new UserAccessPolicy(userRepository),
+            null
+        );
     }
 
     public ApplicantCvLibraryService(
@@ -55,6 +73,27 @@ public final class ApplicantCvLibraryService {
             cvRepository,
             cvIdGenerator,
             cvStorage,
+            new TextFileCvAttachmentStorage(),
+            new UserAccessPolicy(userRepository),
+            applicationRepository
+        );
+    }
+
+    public ApplicantCvLibraryService(
+        ApplicantProfileRepository profileRepository,
+        ApplicantCvRepository cvRepository,
+        ApplicantCvIdGenerator cvIdGenerator,
+        CvTextStorage cvStorage,
+        CvAttachmentStorage attachmentStorage,
+        UserRepository userRepository,
+        ApplicationRepository applicationRepository
+    ) {
+        this(
+            profileRepository,
+            cvRepository,
+            cvIdGenerator,
+            cvStorage,
+            attachmentStorage,
             new UserAccessPolicy(userRepository),
             applicationRepository
         );
@@ -65,6 +104,7 @@ public final class ApplicantCvLibraryService {
         ApplicantCvRepository cvRepository,
         ApplicantCvIdGenerator cvIdGenerator,
         CvTextStorage cvStorage,
+        CvAttachmentStorage attachmentStorage,
         UserAccessPolicy userAccessPolicy,
         ApplicationRepository applicationRepository
     ) {
@@ -72,6 +112,7 @@ public final class ApplicantCvLibraryService {
         this.cvRepository = Objects.requireNonNull(cvRepository);
         this.cvIdGenerator = Objects.requireNonNull(cvIdGenerator);
         this.cvStorage = Objects.requireNonNull(cvStorage);
+        this.attachmentStorage = Objects.requireNonNull(attachmentStorage);
         this.userAccessPolicy = Objects.requireNonNull(userAccessPolicy);
         this.applicationRepository = applicationRepository;
     }
@@ -153,12 +194,55 @@ public final class ApplicantCvLibraryService {
             throw new IllegalArgumentException("No CV exists for cvId: " + cvId);
         }
         cvStorage.deleteCv(existingCv.fileName());
+        attachmentStorage.findPdfPath(existingCv.ownerUserId(), existingCv.cvId())
+            .ifPresent(attachmentStorage::deletePdf);
     }
 
     public List<ApplicantCv> listCvsByUserId(String ownerUserId) {
         requireNonBlank(ownerUserId, "ownerUserId");
         userAccessPolicy.requireActiveUserWithRole(ownerUserId, UserRole.APPLICANT);
         return cvRepository.findByOwnerUserId(ownerUserId);
+    }
+
+    public String attachPdfToCv(String ownerUserId, String cvId, byte[] pdfBytes) {
+        requireNonBlank(ownerUserId, "ownerUserId");
+        requireNonBlank(cvId, "cvId");
+        userAccessPolicy.requireActiveUserWithRole(ownerUserId, UserRole.APPLICANT);
+
+        ApplicantCv existingCv = getCvById(cvId);
+        if (!existingCv.ownerUserId().equals(ownerUserId.trim())) {
+            throw new IllegalArgumentException("The selected CV does not belong to ownerUserId: " + ownerUserId);
+        }
+        return attachmentStorage.savePdf(existingCv.ownerUserId(), existingCv.cvId(), pdfBytes);
+    }
+
+    public Optional<String> findPdfPathByCvId(String cvId) {
+        requireNonBlank(cvId, "cvId");
+        ApplicantCv existingCv = getCvById(cvId);
+        return attachmentStorage.findPdfPath(existingCv.ownerUserId(), existingCv.cvId());
+    }
+
+    public byte[] loadPdfByCvId(String cvId) {
+        requireNonBlank(cvId, "cvId");
+        ApplicantCv existingCv = getCvById(cvId);
+        String relativePath = attachmentStorage.findPdfPath(existingCv.ownerUserId(), existingCv.cvId())
+            .orElseThrow(() -> new IllegalArgumentException("No PDF attachment exists for cvId: " + cvId));
+        return attachmentStorage.loadPdf(relativePath);
+    }
+
+    public boolean deletePdfAttachment(String ownerUserId, String cvId) {
+        requireNonBlank(ownerUserId, "ownerUserId");
+        requireNonBlank(cvId, "cvId");
+        userAccessPolicy.requireActiveUserWithRole(ownerUserId, UserRole.APPLICANT);
+
+        ApplicantCv existingCv = getCvById(cvId);
+        if (!existingCv.ownerUserId().equals(ownerUserId.trim())) {
+            throw new IllegalArgumentException("The selected CV does not belong to ownerUserId: " + ownerUserId);
+        }
+
+        return attachmentStorage.findPdfPath(existingCv.ownerUserId(), existingCv.cvId())
+            .map(attachmentStorage::deletePdf)
+            .orElse(false);
     }
 
     // US02 约束：没有先创建 applicant profile，就不能开始维护 CV library。

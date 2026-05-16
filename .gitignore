@@ -2,6 +2,7 @@ out/
 *.class
 .idea/
 .vscode/
+/target/
 *.iml
 ~$*.docx
 ~$*.xlsx

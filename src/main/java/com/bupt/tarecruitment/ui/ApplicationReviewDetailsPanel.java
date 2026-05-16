@@ -22,7 +22,9 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
+import javafx.stage.FileChooser;
 
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -92,6 +94,42 @@ final class ApplicationReviewDetailsPanel {
             nav.goTo(PageId.MESSAGES);
         });
 
+        boolean hasPdfAttachment = context.services().cvLibraryService().findPdfPathByCvId(review.cv().cvId()).isPresent();
+        Button downloadPdfButton = UiTheme.createOutlineButton("Download CV PDF", 180, 44);
+        downloadPdfButton.setDisable(!hasPdfAttachment);
+        downloadPdfButton.setOnAction(event -> {
+            if (!hasPdfAttachment) {
+                return;
+            }
+
+            FileChooser chooser = new FileChooser();
+            chooser.setTitle("Save CV PDF");
+            chooser.setInitialFileName(review.cv().cvId() + ".pdf");
+            chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("PDF files (*.pdf)", "*.pdf"));
+
+            if (actionStatus.getScene() == null || actionStatus.getScene().getWindow() == null) {
+                return;
+            }
+
+            var targetFile = chooser.showSaveDialog(actionStatus.getScene().getWindow());
+            if (targetFile == null) {
+                return;
+            }
+
+            try {
+                byte[] pdfBytes = context.services().cvLibraryService().loadPdfByCvId(review.cv().cvId());
+                Files.write(targetFile.toPath(), pdfBytes);
+                actionStatus.setTextFill(Color.web("#2e7d32"));
+                actionStatus.setText("CV PDF downloaded: " + targetFile.getName());
+            } catch (RuntimeException exception) {
+                actionStatus.setTextFill(Color.web("#b00020"));
+                actionStatus.setText(exception.getMessage());
+            } catch (Exception exception) {
+                actionStatus.setTextFill(Color.web("#b00020"));
+                actionStatus.setText("Failed to save PDF: " + exception.getMessage());
+            }
+        });
+
         ApplicationStatus currentStatus = review.application().status();
         boolean actionable = currentStatus != ApplicationStatus.WITHDRAWN;
 
@@ -128,7 +166,7 @@ final class ApplicationReviewDetailsPanel {
             refreshList
         ));
 
-        HBox actionRow = new HBox(12, chatButton, shortlistedButton, acceptedButton, rejectedButton);
+        HBox actionRow = new HBox(12, chatButton, downloadPdfButton, shortlistedButton, acceptedButton, rejectedButton);
         actionRow.setAlignment(Pos.CENTER_LEFT);
 
         HBox candidatePoolRow = createCandidatePoolRow(context, review.application(), actionStatus, refreshList);

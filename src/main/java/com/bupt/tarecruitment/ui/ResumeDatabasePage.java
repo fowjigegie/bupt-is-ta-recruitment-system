@@ -284,9 +284,12 @@ public class ResumeDatabasePage extends Application {
                     form.cvTitle(),
                     form.resolveCvContent()
                 );
+                boolean pdfAttached = attachPendingPdfIfAny(context, form, createdCv, statusLabel);
                 selectedCvRef.set(createdCv);
-                statusLabel.setTextFill(Color.web("#2e7d32"));
-                statusLabel.setText("New CV saved successfully.");
+                if (!pdfAttached) {
+                    statusLabel.setTextFill(Color.web("#2e7d32"));
+                    statusLabel.setText("New CV saved successfully.");
+                }
                 refreshCvTabs.run();
             } catch (RuntimeException exception) {
                 statusLabel.setTextFill(Color.web("#b00020"));
@@ -324,8 +327,11 @@ public class ResumeDatabasePage extends Application {
                     selectedCv.cvId(),
                     form.resolveCvContent()
                 );
-                statusLabel.setTextFill(Color.web("#2e7d32"));
-                statusLabel.setText("CV updated successfully: " + selectedCv.cvId());
+                boolean pdfAttached = attachPendingPdfIfAny(context, form, selectedCv, statusLabel);
+                if (!pdfAttached) {
+                    statusLabel.setTextFill(Color.web("#2e7d32"));
+                    statusLabel.setText("CV updated successfully: " + selectedCv.cvId());
+                }
                 refreshCvTabs.run();
             } catch (RuntimeException exception) {
                 statusLabel.setTextFill(Color.web("#b00020"));
@@ -374,13 +380,42 @@ public class ResumeDatabasePage extends Application {
         var importButton = UiTheme.createOutlineButton("Import .txt CV", 180, 46);
         importButton.setOnAction(event -> form.importTxtCv(statusLabel));
 
+        var importPdfButton = UiTheme.createOutlineButton("Import .pdf CV", 180, 46);
+        importPdfButton.setOnAction(event -> form.importPdfCv(statusLabel));
+
+        var removePdfButton = UiTheme.createOutlineButton("Remove PDF attachment", 180, 46);
+        removePdfButton.setOnAction(event -> {
+            ApplicantCv selectedCv = selectedCvRef.get();
+            if (selectedCv == null) {
+                statusLabel.setTextFill(Color.web("#b00020"));
+                statusLabel.setText("Please select a CV before removing PDF.");
+                return;
+            }
+            try {
+                boolean deleted = context.services().cvLibraryService().deletePdfAttachment(
+                    context.session().userId(),
+                    selectedCv.cvId()
+                );
+                if (deleted) {
+                    statusLabel.setTextFill(Color.web("#2e7d32"));
+                    statusLabel.setText("PDF attachment removed from CV: " + selectedCv.cvId());
+                } else {
+                    statusLabel.setTextFill(Color.web("#4664a8"));
+                    statusLabel.setText("No PDF attachment found for the selected CV.");
+                }
+            } catch (RuntimeException exception) {
+                statusLabel.setTextFill(Color.web("#b00020"));
+                statusLabel.setText(exception.getMessage());
+            }
+        });
+
         var chatButton = UiTheme.createOutlineButton("Open messages", 180, 46);
         chatButton.setOnAction(event -> nav.goTo(PageId.MESSAGES));
 
         rightPanel.getChildren().addAll(
             createActionGroup("Avatar", avatarPane, uploadAvatarButton, removeAvatarButton),
             createActionGroup("Profile", saveProfileButton),
-            createActionGroup("CV Library", importButton, saveNewCvButton, updateCvButton, deleteCvButton),
+            createActionGroup("CV Library", importButton, importPdfButton, removePdfButton, saveNewCvButton, updateCvButton, deleteCvButton),
             createActionGroup("Messages", chatButton)
         );
 
@@ -418,6 +453,27 @@ public class ResumeDatabasePage extends Application {
         );
         Optional<javafx.scene.control.ButtonType> choice = alert.showAndWait();
         return choice.isPresent() && choice.get() == javafx.scene.control.ButtonType.OK;
+    }
+
+    private static boolean attachPendingPdfIfAny(
+        UiAppContext context,
+        ResumeDatabaseForm form,
+        ApplicantCv cv,
+        Label statusLabel
+    ) {
+        Optional<byte[]> pendingPdfBytes = form.consumeSelectedPdfBytes();
+        if (pendingPdfBytes.isEmpty()) {
+            return false;
+        }
+
+        context.services().cvLibraryService().attachPdfToCv(
+            context.session().userId(),
+            cv.cvId(),
+            pendingPdfBytes.get()
+        );
+        statusLabel.setTextFill(Color.web("#2e7d32"));
+        statusLabel.setText("CV saved and PDF attachment uploaded successfully.");
+        return true;
     }
 
     private static ApplicantProfile saveProfile(UiAppContext context, ResumeDatabaseForm form) {

@@ -17,3 +17,4 @@
 2026-05-15T20:39:19.403901900	mo001	job001	application005	ta001	SHORTLIST_NOT_SUITABLE	Marked as not suitable from application detail.
 2026-05-15T20:39:19.562706300	mo001	job001	application005	ta001	SHORTLIST_NOT_SUITABLE	Marked as not suitable from application detail.
 2026-05-15T20:39:20.389745200	mo001	job001	application005	ta001	SHORTLIST_MAYBE	Marked as maybe from application detail.
+2026-05-16T20:10:10.737114600	mo001	job905	application927	ta822	STATUS_SUBMITTED_TO_REJECTED	Rejected by MO in Application Review page.
