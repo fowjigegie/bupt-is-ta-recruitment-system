@@ -1,5 +1,11 @@
 package com.bupt.tarecruitment.ui;
 
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
 import com.bupt.tarecruitment.admin.WorkloadSummary;
 import com.bupt.tarecruitment.application.ApplicationStatus;
 import com.bupt.tarecruitment.application.JobApplication;
@@ -7,6 +13,7 @@ import com.bupt.tarecruitment.assistant.NvidiaAiAssistantClient;
 import com.bupt.tarecruitment.auth.UserRole;
 import com.bupt.tarecruitment.job.JobPosting;
 import com.bupt.tarecruitment.job.JobStatus;
+
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.concurrent.Task;
@@ -17,13 +24,6 @@ import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
-import javafx.scene.layout.Background;
-import javafx.scene.layout.BackgroundFill;
-import javafx.scene.layout.Border;
-import javafx.scene.layout.BorderStroke;
-import javafx.scene.layout.BorderStrokeStyle;
-import javafx.scene.layout.BorderWidths;
-import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
@@ -36,16 +36,16 @@ import javafx.stage.Stage;
 import javafx.stage.Window;
 import javafx.util.Duration;
 
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.stream.Collectors;
-
 /**
- * Admin-only NVIDIA analysis entry points.
+ * Modal Cloud AI analysis dialogs for the admin dashboard.
+ * <p>
+ * Two entry points are exposed: a whole-system health review and a single job-posting
+ * quality review. Both assemble a read-only snapshot from local repositories, send it to
+ * {@link NvidiaAiAssistantClient}, and render the streamed answer in a chat-style layout.
  */
 final class AdminAiAnalysisDialog {
+
+    /** Shared guardrails for every admin analysis request sent to the Cloud AI provider. */
     private static final String SYSTEM_PROMPT = """
         You are an AI analyst for the BUPT-TA Recruitment System admin dashboard.
         Use only the system snapshot supplied by the application.
@@ -59,6 +59,7 @@ final class AdminAiAnalysisDialog {
     private AdminAiAnalysisDialog() {
     }
 
+    /** Opens a dashboard-wide analysis covering users, jobs, applications, workload, and integrity. */
     static void showSystemAnalysis(Window owner, UiAppContext context) {
         showAnalysisDialog(
             owner,
@@ -69,6 +70,7 @@ final class AdminAiAnalysisDialog {
         );
     }
 
+    /** Opens a focused review of one job posting's data quality and applicant appeal. */
     static void showJobPostingReview(Window owner, UiAppContext context, JobPosting job) {
         showAnalysisDialog(
             owner,
@@ -79,6 +81,10 @@ final class AdminAiAnalysisDialog {
         );
     }
 
+    /**
+     * Builds the shared modal shell, runs the Cloud AI request on a background thread,
+     * and replaces the animated "Thinking..." placeholder with the final answer or error.
+     */
     private static void showAnalysisDialog(
         Window owner,
         String titleText,
@@ -115,6 +121,7 @@ final class AdminAiAnalysisDialog {
             createMetaLabel("Assistant provider: " + createProviderText())
         );
 
+        // Placeholder bubble updated by the animation until the background task finishes.
         Label thinkingLabel = createBubbleLabel("Thinking...");
         transcript.getChildren().add(wrapAssistantBubble(thinkingLabel));
 
@@ -136,6 +143,7 @@ final class AdminAiAnalysisDialog {
         shell.setPadding(new Insets(24));
         shell.setBackground(UiTheme.pageBackground());
 
+        // Cycle "Thinking." / ".." / "..." while waiting for the Cloud AI response.
         Timeline thinkingAnimation = new Timeline(
             new KeyFrame(Duration.ZERO, event -> thinkingLabel.setText("Thinking.")),
             new KeyFrame(Duration.millis(350), event -> thinkingLabel.setText("Thinking..")),
@@ -144,6 +152,7 @@ final class AdminAiAnalysisDialog {
         thinkingAnimation.setCycleCount(Timeline.INDEFINITE);
         thinkingAnimation.play();
 
+        // Keep the UI responsive while the Cloud AI client performs the network call.
         Task<String> task = new Task<>() {
             @Override
             protected String call() {
@@ -181,6 +190,7 @@ final class AdminAiAnalysisDialog {
         dialog.showAndWait();
     }
 
+    /** Badge showing the configured Cloud AI model, or a fallback when no API key is set. */
     private static Label createProviderTag() {
         Label tag = new Label(createProviderText());
         tag.setFont(Font.font("Arial", FontWeight.BOLD, 13));
@@ -196,6 +206,7 @@ final class AdminAiAnalysisDialog {
         return tag;
     }
 
+    /** Resolves the provider label from environment variables at dialog open time. */
     private static String createProviderText() {
         Optional<NvidiaAiAssistantClient> client = NvidiaAiAssistantClient.fromEnvironment();
         return client.map(value -> "Cloud AI: " + value.model()).orElse("Built-in tools only");
@@ -242,6 +253,10 @@ final class AdminAiAnalysisDialog {
         return label;
     }
 
+    /**
+     * Serialises a cross-cutting admin snapshot: user counts, job/application totals,
+     * integrity findings, TA workload risks, and application distribution outliers.
+     */
     private static String buildSystemPrompt(UiAppContext context) {
         List<JobApplication> applications = context.services().applicationRepository().findAll();
         List<JobPosting> jobs = context.services().jobRepository().findAll();
@@ -250,6 +265,7 @@ final class AdminAiAnalysisDialog {
 
         Map<String, Long> applicationsByJob = applications.stream()
             .collect(Collectors.groupingBy(JobApplication::jobId, Collectors.counting()));
+        // Jobs ranked by application volume help the model spot over- and under-subscribed roles.
         List<JobPosting> topJobs = jobs.stream()
             .sorted(Comparator
                 .comparingLong((JobPosting job) -> applicationsByJob.getOrDefault(job.jobId(), 0L))
@@ -257,6 +273,7 @@ final class AdminAiAnalysisDialog {
                 .thenComparing(JobPosting::jobId))
             .limit(6)
             .toList();
+        // Open postings with zero applications are a common recruitment-flow blocker.
         List<JobPosting> lowApplicationOpenJobs = jobs.stream()
             .filter(job -> job.status() == JobStatus.OPEN)
             .filter(job -> applicationsByJob.getOrDefault(job.jobId(), 0L) == 0)
@@ -319,6 +336,10 @@ final class AdminAiAnalysisDialog {
         return prompt.toString();
     }
 
+    /**
+     * Serialises one job posting plus local heuristic checks (placeholder title, short
+     * description, missing skills/schedule) for admin quality-control review.
+     */
     private static String buildJobReviewPrompt(UiAppContext context, JobPosting job) {
         List<JobApplication> applications = context.services().applicationRepository().findAll().stream()
             .filter(application -> application.jobId().equals(job.jobId()))
@@ -357,6 +378,7 @@ final class AdminAiAnalysisDialog {
         return prompt.toString();
     }
 
+    /** Counts non-admin users, optionally filtered to a single role. */
     private static long countUsers(UiAppContext context, UserRole role) {
         return context.services().userRepository().findAll().stream()
             .filter(user -> user.role() != UserRole.ADMIN)
@@ -364,6 +386,7 @@ final class AdminAiAnalysisDialog {
             .count();
     }
 
+    /** Detects titles that are unlikely to attract applicants without Cloud AI inference. */
     private static boolean looksPlaceholderTitle(String title) {
         String normalized = title == null ? "" : title.trim().toLowerCase();
         return normalized.isBlank()
@@ -374,6 +397,7 @@ final class AdminAiAnalysisDialog {
             || normalized.startsWith("job ");
     }
 
+    /** Extracts a user-facing message from the task exception chain. */
     private static String summarizeError(Throwable throwable) {
         if (throwable == null) {
             return "Unknown error.";
@@ -388,6 +412,7 @@ final class AdminAiAnalysisDialog {
         return throwable.getClass().getSimpleName();
     }
 
+    /** Lazy prompt builder so snapshot data is collected when the background task runs. */
     @FunctionalInterface
     private interface PromptSupplier {
         String get();
