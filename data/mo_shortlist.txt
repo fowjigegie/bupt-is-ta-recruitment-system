@@ -1,2 +1,6 @@
 mo001	job907	application926	ta001	SHORTLISTED	Marked as strong shortlist from application detail.	2026-05-15T20:30:53.974625900
-mo001	job001	application005	ta001	MAYBE	Marked as maybe from application detail.	2026-05-15T20:39:20.387740800
+mo001	job001	application001	ta001	SHORTLISTED	Marked as strong shortlist from application detail.	2026-05-17T23:07:56.974482100
+mo001	job002	application002	ta001	NOT_SUITABLE	Marked as not suitable from application detail.	2026-05-17T23:08:17.979910200
+mo001	job001	application005	ta001	SHORTLISTED	Marked as strong shortlist from application detail.	2026-05-17T23:13:43.225544200
+mo001	job014	application921	ta011	NOT_SUITABLE	Marked as not suitable from application detail.	2026-05-17T23:28:29.099923600
+mo001	job013	application925	ta013	NOT_SUITABLE	Marked as not suitable from application detail.	2026-05-17T23:28:52.116477600

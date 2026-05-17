@@ -1,7 +1,10 @@
 package com.bupt.tarecruitment.ui;
 
+import java.util.List;
+
 import com.bupt.tarecruitment.application.JobApplication;
 import com.bupt.tarecruitment.job.JobPosting;
+
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.geometry.Insets;
@@ -21,11 +24,6 @@ import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.util.StringConverter;
 
-import java.util.List;
-
-/**
- * 维护申请审核页的左右栏控件和选中状态。
- */
 final class ApplicationReviewWorkspace {
     private final ComboBox<JobPosting> jobBox;
     private final VBox applicantListBox;
@@ -33,8 +31,6 @@ final class ApplicationReviewWorkspace {
     private final VBox detailContent;
     private final Label actionStatus;
     private final ObjectProperty<JobApplication> selectedApplication;
-    private final VBox leftPane;
-    private final VBox rightPane;
     private final HBox contentRow;
 
     private ApplicationReviewWorkspace(
@@ -44,8 +40,6 @@ final class ApplicationReviewWorkspace {
         VBox detailContent,
         Label actionStatus,
         ObjectProperty<JobApplication> selectedApplication,
-        VBox leftPane,
-        VBox rightPane,
         HBox contentRow
     ) {
         this.jobBox = jobBox;
@@ -54,8 +48,6 @@ final class ApplicationReviewWorkspace {
         this.detailContent = detailContent;
         this.actionStatus = actionStatus;
         this.selectedApplication = selectedApplication;
-        this.leftPane = leftPane;
-        this.rightPane = rightPane;
         this.contentRow = contentRow;
     }
 
@@ -85,6 +77,8 @@ final class ApplicationReviewWorkspace {
 
         ScrollPane listScroll = new ScrollPane(applicantListBox);
         listScroll.setFitToWidth(true);
+        listScroll.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        listScroll.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
         listScroll.setPrefViewportHeight(560);
         listScroll.setStyle(
             "-fx-background:#faf9fc;" +
@@ -106,10 +100,12 @@ final class ApplicationReviewWorkspace {
 
         VBox detailContent = new VBox(14);
         detailContent.setPadding(new Insets(4, 2, 4, 2));
-        detailContent.getChildren().add(UiTheme.createMutedText("Click \"View Details\" to load full CV here."));
+        detailContent.getChildren().add(UiTheme.createMutedText("Click \"View\" to load full CV here."));
 
         ScrollPane detailScroll = new ScrollPane(detailContent);
         detailScroll.setFitToWidth(true);
+        detailScroll.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        detailScroll.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
         detailScroll.setPrefViewportHeight(560);
         detailScroll.setStyle(
             "-fx-background:#ffffff;" +
@@ -121,6 +117,7 @@ final class ApplicationReviewWorkspace {
 
         Label actionStatus = UiTheme.createMutedText("");
         actionStatus.setTextFill(Color.web("#b00020"));
+
         ObjectProperty<JobApplication> selectedApplication = new SimpleObjectProperty<>(null);
 
         VBox leftPane = new VBox(10);
@@ -137,7 +134,8 @@ final class ApplicationReviewWorkspace {
         leftPane.setBorder(new Border(new BorderStroke(
             Color.web("#f0d9e9"), BorderStrokeStyle.SOLID, new CornerRadii(18), new BorderWidths(1.2)
         )));
-        leftPane.setPrefWidth(460);
+        leftPane.setPrefWidth(520);
+        leftPane.setMinWidth(500);
 
         VBox rightPane = new VBox(12, detailTitle, detailScroll, actionStatus);
         rightPane.setPadding(new Insets(14));
@@ -147,6 +145,9 @@ final class ApplicationReviewWorkspace {
         )));
         HBox.setHgrow(rightPane, Priority.ALWAYS);
 
+        HBox contentRow = new HBox(14, leftPane, rightPane);
+        contentRow.setFillHeight(true);
+
         return new ApplicationReviewWorkspace(
             jobBox,
             applicantListBox,
@@ -154,9 +155,7 @@ final class ApplicationReviewWorkspace {
             detailContent,
             actionStatus,
             selectedApplication,
-            leftPane,
-            rightPane,
-            new HBox(14, leftPane, rightPane)
+            contentRow
         );
     }
 
@@ -178,10 +177,6 @@ final class ApplicationReviewWorkspace {
 
     Label actionStatus() {
         return actionStatus;
-    }
-
-    ObjectProperty<JobApplication> selectedApplicationProperty() {
-        return selectedApplication;
     }
 
     JobApplication selectedApplication() {

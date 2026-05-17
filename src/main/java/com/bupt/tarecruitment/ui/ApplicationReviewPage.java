@@ -26,9 +26,6 @@ import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.stage.Stage;
 
-/**
- * 申请审核页，负责岗位切换、申请列表刷新和页面编排。
- */
 public class ApplicationReviewPage extends Application {
     @Override
     public void start(Stage stage) {
@@ -43,7 +40,6 @@ public class ApplicationReviewPage extends Application {
 
         Label heading = UiTheme.createPageHeading("Application review");
         heading.setStyle("-fx-text-fill: #4664a8;");
-
         content.getChildren().add(heading);
 
         if (ownedJobs.isEmpty()) {
@@ -56,15 +52,17 @@ public class ApplicationReviewPage extends Application {
                 .filter(job -> job.jobId().equals(context.selectedJobId()))
                 .findFirst()
                 .orElse(ownedJobs.getFirst());
+
             ApplicationReviewWorkspace workspace = ApplicationReviewWorkspace.create(ownedJobs, initialJob);
 
-            workspace.applicantListBox().setPrefWidth(560);
-            workspace.applicantListBox().setMinWidth(520);
-            workspace.detailContent().setPrefWidth(360);
+            workspace.applicantListBox().setPrefWidth(500);
+            workspace.applicantListBox().setMinWidth(460);
+            workspace.detailContent().setPrefWidth(520);
 
             Runnable[] refreshListRef = new Runnable[1];
             refreshListRef[0] = () -> {
                 workspace.applicantListBox().getChildren().clear();
+
                 JobPosting selectedJob = workspace.jobBox().getValue();
                 if (selectedJob == null) {
                     return;
@@ -72,6 +70,7 @@ public class ApplicationReviewPage extends Application {
 
                 List<RankedApplicantCandidate> rankedCandidates = context.services().moApplicantRankingService()
                     .rankApplicantsForJob(selectedJob.jobId());
+
                 Map<String, RankedApplicantCandidate> rankingByApplicationId = rankedCandidates.stream()
                     .collect(Collectors.toMap(
                         RankedApplicantCandidate::applicationId,
@@ -155,6 +154,7 @@ public class ApplicationReviewPage extends Application {
         ScrollPane pageScroll = new ScrollPane(content);
         pageScroll.setFitToWidth(true);
         pageScroll.setPannable(true);
+        pageScroll.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
         pageScroll.setStyle("-fx-background-color: transparent; -fx-background: transparent; -fx-border-color: transparent;");
 
         BorderPane root = UiTheme.createPage(
@@ -190,25 +190,13 @@ public class ApplicationReviewPage extends Application {
         java.util.function.Consumer<JobApplication> onSelect
     ) {
         var profileOpt = context.services().profileRepository().findByUserId(application.applicantUserId());
-
         String applicantName = profileOpt.map(p -> p.fullName()).orElse(application.applicantUserId());
 
         Label nameLabel = new Label(applicantName);
         nameLabel.setFont(Font.font("Arial", FontWeight.BOLD, 18));
         nameLabel.setTextFill(Color.web("#4664a8"));
-        nameLabel.setPrefWidth(145);
-        nameLabel.setMinWidth(130);
-
-        Label statusLabel = new Label(ApplicationStatusPresenter.toDisplayText(application.status()));
-        statusLabel.setFont(Font.font("Arial", FontWeight.BOLD, 14));
-        statusLabel.setTextFill(Color.web("#4664a8"));
-        statusLabel.setPadding(new Insets(4, 10, 4, 10));
-        statusLabel.setPrefWidth(110);
-        statusLabel.setMinWidth(100);
-        statusLabel.setStyle(
-            "-fx-background-color: " + ApplicationReviewDetailsPanel.statusColor(application.status()) + ";"
-                + " -fx-background-radius: 10;"
-        );
+        nameLabel.setPrefWidth(170);
+        nameLabel.setMinWidth(150);
 
         Label scoreLabel = new Label("Rank " + candidate.rankScore());
         scoreLabel.setFont(Font.font("Arial", FontWeight.BOLD, 13));
@@ -221,14 +209,14 @@ public class ApplicationReviewPage extends Application {
                 + " -fx-background-radius: 10;"
         );
 
-        Label matchLabel = new Label(candidate.skillMatchPercent() + "% skills");
-        matchLabel.setFont(Font.font("Arial", FontWeight.BOLD, 13));
-        matchLabel.setTextFill(Color.web("#4664a8"));
-        matchLabel.setPadding(new Insets(4, 10, 4, 10));
-        matchLabel.setPrefWidth(105);
-        matchLabel.setMinWidth(95);
-        matchLabel.setStyle(
-            "-fx-background-color: #eef2ff;"
+        Label statusLabel = new Label(ApplicationStatusPresenter.toDisplayText(application.status()));
+        statusLabel.setFont(Font.font("Arial", FontWeight.BOLD, 14));
+        statusLabel.setTextFill(Color.web("#4664a8"));
+        statusLabel.setPadding(new Insets(4, 10, 4, 10));
+        statusLabel.setPrefWidth(120);
+        statusLabel.setMinWidth(115);
+        statusLabel.setStyle(
+            "-fx-background-color: " + ApplicationReviewDetailsPanel.statusColor(application.status()) + ";"
                 + " -fx-background-radius: 10;"
         );
 
@@ -236,7 +224,7 @@ public class ApplicationReviewPage extends Application {
         detailsButton.setMinWidth(72);
         detailsButton.setOnAction(event -> onSelect.accept(application));
 
-        HBox row = new HBox(10, nameLabel, scoreLabel, matchLabel, statusLabel, detailsButton);
+        HBox row = new HBox(10, nameLabel, scoreLabel, statusLabel, detailsButton);
         row.setAlignment(Pos.CENTER_LEFT);
         row.setPadding(new Insets(14, 10, 14, 10));
         row.setMaxWidth(Double.MAX_VALUE);
@@ -258,7 +246,6 @@ public class ApplicationReviewPage extends Application {
         Label body = new Label(
             "Top candidate: " + top.applicantName()
                 + " | Score: " + top.rankScore()
-                + " | Skill match: " + top.skillMatchPercent() + "%"
                 + " | Availability: " + (top.availabilityFit() ? "Fit" : "Risk")
         );
         body.setWrapText(true);

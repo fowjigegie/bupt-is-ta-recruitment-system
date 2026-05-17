@@ -1,14 +1,25 @@
 package com.bupt.tarecruitment.ui;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+
 import com.bupt.tarecruitment.applicant.ApplicantCvReview;
 import com.bupt.tarecruitment.applicant.ApplicantProfile;
 import com.bupt.tarecruitment.application.ApplicationStatus;
 import com.bupt.tarecruitment.application.ApplicationStatusPresenter;
 import com.bupt.tarecruitment.application.JobApplication;
-import com.bupt.tarecruitment.mo.MoShortlistStatus;
+
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonBar;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.ContentDisplay;
+import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
@@ -24,16 +35,6 @@ import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.stage.FileChooser;
 
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-
-/**
- * 封装申请审核页右侧的简历详情展示与状态更新操作。
- */
 final class ApplicationReviewDetailsPanel {
     private ApplicationReviewDetailsPanel() {
     }
@@ -49,12 +50,18 @@ final class ApplicationReviewDetailsPanel {
     ) {
         try {
             ApplicantCvReview review = context.services().cvReviewService().loadReviewByApplicationId(application.applicationId());
+
             detailTitle.setText("CV | " + review.cv().cvId() + " | " + review.profile().fullName());
             detailTitle.setTextFill(Color.web("#4664a8"));
+            detailTitle.setGraphic(createDownloadPdfButton(context, review, actionStatus));
+            detailTitle.setContentDisplay(ContentDisplay.RIGHT);
+            detailTitle.setGraphicTextGap(12);
+
             detailContent.getChildren().setAll(build(context, review, actionStatus, nav, refreshList));
             actionStatus.setText("");
         } catch (Exception exception) {
             detailTitle.setText("Applicant details");
+            detailTitle.setGraphic(null);
             detailContent.getChildren().setAll(UiTheme.createWhiteCard("Failed to load CV", exception.getMessage()));
             actionStatus.setText(exception.getMessage());
             actionStatus.setTextFill(Color.web("#b00020"));
@@ -78,15 +85,8 @@ final class ApplicationReviewDetailsPanel {
 
         TextArea cvTextArea = createReadonlyLargeArea(resolveCvBodyText(review.cvContent()), 190);
 
-        Label statusTag = new Label("Current Status: " + ApplicationStatusPresenter.toDisplayText(review.application().status()));
-        statusTag.setStyle(
-            "-fx-background-color: " + statusColor(review.application().status()) + ";" +
-                "-fx-text-fill: white;" +
-                "-fx-background-radius: 12;" +
-                "-fx-padding: 6 12 6 12;" +
-                "-fx-font-size: 14px;" +
-                "-fx-font-weight: bold;"
-        );
+        Label statusTag = new Label();
+        updateStatusTag(review.application(), statusTag);
 
         Button chatButton = UiTheme.createOutlineButton("Chat", 160, 44);
         chatButton.setOnAction(event -> {
@@ -94,48 +94,12 @@ final class ApplicationReviewDetailsPanel {
             nav.goTo(PageId.MESSAGES);
         });
 
-        boolean hasPdfAttachment = context.services().cvLibraryService().findPdfPathByCvId(review.cv().cvId()).isPresent();
-        Button downloadPdfButton = UiTheme.createOutlineButton("Download CV PDF", 180, 44);
-        downloadPdfButton.setDisable(!hasPdfAttachment);
-        downloadPdfButton.setOnAction(event -> {
-            if (!hasPdfAttachment) {
-                return;
-            }
-
-            FileChooser chooser = new FileChooser();
-            chooser.setTitle("Save CV PDF");
-            chooser.setInitialFileName(review.cv().cvId() + ".pdf");
-            chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("PDF files (*.pdf)", "*.pdf"));
-
-            if (actionStatus.getScene() == null || actionStatus.getScene().getWindow() == null) {
-                return;
-            }
-
-            var targetFile = chooser.showSaveDialog(actionStatus.getScene().getWindow());
-            if (targetFile == null) {
-                return;
-            }
-
-            try {
-                byte[] pdfBytes = context.services().cvLibraryService().loadPdfByCvId(review.cv().cvId());
-                Files.write(targetFile.toPath(), pdfBytes);
-                actionStatus.setTextFill(Color.web("#2e7d32"));
-                actionStatus.setText("CV PDF downloaded: " + targetFile.getName());
-            } catch (RuntimeException exception) {
-                actionStatus.setTextFill(Color.web("#b00020"));
-                actionStatus.setText(exception.getMessage());
-            } catch (Exception exception) {
-                actionStatus.setTextFill(Color.web("#b00020"));
-                actionStatus.setText("Failed to save PDF: " + exception.getMessage());
-            }
-        });
-
         ApplicationStatus currentStatus = review.application().status();
         boolean actionable = currentStatus != ApplicationStatus.WITHDRAWN;
 
-        Button shortlistedButton = UiTheme.createSoftButton("Shortlisted", 160, 44);
-        shortlistedButton.setDisable(!actionable || currentStatus == ApplicationStatus.SHORTLISTED);
-        shortlistedButton.setOnAction(event -> updateReviewStatus(
+        Button shortlistButton = UiTheme.createSoftButton("Shortlist", 160, 44);
+        shortlistButton.setDisable(!actionable || currentStatus == ApplicationStatus.SHORTLISTED);
+        shortlistButton.setOnAction(event -> updateReviewStatus(
             context,
             review.application().applicationId(),
             ApplicationStatus.SHORTLISTED,
@@ -166,10 +130,8 @@ final class ApplicationReviewDetailsPanel {
             refreshList
         ));
 
-        HBox actionRow = new HBox(12, chatButton, downloadPdfButton, shortlistedButton, acceptedButton, rejectedButton);
+        HBox actionRow = new HBox(12, chatButton, shortlistButton, acceptedButton, rejectedButton);
         actionRow.setAlignment(Pos.CENTER_LEFT);
-
-        HBox candidatePoolRow = createCandidatePoolRow(context, review.application(), actionStatus, refreshList);
 
         HBox row1 = new HBox(12, nameField, gradeField);
         HBox row2 = new HBox(12, programmeField, studentIdField);
@@ -184,62 +146,205 @@ final class ApplicationReviewDetailsPanel {
             createTagListBlock("Profile Skills", profile.skills(), "No skills selected in the applicant profile."),
             createTagListBlock("Desired Positions", profile.desiredPositions(), "No desired positions listed in the applicant profile."),
             statusTag,
-            candidatePoolRow,
             actionRow
         );
+
         form.setPadding(new Insets(4, 6, 12, 6));
         return form;
     }
 
-
-    private static HBox createCandidatePoolRow(
+    private static Button createDownloadPdfButton(
         UiAppContext context,
-        JobApplication application,
-        Label actionStatus,
-        Runnable refreshList
+        ApplicantCvReview review,
+        Label actionStatus
     ) {
-        Button shortlistButton = UiTheme.createOutlineButton("Pool: Shortlist", 150, 40);
-        shortlistButton.setOnAction(event -> markCandidatePool(
-            context, application, MoShortlistStatus.SHORTLISTED, "Marked as strong shortlist from application detail.", actionStatus, refreshList
-        ));
+        boolean hasPdfAttachment = context.services().cvLibraryService()
+            .findPdfPathByCvId(review.cv().cvId())
+            .isPresent();
 
-        Button maybeButton = UiTheme.createOutlineButton("Pool: Maybe", 130, 40);
-        maybeButton.setOnAction(event -> markCandidatePool(
-            context, application, MoShortlistStatus.MAYBE, "Marked as maybe from application detail.", actionStatus, refreshList
-        ));
+        Button downloadPdfButton = UiTheme.createOutlineButton("Download CV PDF", 170, 36);
+        downloadPdfButton.setDisable(!hasPdfAttachment);
 
-        Button notSuitableButton = UiTheme.createOutlineButton("Pool: Not suitable", 160, 40);
-        notSuitableButton.setOnAction(event -> markCandidatePool(
-            context, application, MoShortlistStatus.NOT_SUITABLE, "Marked as not suitable from application detail.", actionStatus, refreshList
-        ));
+        downloadPdfButton.setOnAction(event -> {
+            if (!hasPdfAttachment) {
+                return;
+            }
 
-        HBox row = new HBox(10, shortlistButton, maybeButton, notSuitableButton);
-        row.setAlignment(Pos.CENTER_LEFT);
-        return row;
+            FileChooser chooser = new FileChooser();
+            chooser.setTitle("Save CV PDF");
+            chooser.setInitialFileName(review.cv().cvId() + ".pdf");
+            chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("PDF files (*.pdf)", "*.pdf"));
+
+            if (actionStatus.getScene() == null || actionStatus.getScene().getWindow() == null) {
+                return;
+            }
+
+            var targetFile = chooser.showSaveDialog(actionStatus.getScene().getWindow());
+            if (targetFile == null) {
+                return;
+            }
+
+            try {
+                byte[] pdfBytes = context.services().cvLibraryService().loadPdfByCvId(review.cv().cvId());
+                Files.write(targetFile.toPath(), pdfBytes);
+
+                actionStatus.setTextFill(Color.web("#2e7d32"));
+                actionStatus.setText("CV PDF downloaded: " + targetFile.getName());
+            } catch (RuntimeException exception) {
+                actionStatus.setTextFill(Color.web("#b00020"));
+                actionStatus.setText(exception.getMessage());
+            } catch (Exception exception) {
+                actionStatus.setTextFill(Color.web("#b00020"));
+                actionStatus.setText("Failed to save PDF: " + exception.getMessage());
+            }
+        });
+
+        return downloadPdfButton;
     }
 
-    private static void markCandidatePool(
+    private static void updateReviewStatus(
         UiAppContext context,
-        JobApplication application,
-        MoShortlistStatus status,
-        String note,
+        String applicationId,
+        ApplicationStatus nextStatus,
+        String reviewerNote,
         Label actionStatus,
         Runnable refreshList
     ) {
         try {
-            context.services().moShortlistService().mark(
-                context.session().userId(),
-                application.applicationId(),
-                status,
-                note
+            JobApplication current = context.services().applicationRepository()
+                .findByApplicationId(applicationId)
+                .orElseThrow(() -> new IllegalArgumentException("Application not found."));
+
+            ApplicationStatus fromStatus = current.status();
+
+            if (fromStatus == nextStatus) {
+                return;
+            }
+
+            if (fromStatus == ApplicationStatus.WITHDRAWN) {
+                throw new IllegalArgumentException("Withdrawn applications cannot be reviewed.");
+            }
+
+            boolean confirmed = showStyledConfirmDialog(
+                "Confirm status change",
+                "Application status update",
+                "Change application status from "
+                    + ApplicationStatusPresenter.toDisplayText(fromStatus)
+                    + " to "
+                    + ApplicationStatusPresenter.toDisplayText(nextStatus)
+                    + "?"
             );
+
+            if (!confirmed) {
+                return;
+            }
+
+            JobApplication updatedApplication = context.services().applicationDecisionService().updateStatus(
+                context.session().userId(),
+                applicationId,
+                nextStatus,
+                reviewerNote
+            );
+
+            context.services().moDecisionLogService().record(
+                context.session().userId(),
+                updatedApplication.jobId(),
+                updatedApplication.applicationId(),
+                updatedApplication.applicantUserId(),
+                "STATUS_" + fromStatus.name() + "_TO_" + nextStatus.name(),
+                reviewerNote
+            );
+
             actionStatus.setTextFill(Color.web("#2e7d32"));
-            actionStatus.setText("Candidate pool updated to " + status.name() + ".");
+            actionStatus.setText("Application updated to " + ApplicationStatusPresenter.toDisplayText(nextStatus) + ".");
             refreshList.run();
-        } catch (IllegalArgumentException | IllegalStateException exception) {
+        } catch (IllegalArgumentException exception) {
             actionStatus.setTextFill(Color.web("#b00020"));
             actionStatus.setText(exception.getMessage());
         }
+    }
+
+    private static boolean showStyledConfirmDialog(
+        String title,
+        String heading,
+        String message
+    ) {
+        Dialog<ButtonType> dialog = new Dialog<>();
+        dialog.setTitle(title);
+
+        ButtonType confirmButtonType = new ButtonType("Confirm", ButtonBar.ButtonData.OK_DONE);
+        ButtonType cancelButtonType = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
+
+        dialog.getDialogPane().getButtonTypes().addAll(confirmButtonType, cancelButtonType);
+
+        Label headingLabel = new Label(heading);
+        headingLabel.setFont(Font.font("Arial", FontWeight.BOLD, 20));
+        headingLabel.setTextFill(Color.web("#4664a8"));
+
+        Label messageLabel = new Label(message);
+        messageLabel.setFont(Font.font("Arial", 15));
+        messageLabel.setTextFill(Color.web("#5c6481"));
+        messageLabel.setWrapText(true);
+
+        VBox content = new VBox(14, headingLabel, messageLabel);
+        content.setPadding(new Insets(22));
+        content.setStyle(
+            "-fx-background-color: #fff8fb;" +
+                "-fx-background-radius: 22;" +
+                "-fx-border-color: #f3b2df;" +
+                "-fx-border-radius: 22;" +
+                "-fx-border-width: 2;"
+        );
+
+        dialog.getDialogPane().setContent(content);
+        dialog.getDialogPane().setStyle(
+            "-fx-background-color: #fff8fb;" +
+                "-fx-background-radius: 22;" +
+                "-fx-border-color: #f3b2df;" +
+                "-fx-border-radius: 22;" +
+                "-fx-border-width: 2;"
+        );
+
+        Button confirmButton = (Button) dialog.getDialogPane().lookupButton(confirmButtonType);
+        confirmButton.setStyle(
+            "-fx-background-color: linear-gradient(to right, #ffd699, #ffb3d9);" +
+                "-fx-text-fill: #4664a8;" +
+                "-fx-font-size: 14px;" +
+                "-fx-font-weight: bold;" +
+                "-fx-background-radius: 20;" +
+                "-fx-padding: 8 22 8 22;"
+        );
+
+        Button cancelButton = (Button) dialog.getDialogPane().lookupButton(cancelButtonType);
+        cancelButton.setStyle(
+            "-fx-background-color: white;" +
+                "-fx-text-fill: #333333;" +
+                "-fx-font-size: 14px;" +
+                "-fx-font-weight: bold;" +
+                "-fx-background-radius: 20;" +
+                "-fx-border-color: #f0a6e9;" +
+                "-fx-border-radius: 20;" +
+                "-fx-border-width: 2;" +
+                "-fx-padding: 8 22 8 22;"
+        );
+
+        Optional<ButtonType> result = dialog.showAndWait();
+        return result.isPresent() && result.get() == confirmButtonType;
+    }
+
+    private static void updateStatusTag(
+        JobApplication application,
+        Label statusTag
+    ) {
+        statusTag.setText("Current Status: " + ApplicationStatusPresenter.toDisplayText(application.status()));
+        statusTag.setStyle(
+            "-fx-background-color: " + statusColor(application.status()) + ";" +
+                "-fx-text-fill: white;" +
+                "-fx-background-radius: 12;" +
+                "-fx-padding: 6 12 6 12;" +
+                "-fx-font-size: 14px;" +
+                "-fx-font-weight: bold;"
+        );
     }
 
     private static VBox createApplicantAvatarPreview(UiAppContext context, ApplicantProfile profile) {
@@ -262,6 +367,7 @@ final class ApplicationReviewDetailsPanel {
         if (avatarPath.isEmpty() && !profile.avatarPath().isBlank()) {
             avatarPath = context.services().applicantAvatarStorageService().resolveAvatar(profile.avatarPath());
         }
+
         if (avatarPath.isPresent()) {
             try {
                 Image image = new Image(avatarPath.get().toUri().toString(), 96, 96, true, true, true);
@@ -283,6 +389,7 @@ final class ApplicationReviewDetailsPanel {
         placeholder.setFill(Color.TRANSPARENT);
         placeholder.setStroke(Color.web("#db4b87"));
         placeholder.setStrokeWidth(3);
+
         previewPane.getChildren().add(new VBox(6, new StackPane(placeholder), UiTheme.createMutedText("No avatar")));
         return new VBox(6, title, previewPane);
     }
@@ -324,66 +431,6 @@ final class ApplicationReviewDetailsPanel {
         }
 
         return new VBox(6, label, tags);
-    }
-
-    private static void updateReviewStatus(
-        UiAppContext context,
-        String applicationId,
-        ApplicationStatus nextStatus,
-        String reviewerNote,
-        Label actionStatus,
-        Runnable refreshList
-    ) {
-        try {
-            JobApplication current = context.services().applicationRepository()
-                .findByApplicationId(applicationId)
-                .orElseThrow(() -> new IllegalArgumentException("Application not found."));
-
-            ApplicationStatus fromStatus = current.status();
-            if (fromStatus == nextStatus) {
-                return;
-            }
-            if (fromStatus == ApplicationStatus.WITHDRAWN) {
-                throw new IllegalArgumentException("Withdrawn applications cannot be reviewed.");
-            }
-
-            javafx.scene.control.Alert confirm = new javafx.scene.control.Alert(javafx.scene.control.Alert.AlertType.CONFIRMATION);
-            confirm.setTitle("Confirm status change");
-            confirm.setHeaderText(null);
-            confirm.setContentText(
-                "Change application status from "
-                    + ApplicationStatusPresenter.toDisplayText(fromStatus)
-                    + " to "
-                    + ApplicationStatusPresenter.toDisplayText(nextStatus)
-                    + "..."
-            );
-
-            var result = confirm.showAndWait();
-            if (result.isEmpty() || result.get() != javafx.scene.control.ButtonType.OK) {
-                return;
-            }
-
-            JobApplication updatedApplication = context.services().applicationDecisionService().updateStatus(
-                context.session().userId(),
-                applicationId,
-                nextStatus,
-                reviewerNote
-            );
-            context.services().moDecisionLogService().record(
-                context.session().userId(),
-                updatedApplication.jobId(),
-                updatedApplication.applicationId(),
-                updatedApplication.applicantUserId(),
-                "STATUS_" + fromStatus.name() + "_TO_" + nextStatus.name(),
-                reviewerNote
-            );
-            actionStatus.setTextFill(Color.web("#2e7d32"));
-            actionStatus.setText("Application updated to " + ApplicationStatusPresenter.toDisplayText(nextStatus) + ".");
-            refreshList.run();
-        } catch (IllegalArgumentException exception) {
-            actionStatus.setTextFill(Color.web("#b00020"));
-            actionStatus.setText(exception.getMessage());
-        }
     }
 
     private static TextField createReadonlyRoundedField(String prompt, String value, double width) {
@@ -446,32 +493,39 @@ final class ApplicationReviewDetailsPanel {
     private static String resolveCvBodyText(String content) {
         Map<String, String> parsed = parseCvContent(content);
         String body = parsed.get("CV Text");
+
         if (body != null && !body.isBlank()) {
             return body;
         }
+
         if (parsed.isEmpty()) {
             return content == null ? "" : content.trim();
         }
+
         return "No free-form CV text provided. This CV currently only stores structured profile fields.";
     }
 
     private static Map<String, String> parseCvContent(String content) {
         Map<String, String> result = new LinkedHashMap<>();
+
         if (content == null || content.isBlank()) {
             return result;
         }
 
         StringBuilder cvBody = new StringBuilder();
+
         for (String line : content.split("\\R")) {
             int separatorIndex = line.indexOf(": ");
             if (separatorIndex > 0) {
                 String key = line.substring(0, separatorIndex).trim();
                 String value = line.substring(separatorIndex + 2).trim();
+
                 if (isKnownCvKey(key)) {
                     result.put(key, value);
                     continue;
                 }
             }
+
             cvBody.append(line).append(System.lineSeparator());
         }
 
@@ -479,6 +533,7 @@ final class ApplicationReviewDetailsPanel {
         if (!bodyText.isBlank()) {
             result.put("CV Text", bodyText);
         }
+
         return result;
     }
 
